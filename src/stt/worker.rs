@@ -116,7 +116,7 @@ impl GenericSttWorker {
                             return StreamAction::Reconnect;
                         },
                         Err(e) => {
-                            tracing::error!("Fatal API Error");
+                            tracing::error!("Fatal API Error: {:?}", e);
                             let _ = self.tx_event.send(SttEvent::Error(e)).await;
                             return StreamAction::Stop;
                         }
