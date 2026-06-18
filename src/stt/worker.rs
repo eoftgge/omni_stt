@@ -132,10 +132,6 @@ impl GenericSttWorker {
         *retry_count += 1;
 
         if *retry_count > MAX_RETRIES {
-            let _ = self
-                .tx_event
-                .send(SttEvent::Error(SttError::ConnectionLost))
-                .await;
             return Err(SttError::ConnectionLost);
         }
         Ok(())
