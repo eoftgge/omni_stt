@@ -110,7 +110,10 @@ impl GenericSttWorker {
                         Ok(SttEvent::Transcript(data)) => {
                             let _ = self.tx_event.send(SttEvent::Transcript(data)).await;
                         },
-                        Ok(SttEvent::Disconnected) => return StreamAction::Reconnect,
+                        Ok(SttEvent::Disconnected) => {
+                            let _ = self.tx_event.send(SttEvent::Disconnected).await;
+                            return StreamAction::Reconnect;
+                        },
                         Err(SttError::RecoverableAPIError(e)) => {
                             tracing::warn!("Temporary API Error: {}", e);
                             return StreamAction::Reconnect;
