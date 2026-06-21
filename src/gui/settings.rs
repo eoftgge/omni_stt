@@ -418,11 +418,11 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 ui.label("Background Color:");
                 ui.horizontal(|ui| {
                     let color = &mut settings_ui.background_color;
-                    if ui.color_edit_button_rgba_unmultiplied(color).changed() {
+                    if ui.color_edit_button_srgba_unmultiplied(color).changed() {
                         settings_ui.background_color = [color[0], color[1], color[2], color[3]];
                     }
                     if ui.button("Clear").clicked() {
-                        settings_ui.background_color = [0.; 4];
+                        settings_ui.background_color = SettingsUI::DEFAULT_BACKGROUND_COLOR;
                     }
                 });
                 ui.end_row();
@@ -430,15 +430,15 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 ui.label("Text Color:");
                 ui.horizontal(|ui| {
                     let color = &mut settings_ui.text_color;
-                    if ui.color_edit_button_rgb(color).changed() {
+                    if ui.color_edit_button_srgb(color).changed() {
                         settings_ui.text_color = [color[0], color[1], color[2]];
                     }
                     if ui
                         .button("Clear")
-                        .on_hover_text("Reset to Yellow")
+                        .on_hover_text("Reset to default")
                         .clicked()
                     {
-                        settings_ui.text_color = [255., 255., 0.]; // yellow
+                        settings_ui.text_color = SettingsUI::DEFAULT_TEXT_COLOR; // yellow
                     }
                 });
                 ui.end_row();
