@@ -19,7 +19,7 @@ fn run() -> Result<(), OmniSttErrors> {
 
     let native_options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
-            .with_app_id("sublive")
+            .with_app_id("omnistt")
             .with_icon(from_png_bytes(ICON_BYTES).unwrap_or_else(|_| {
                 tracing::warn!("Bytes of icon is incorrect...");
                 IconData::default()
@@ -57,7 +57,7 @@ fn main() {
     let _e = rt.enter();
 
     if let Err(err) = run() {
-        eprintln!("Soniox Live {:?}", err);
+        eprintln!("OmniSTT {:?}", err);
         std::process::exit(1);
     }
 }
