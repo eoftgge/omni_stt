@@ -1,4 +1,5 @@
 use thiserror::Error;
+use crate::stt::event::SttError;
 
 #[derive(Error, Debug)]
 pub enum OmniSttErrors {
@@ -24,6 +25,8 @@ pub enum OmniSttErrors {
     Internal(String),
     #[error("API error {0}: {1}\nStopping audio...")]
     API(usize, String),
+    #[error("Provider error: {0}\nStopping audio...")]
+    App(#[from] SttError),
 }
 
 impl From<&str> for OmniSttErrors {
