@@ -4,7 +4,7 @@ use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::transcription::device::SettingDeviceId;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::Level;
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -39,6 +39,7 @@ pub struct SettingsGeneral {
 }
 
 #[derive(Default, Deserialize, Serialize, Clone)]
+#[serde(default)]
 pub struct SettingsApp {
     pub general: SettingsGeneral,
     pub(crate) audio: SettingsAudio,
@@ -147,16 +148,22 @@ impl SettingsGeneral {
 impl SettingsManager {
     pub fn new(path: &str) -> Self {
         let path = PathBuf::from(path);
+
         let settings = match std::fs::read_to_string(&path) {
-            Ok(content) => toml::from_str(&content).unwrap_or_else(|_| SettingsApp::default()),
-            Err(_) => SettingsApp::default(),
+            Ok(content) => match toml::from_str::<SettingsApp>(&content) {
+                Ok(settings) => settings,
+                Err(e) => Self::recover_from_broken(&path, &content, e),
+            },
+            Err(_) => {
+                let settings = SettingsApp::default();
+                if let Ok(content) = toml::to_string_pretty(&settings) {
+                    let _ = std::fs::write(&path, content);
+                }
+                settings
+            }
         };
-        if let Ok(new_content) = toml::to_string_pretty(&settings) {
-            let _ = std::fs::write(&path, new_content);
-        }
-        Self {
-            path, settings,
-        }
+
+        Self { path, settings }
     }
 
     pub fn save(&self) -> Result<(), OmniSttErrors> {
@@ -165,5 +172,25 @@ impl SettingsManager {
         std::fs::write(path, toml_string)?;
 
         Ok(())
+    }
+
+    fn recover_from_broken(
+        path: &Path,
+        content: &str,
+        err: toml::de::Error,
+    ) -> SettingsApp {
+        let backup = path.with_extension("toml.bak");
+        match std::fs::write(&backup, content) {
+            Ok(_) => tracing::error!(
+                "Config at {} is malformed: {}. Backed up to {} and continuing with defaults.",
+                path.display(), err, backup.display()
+            ),
+            Err(write_err) => tracing::error!(
+                "Config at {} is malformed: {}. Could not back up ({}); leaving file untouched.",
+                path.display(), err, write_err
+            ),
+        }
+
+        SettingsApp::default()
     }
 }
