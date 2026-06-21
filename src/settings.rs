@@ -1,6 +1,6 @@
 use crate::errors::OmniSttErrors;
 use crate::logger::TracingLevel;
-use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
+use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::transcription::device::SettingDeviceId;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use eframe::epaint::Rgba;
@@ -30,7 +30,7 @@ pub struct SettingsAudio {
 pub struct SettingsProvider {
     pub(crate) active_type: ProviderType,
     pub(crate) soniox: SonioxSettings,
-    pub(crate) whisper: WhisperSettings,
+    pub(crate) vosk: VoskSettings,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -90,7 +90,7 @@ impl Default for SettingsProvider {
         Self {
             active_type: ProviderType::Soniox,
             soniox: SonioxSettings::default(),
-            whisper: WhisperSettings::default(),
+            vosk: VoskSettings::default(),
         }
     }
 }

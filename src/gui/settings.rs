@@ -1,6 +1,6 @@
 use crate::gui::state::{PendingState, StateManager};
 use crate::settings::{SettingsAudio, SettingsUI, SettingsManager, SettingsProvider, SettingsGeneral};
-use crate::stt::adapters::types::{ProviderType, SonioxSettings, WhisperSettings};
+use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
 use crate::logger::LEVELS;
@@ -88,7 +88,7 @@ fn ui_bottom_panel(
                                     .warning("No API key provided for Soniox!")
                                     .closable(false);
                             }
-                            ProviderType::Whisper if settings_provider.whisper.path.as_os_str().is_empty() => {
+                            ProviderType::Vosk if settings_provider.vosk.path.as_os_str().is_empty() => {
                                 toasts
                                     .warning("No model path provided for Whisper!")
                                     .closable(false);
@@ -140,7 +140,7 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
             );
             ui.selectable_value(
                 &mut settings_provider.active_type,
-                ProviderType::Whisper,
+                ProviderType::Vosk,
                 "💻 Whisper (Offline)",
             );
         });
@@ -149,7 +149,7 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
 
         match settings_provider.active_type {
             ProviderType::Soniox => ui_soniox_settings(ui, &mut settings_provider.soniox),
-            ProviderType::Whisper => ui_whisper_settings(ui, &mut settings_provider.whisper),
+            ProviderType::Vosk => ui_vosk_settings(ui, &mut settings_provider.vosk),
         }
     });
 }
@@ -206,34 +206,34 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings) {
         });
 }
 
-fn ui_whisper_settings(ui: &mut Ui, whisper: &mut WhisperSettings) {
-    Grid::new("whisper_grid")
+fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
+    Grid::new("vosk_grid")
         .num_columns(2)
         .spacing([10.0, 10.0])
         .show(ui, |ui| {
             ui.add(egui::Label::new("Model File:").extend());
             ui.horizontal(|ui| {
-                let mut path_str = whisper.path.display().to_string();
+                let mut path_str = vosk.path.display().to_string();
                 if ui
                     .add(TextEdit::singleline(&mut path_str).desired_width(200.0))
                     .changed()
                 {
-                    whisper.path = PathBuf::from(path_str);
+                    vosk.path = PathBuf::from(path_str);
                 }
 
                 if ui.button("📂 Browse").clicked() &&
                     let Some(path) = rfd::FileDialog::new()
-                    .add_filter("Whisper Models", &["bin"])
+                    .add_filter("Vosk Models", &["bin"])
                     .pick_file()
                 {
-                    whisper.path = path;
+                    vosk.path = path;
                 }
             });
             ui.end_row();
 
             ui.label("");
             ui.label(
-                RichText::new("Download ggml-*.bin models from HuggingFace")
+                RichText::new("todo...")
                     .color(Color32::GRAY)
                     .small(),
             );

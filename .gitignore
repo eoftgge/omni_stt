@@ -1,5 +1,6 @@
 /target
 /logs
+/assets/models
 .idea
 Cargo.lock
 soniox.toml

@@ -5,7 +5,7 @@ use crate::stt::provider::SttProvider;
 
 use crate::stt::adapters::soniox::request::create_request;
 use crate::stt::adapters::types::ProviderType;
-use crate::stt::adapters::whisper::WhisperAdapter;
+use crate::stt::adapters::vosk::VoskAdapter;
 
 pub fn create_stt_provider(settings_provider: &SettingsProvider) -> Result<Box<dyn SttProvider>, SttError> {
     match settings_provider.active_type {
@@ -14,8 +14,8 @@ pub fn create_stt_provider(settings_provider: &SettingsProvider) -> Result<Box<d
                 .map_err(|e| SttError::FatalAPIError(format!("Failed to build Soniox request: {}", e)))?;
             Ok(Box::new(SonioxAdapter::new(request)))
         },
-        ProviderType::Whisper => {
-            Ok(Box::new(WhisperAdapter::new(settings_provider.whisper.path.clone())))
+        ProviderType::Vosk => {
+            Ok(Box::new(VoskAdapter::new(settings_provider.vosk.path.clone())))
         }
     }
 }

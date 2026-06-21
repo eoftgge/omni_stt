@@ -5,7 +5,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ProviderType {
     Soniox,
-    Whisper,
+    Vosk,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -19,7 +19,7 @@ pub struct SonioxSettings {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct WhisperSettings {
+pub struct VoskSettings {
     pub(crate) path: PathBuf,
 }
 
