@@ -110,6 +110,16 @@ impl GenericSttWorker {
                         Ok(SttEvent::Transcript(data)) => {
                             let _ = self.tx_event.send(SttEvent::Transcript(data)).await;
                         },
+                        Ok(SttEvent::Warning(msg)) => {
+                            tracing::warn!("Provider warning: {}", msg);
+                            let _ = self.tx_event.send(SttEvent::Warning(msg)).await;
+                        },
+                        Ok(SttEvent::Error(e)) => {
+                            tracing::error!("Provider error event: {:?}", e);
+                            let _ = self.tx_event.send(SttEvent::Error(e)).await;
+                            return StreamAction::Stop;
+                        }
+                        Ok(SttEvent::Connected(_)) => {},
                         Ok(SttEvent::Disconnected) => {
                             let _ = self.tx_event.send(SttEvent::Disconnected).await;
                             return StreamAction::Reconnect;
@@ -123,7 +133,6 @@ impl GenericSttWorker {
                             let _ = self.tx_event.send(SttEvent::Error(e)).await;
                             return StreamAction::Stop;
                         }
-                        _ => {}
                     }
                 }
             }
