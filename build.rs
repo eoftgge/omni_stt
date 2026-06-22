@@ -32,7 +32,6 @@ fn main() {
 
         let lib_dir = format!("{manifest_dir}/assets/vosk/{platform}");
         println!("cargo:rustc-link-search=native={lib_dir}");
-        println!("cargo:rustc-link-lib=dylib=vosk");
 
         #[cfg(target_os = "linux")]
         println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN");

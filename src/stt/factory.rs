@@ -8,7 +8,7 @@ use crate::stt::adapters::types::ProviderType;
 #[cfg(feature = "vosk")]
 use crate::stt::adapters::vosk::VoskBackend;
 
-pub fn create_stt_backend(
+pub async fn create_stt_backend(
     settings_provider: &SettingsProvider,
 ) -> Result<Box<dyn SttBackend>, SttError> {
     match settings_provider.active_type {
@@ -21,7 +21,7 @@ pub fn create_stt_backend(
         #[cfg(feature = "vosk")]
         ProviderType::Vosk => Ok(Box::new(VoskBackend::new(
             settings_provider.vosk.path.to_owned(),
-        )?)),
+        ).await?)),
         #[cfg(not(feature = "vosk"))]
         ProviderType::Vosk => Err(SttError::FatalAPIError("This application does not support Vosk in the current binary".into()))
     }

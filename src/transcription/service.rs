@@ -4,7 +4,7 @@ use crate::stt::event::SttEvent;
 use crate::stt::factory::create_stt_backend;
 use crate::stt::worker::GenericSttWorker;
 use crate::transcription::audio::{AudioSample, AudioSession};
-use crate::transcription::device::MappableAvailableDevices;
+use crate::transcription::device::AvailableDevice;
 use tokio::sync::mpsc::{Receiver, channel};
 use tokio_util::sync::CancellationToken;
 
@@ -17,18 +17,14 @@ pub struct TranscriptionService {
 }
 
 impl TranscriptionService {
-    pub fn start<F>(
+    pub async fn start<F>(
         settings: &SettingsApp,
-        devices: &MappableAvailableDevices,
+        device: AvailableDevice,
         on_new_event: F,
     ) -> Result<Self, OmniSttErrors>
     where
         F: Fn() + Send + Sync + 'static,
     {
-        let device = devices
-            .to_output_device(settings.audio.device_id.as_ref())
-            .ok_or(OmniSttErrors::NotFoundOutputDevice)?;
-
         let cancel_token = CancellationToken::new();
 
         let (tx_worker, mut rx_worker) = channel::<SttEvent>(128);
@@ -38,7 +34,7 @@ impl TranscriptionService {
 
         let audio = AudioSession::open(device.into_inner(), tx_audio, rx_recycle)?;
 
-        let backend = create_stt_backend(&settings.provider)?;
+        let backend = create_stt_backend(&settings.provider).await?;
         let tx_worker_2 = tx_worker.clone();
         let worker = GenericSttWorker::new(
             rx_audio,

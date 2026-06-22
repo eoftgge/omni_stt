@@ -57,7 +57,7 @@ pub struct SubtitlesApp {
     settings_manager: SettingsManager,
     store: TranscriptionStore,
     toasts: Toasts,
-    manager: StateManager,
+    state_manager: StateManager,
     frame_counter: u64,
     devices: MappableAvailableDevices,
     _guard: Option<WorkerGuard>,
@@ -68,7 +68,7 @@ impl SubtitlesApp {
         Self {
             store: TranscriptionStore::new(settings_manager.settings.ui.max_blocks),
             toasts: Toasts::new(),
-            manager: StateManager::new(),
+            state_manager: StateManager::new(),
             settings_manager,
             frame_counter: 0,
             devices: MappableAvailableDevices::from_default_host(),
@@ -79,15 +79,19 @@ impl SubtitlesApp {
 
 impl App for SubtitlesApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
-        if let Err(err) = self.manager.resolve(
+        let manager = &mut self.state_manager;
+        let settings = &self.settings_manager.settings;
+        if let Err(err) = manager.resolve(
             ui.ctx(),
             &mut self.store,
-            &self.settings_manager.settings,
+            settings,
             &self.devices,
         ) {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
-        let manager = &mut self.manager;
+        if let Err(err) = manager.poll_loading(ui.ctx(), settings.ui.enable_high_priority) {
+            self.toasts.error(err.to_string()).closable(false);
+        }
 
         match manager.app_state_mut() {
             AppState::Settings => show_settings_window(
@@ -97,13 +101,18 @@ impl App for SubtitlesApp {
                 &mut self.toasts,
                 &mut self.devices,
             ),
+            AppState::Loading { .. } => {
+                ui.centered_and_justified(|ui| {
+                    ui.label("Loading model...");
+                });
+            },
             AppState::Overlay(service) => {
                 let timeout = Duration::from_secs(15);
                 self.store.clear_if_silent(timeout);
                 self.store.schedule(ui.ctx().clone(), timeout);
 
                 let ctx = ui.ctx();
-                let settings_ui = &self.settings_manager.settings.ui;
+                let settings_ui = &settings.ui;
                 process_events(service, &mut self.store, &mut self.toasts);
                 if settings_ui.enable_high_priority && self.frame_counter >= 100 {
                     ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
@@ -126,13 +135,13 @@ impl App for SubtitlesApp {
                     });
 
                 self.frame_counter += 1;
-            }
+            },
         }
 
         self.toasts.show(ui.ctx());
     }
 
-    fn clear_color(&self, _visuals: &Visuals) -> [f32; 4] {
-        [0.0, 0.0, 0.0, 0.0]
+    fn clear_color(&self, visuals: &Visuals) -> [f32; 4] {
+        self.state_manager.color(visuals)
     }
 }

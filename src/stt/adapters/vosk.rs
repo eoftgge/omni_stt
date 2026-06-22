@@ -70,9 +70,11 @@ pub struct VoskBackend {
 }
 
 impl VoskBackend {
-    pub fn new(path: impl Into<PathBuf>) -> Result<Self, SttError> {
+    pub async fn new(path: impl Into<PathBuf>) -> Result<Self, SttError> {
         let path_str = path.into().to_string_lossy().to_string();
-        let model = Model::new(&path_str)
+        let model = tokio::task::spawn_blocking(move || Model::new(&path_str))
+            .await
+            .map_err(|_| SttError::FatalAPIError("Vosk model load task panicked".into()))?
             .ok_or_else(|| SttError::FatalAPIError("Failed to load Vosk model".into()))?;
         Ok(Self {
             model: Arc::new(model),
