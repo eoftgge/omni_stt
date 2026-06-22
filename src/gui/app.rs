@@ -107,8 +107,10 @@ impl App for SubtitlesApp {
                 let alpha = (120.0 + pulse * 135.0) as u8;
 
                 ui.centered_and_justified(|ui| {
+                    let dots = ((t * 2.0) as usize % 4);
+                    let text = format!("Loading model{}", ".".repeat(dots));
                     ui.label(
-                        RichText::new("Loading model...")
+                        RichText::new(text)
                             .size(20.0)
                             .color(Color32::from_white_alpha(alpha)),
                     );
