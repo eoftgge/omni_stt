@@ -56,7 +56,17 @@ pub fn draw_subtitles(
     let target_size = target_rect.size();
 
     if background_color != Color32::TRANSPARENT {
-        let animated_rect = Rect::from_center_size(target_rect.center(), current_animated_size);
+        let anim_w = ui
+            .ctx()
+            .animate_value_with_time(id.with("w"), target_size.x, ANIM_TIME)
+            .max(target_size.x);
+        let anim_h = ui
+            .ctx()
+            .animate_value_with_time(id.with("h"), target_size.y, ANIM_TIME)
+            .max(target_size.y);
+        let animated_size = Vec2::new(anim_w, anim_h);
+
+        let animated_rect = Rect::from_center_size(target_rect.center(), animated_size);
         let painter = ui.painter().clone();
         painter
             .with_layer_id(LayerId::new(Order::Background, id))
@@ -67,6 +77,10 @@ pub fn draw_subtitles(
                 Stroke::NONE,
                 StrokeKind::Middle,
             );
+
+        if (animated_size - target_size).length_sq() > 1.0 {
+            ui.ctx().request_repaint();
+        }
     }
 
     ui.data_mut(|d| d.insert_temp(id, target_size));
