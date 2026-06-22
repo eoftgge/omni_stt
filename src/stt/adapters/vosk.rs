@@ -59,7 +59,7 @@ impl SttProvider for VoskAdapter {
 
                             if !text.is_empty() {
                                 let data = TranscriptData {
-                                    text,
+                                    text: format!("{text} "),
                                     is_final: true,
                                     speaker: None,
                                 };
