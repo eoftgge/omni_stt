@@ -107,6 +107,7 @@ impl App for SubtitlesApp {
                 });
             },
             AppState::Overlay(service) => {
+                self.toasts.info("Starting subtitles overlay...").closable(false);
                 let timeout = Duration::from_secs(15);
                 self.store.clear_if_silent(timeout);
                 self.store.schedule(ui.ctx().clone(), timeout);

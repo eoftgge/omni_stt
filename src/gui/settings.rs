@@ -103,7 +103,6 @@ fn ui_bottom_panel(
                             }
                             _ => {
                                 manager.switch(PendingState::Overlay);
-                                toasts.info("Starting subtitles overlay...").closable(false);
                             }
                         }
                     }
