@@ -151,13 +151,20 @@ impl SettingsManager {
                 settings
             }
         };
+        Self { path, settings: Self::normalize_provider(settings) }
+    }
 
-        #[cfg(not(feature = "vosk"))]
+    #[cfg(not(feature = "vosk"))]
+    fn normalize_provider(mut settings: SettingsApp) -> SettingsApp {
         if settings.provider.active_type == ProviderType::Vosk {
             settings.provider.active_type = ProviderType::Soniox;
         }
+        settings
+    }
 
-        Self { path, settings }
+    #[cfg(feature = "vosk")]
+    fn normalize_provider(settings: SettingsApp) -> SettingsApp {
+        settings
     }
 
     pub fn save(&self) -> Result<(), OmniSttErrors> {
