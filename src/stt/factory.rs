@@ -19,10 +19,12 @@ pub async fn create_stt_backend(
             Ok(Box::new(SonioxBackend::new(request)))
         }
         #[cfg(feature = "vosk")]
-        ProviderType::Vosk => Ok(Box::new(VoskBackend::new(
-            settings_provider.vosk.path.to_owned(),
-        ).await?)),
+        ProviderType::Vosk => Ok(Box::new(
+            VoskBackend::new(settings_provider.vosk.path.to_owned()).await?,
+        )),
         #[cfg(not(feature = "vosk"))]
-        ProviderType::Vosk => Err(SttError::FatalAPIError("This application does not support Vosk in the current binary".into()))
+        ProviderType::Vosk => Err(SttError::FatalAPIError(
+            "This application does not support Vosk in the current binary".into(),
+        )),
     }
 }

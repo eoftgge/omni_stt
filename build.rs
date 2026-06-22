@@ -1,5 +1,5 @@
-use std::env;
 use image::{ImageFormat, open};
+use std::env;
 
 fn main() {
     if env::var("CARGO_CFG_TARGET_OS").is_ok() {

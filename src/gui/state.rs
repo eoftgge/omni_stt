@@ -81,7 +81,7 @@ impl StateManager {
             PendingState::Settings => {
                 resolved.apply_window_state(ctx, settings.ui.enable_high_priority);
                 self.app_state = AppState::Settings;
-            },
+            }
             PendingState::Overlay => {
                 store.resize(settings.ui.max_blocks);
 
@@ -95,12 +95,10 @@ impl StateManager {
                     .ok_or(OmniSttErrors::NotFoundOutputDevice)?;
 
                 tokio::spawn(async move {
-                    let result = TranscriptionService::start(
-                        &settings,
-                        device,
-                        move || ctx_for_service.request_repaint(),
-                    )
-                        .await;
+                    let result = TranscriptionService::start(&settings, device, move || {
+                        ctx_for_service.request_repaint()
+                    })
+                    .await;
                     let _ = tx.send(result);
                 });
 
@@ -111,7 +109,11 @@ impl StateManager {
         Ok(())
     }
 
-    pub fn poll_loading(&mut self, ctx: &Context, enable_high_priority: bool) -> Result<LoadingOutcome, OmniSttErrors> {
+    pub fn poll_loading(
+        &mut self,
+        ctx: &Context,
+        enable_high_priority: bool,
+    ) -> Result<LoadingOutcome, OmniSttErrors> {
         let AppState::Loading { rx } = &mut self.app_state else {
             return Ok(LoadingOutcome::Idle);
         };

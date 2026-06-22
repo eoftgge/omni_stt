@@ -6,16 +6,15 @@ use crate::settings::{
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
-use eframe::egui::{self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui, vec2};
+use eframe::egui::{
+    self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
+    vec2,
+};
 use egui_notify::Toasts;
 use std::time::Duration;
 
 #[cfg(feature = "vosk")]
-use {
-    crate::stt::adapters::types::VoskSettings,
-    std::path::PathBuf,
-    eframe::egui::Color32,
-};
+use {crate::stt::adapters::types::VoskSettings, eframe::egui::Color32, std::path::PathBuf};
 
 pub fn show_settings_window(
     ui: &mut Ui,

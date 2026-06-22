@@ -6,7 +6,9 @@ use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
 use crate::transcription::service::TranscriptionService;
-use eframe::egui::{Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel};
+use eframe::egui::{
+    Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
+};
 use eframe::{App, Frame};
 use egui_notify::Toasts;
 use std::time::Duration;
@@ -81,12 +83,8 @@ impl App for SubtitlesApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
         let state_manager = &mut self.state_manager;
         let settings = &self.settings_manager.settings;
-        if let Err(err) = state_manager.resolve(
-            ui.ctx(),
-            &mut self.store,
-            settings,
-            &self.devices,
-        ) {
+        if let Err(err) = state_manager.resolve(ui.ctx(), &mut self.store, settings, &self.devices)
+        {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
 
@@ -156,7 +154,7 @@ impl App for SubtitlesApp {
                     });
 
                 self.frame_counter += 1;
-            },
+            }
         }
 
         self.toasts.show(ui.ctx());
