@@ -93,7 +93,7 @@ impl Default for SettingsGeneral {
 impl Default for SettingsProvider {
     fn default() -> Self {
         Self {
-            active_type: ProviderType::Soniox,
+            active_type: ProviderType::default(),
             soniox: SonioxSettings::default(),
             vosk: VoskSettings::default(),
         }

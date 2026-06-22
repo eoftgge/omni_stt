@@ -5,6 +5,7 @@ use crate::stt::event::SttError;
 
 use crate::stt::adapters::soniox::request::create_request;
 use crate::stt::adapters::types::ProviderType;
+#[cfg(feature = "vosk")]
 use crate::stt::adapters::vosk::VoskBackend;
 
 pub fn create_stt_backend(

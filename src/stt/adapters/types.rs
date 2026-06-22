@@ -2,8 +2,9 @@ use crate::stt::languages::LanguageHint;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ProviderType {
+    #[default]
     Soniox,
     Vosk,
 }
