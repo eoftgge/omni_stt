@@ -79,10 +79,12 @@ impl SubtitlesApp {
 
 impl App for SubtitlesApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
-        if let Err(err) =
-            self.manager
-                .resolve(ui.ctx(), &mut self.store, &self.settings_manager.settings, &self.devices)
-        {
+        if let Err(err) = self.manager.resolve(
+            ui.ctx(),
+            &mut self.store,
+            &self.settings_manager.settings,
+            &self.devices,
+        ) {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
         let manager = &mut self.manager;

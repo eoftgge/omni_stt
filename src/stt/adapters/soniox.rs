@@ -8,7 +8,7 @@ use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
 use crate::stt::adapters::soniox::types::SonioxTranscriptionToken;
-use crate::stt::prelude::{SttError, SttEvent, SttBackend, SttSession, TranscriptData};
+use crate::stt::prelude::{SttBackend, SttError, SttEvent, SttSession, TranscriptData};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
 use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};

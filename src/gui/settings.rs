@@ -1,9 +1,11 @@
 use crate::gui::state::{PendingState, StateManager};
-use crate::settings::{SettingsAudio, SettingsUI, SettingsManager, SettingsProvider, SettingsGeneral};
+use crate::logger::LEVELS;
+use crate::settings::{
+    SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
+};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
-use crate::logger::LEVELS;
 use eframe::egui::{
     self, Button, Checkbox, Color32, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider,
     TextEdit, Ui, vec2,
@@ -30,7 +32,6 @@ pub fn show_settings_window(
 
             let settings = &mut settings_manager.settings;
             ScrollArea::vertical().show(ui, |ui| {
-
                 ui_section_general(ui, &mut settings.general);
                 ui_section_audio(ui, &mut settings.audio, devices);
                 ui_section_provider(ui, &mut settings.provider);
@@ -83,12 +84,16 @@ fn ui_bottom_panel(
                         let settings_provider = &settings_manager.settings.provider;
 
                         match settings_provider.active_type {
-                            ProviderType::Soniox if settings_provider.soniox.api_key.trim().is_empty() => {
+                            ProviderType::Soniox
+                                if settings_provider.soniox.api_key.trim().is_empty() =>
+                            {
                                 toasts
                                     .warning("No API key provided for Soniox!")
                                     .closable(false);
                             }
-                            ProviderType::Vosk if settings_provider.vosk.path.as_os_str().is_empty() => {
+                            ProviderType::Vosk
+                                if settings_provider.vosk.path.as_os_str().is_empty() =>
+                            {
                                 toasts
                                     .warning("No model path provided for Vosk!")
                                     .closable(false);
@@ -117,7 +122,11 @@ fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
                     .width(80.0)
                     .show_ui(ui, |ui| {
                         for level in LEVELS {
-                            ui.selectable_value(&mut settings_general.level, *level, level.to_string());
+                            ui.selectable_value(
+                                &mut settings_general.level,
+                                *level,
+                                level.to_string(),
+                            );
                         }
                     });
                 ui.end_row();
@@ -221,9 +230,8 @@ fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
                     vosk.path = PathBuf::from(path_str);
                 }
 
-                if ui.button("📂 Browse").clicked() &&
-                    let Some(path) = rfd::FileDialog::new()
-                    .pick_folder()
+                if ui.button("📂 Browse").clicked()
+                    && let Some(path) = rfd::FileDialog::new().pick_folder()
                 {
                     vosk.path = path;
                 }
@@ -231,16 +239,16 @@ fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
             ui.end_row();
 
             ui.label("");
-            ui.label(
-                RichText::new("todo...")
-                    .color(Color32::GRAY)
-                    .small(),
-            );
+            ui.label(RichText::new("todo...").color(Color32::GRAY).small());
             ui.end_row();
         });
 }
 
-fn ui_section_audio(ui: &mut Ui, settings_audio: &mut SettingsAudio, devices: &mut MappableAvailableDevices) {
+fn ui_section_audio(
+    ui: &mut Ui,
+    settings_audio: &mut SettingsAudio,
+    devices: &mut MappableAvailableDevices,
+) {
     ui.collapsing("Configuration Audio", |ui| {
         Grid::new("audio_grid")
             .num_columns(2)

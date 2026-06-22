@@ -1,10 +1,10 @@
+use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::data::TranscriptData;
 use crate::stt::event::{SttError, SttEvent};
-use crate::stt::backend::{SttBackend, SttSession};
 use async_trait::async_trait;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tokio::sync::mpsc::{Receiver, Sender, channel};
 use vosk::{DecodingState, Model, Recognizer};
 
 fn run_recognition_loop(
@@ -90,10 +90,7 @@ impl SttBackend for VoskBackend {
         let (event_tx, event_rx) = channel::<SttEvent>(100);
 
         tokio::task::spawn_blocking(move || run_recognition_loop(model, audio_rx, event_tx));
-        Ok(Box::new(VoskSession {
-            audio_tx,
-            event_rx,
-        }))
+        Ok(Box::new(VoskSession { audio_tx, event_rx }))
     }
 }
 

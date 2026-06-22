@@ -100,7 +100,6 @@ impl Default for SettingsProvider {
     }
 }
 
-
 impl SettingsUI {
     pub fn text_color(&self) -> Color32 {
         let color = self.text_color;
@@ -174,20 +173,20 @@ impl SettingsManager {
         Ok(())
     }
 
-    fn recover_from_broken(
-        path: &Path,
-        content: &str,
-        err: toml::de::Error,
-    ) -> SettingsApp {
+    fn recover_from_broken(path: &Path, content: &str, err: toml::de::Error) -> SettingsApp {
         let backup = path.with_extension("toml.bak");
         match std::fs::write(&backup, content) {
             Ok(_) => tracing::error!(
                 "Config at {} is malformed: {}. Backed up to {} and continuing with defaults.",
-                path.display(), err, backup.display()
+                path.display(),
+                err,
+                backup.display()
             ),
             Err(write_err) => tracing::error!(
                 "Config at {} is malformed: {}. Could not back up ({}); leaving file untouched.",
-                path.display(), err, write_err
+                path.display(),
+                err,
+                write_err
             ),
         }
 

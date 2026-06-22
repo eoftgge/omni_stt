@@ -1,6 +1,6 @@
 use crate::stt::action::StreamAction;
-use crate::stt::event::{SttError, SttEvent};
 use crate::stt::backend::{SttBackend, SttSession};
+use crate::stt::event::{SttError, SttEvent};
 use crate::stt::utils::is_silent;
 use crate::transcription::audio::AudioSample;
 use std::time::Duration;
@@ -64,7 +64,6 @@ impl GenericSttWorker {
                     return Ok(());
                 }
             };
-
 
             retry_count = 0;
 
