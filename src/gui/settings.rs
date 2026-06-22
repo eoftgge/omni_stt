@@ -223,8 +223,7 @@ fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
 
                 if ui.button("📂 Browse").clicked() &&
                     let Some(path) = rfd::FileDialog::new()
-                    .add_filter("Vosk Models", &["bin"])
-                    .pick_file()
+                    .pick_folder()
                 {
                     vosk.path = path;
                 }
