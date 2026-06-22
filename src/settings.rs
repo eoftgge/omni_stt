@@ -25,7 +25,7 @@ pub struct SettingsAudio {
     pub(crate) vad_threshold: u32,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Default, Deserialize, Serialize, Clone)]
 pub struct SettingsProvider {
     pub(crate) active_type: ProviderType,
     pub(crate) soniox: SonioxSettings,
@@ -86,16 +86,6 @@ impl Default for SettingsGeneral {
         Self {
             level: TracingLevel::Info,
             log_to_file: false,
-        }
-    }
-}
-
-impl Default for SettingsProvider {
-    fn default() -> Self {
-        Self {
-            active_type: ProviderType::default(),
-            soniox: SonioxSettings::default(),
-            vosk: VoskSettings::default(),
         }
     }
 }
@@ -161,6 +151,11 @@ impl SettingsManager {
                 settings
             }
         };
+
+        #[cfg(not(feature = "vosk"))]
+        if settings.provider.active_type == ProviderType::Vosk {
+            settings.provider.active_type = ProviderType::Soniox;
+        }
 
         Self { path, settings }
     }
