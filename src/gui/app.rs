@@ -6,7 +6,7 @@ use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
 use crate::transcription::service::TranscriptionService;
-use eframe::egui::{Align, Area, Id, Layout, Order, Ui, ViewportCommand, Visuals, WindowLevel};
+use eframe::egui::{Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel};
 use eframe::{App, Frame};
 use egui_notify::Toasts;
 use std::time::Duration;
@@ -102,10 +102,19 @@ impl App for SubtitlesApp {
                 &mut self.devices,
             ),
             AppState::Loading { .. } => {
+                let t = ui.ctx().input(|i| i.time);
+                let pulse = 0.5 + 0.5 * ((t as f32) * 4.0).sin();
+                let alpha = (120.0 + pulse * 135.0) as u8;
+
                 ui.centered_and_justified(|ui| {
-                    ui.label("Loading model...");
+                    ui.label(
+                        RichText::new("Loading model...")
+                            .size(20.0)
+                            .color(Color32::from_white_alpha(alpha)),
+                    );
                 });
-            },
+                ui.ctx().request_repaint();
+            }
             AppState::Overlay(service) => {
                 self.toasts.info("Starting subtitles overlay...").closable(false);
                 let timeout = Duration::from_secs(15);
