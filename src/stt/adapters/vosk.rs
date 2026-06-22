@@ -22,11 +22,10 @@ fn run_recognition_loop(
         }
     };
 
-    while let Some(chunk) = audio_rx.blocking_recv() {
-        if let Some(event) = process_chunk(&mut recognizer, &chunk) {
-            if event_tx.blocking_send(event).is_err() {
-                break;
-            }
+    while let Some(chunk) = audio_rx.blocking_recv() &&
+        let Some(event) = process_chunk(&mut recognizer, &chunk) {
+        if event_tx.blocking_send(event).is_err() {
+            break;
         }
     }
 }
