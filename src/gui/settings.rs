@@ -90,7 +90,7 @@ fn ui_bottom_panel(
                             }
                             ProviderType::Vosk if settings_provider.vosk.path.as_os_str().is_empty() => {
                                 toasts
-                                    .warning("No model path provided for Whisper!")
+                                    .warning("No model path provided for Vosk!")
                                     .closable(false);
                             }
                             _ => {
@@ -141,7 +141,7 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
             ui.selectable_value(
                 &mut settings_provider.active_type,
                 ProviderType::Vosk,
-                "💻 Whisper (Offline)",
+                "💻 Vosk (Offline)",
             );
         });
 
