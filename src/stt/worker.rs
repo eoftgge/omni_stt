@@ -1,6 +1,6 @@
 use crate::stt::action::StreamAction;
 use crate::stt::event::{SttError, SttEvent};
-use crate::stt::provider::SttProvider;
+use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::utils::is_silent;
 use crate::transcription::audio::AudioSample;
 use std::time::Duration;
@@ -16,7 +16,7 @@ pub struct GenericSttWorker {
     tx_event: Sender<SttEvent>,
     hangover_chunks_limit: usize,
     vad_threshold: u32,
-    provider: Box<dyn SttProvider>,
+    backend: Box<dyn SttBackend>,
 }
 
 impl GenericSttWorker {
@@ -26,7 +26,7 @@ impl GenericSttWorker {
         tx_event: Sender<SttEvent>,
         hangover_chunks_limit: usize,
         vad_threshold: u32,
-        provider: Box<dyn SttProvider>,
+        backend: Box<dyn SttBackend>,
     ) -> Self {
         Self {
             rx_audio,
@@ -34,7 +34,7 @@ impl GenericSttWorker {
             tx_event,
             hangover_chunks_limit,
             vad_threshold,
-            provider,
+            backend,
         }
     }
 
@@ -52,16 +52,25 @@ impl GenericSttWorker {
                 Vec::new()
             };
 
-            if self.provider.connect().await.is_err() {
-                self.handle_reconnect(&mut retry_count).await?;
-                continue;
-            }
+            let mut session = match self.backend.connect().await {
+                Ok(s) => s,
+                Err(e) if e.is_reconnect() => {
+                    self.handle_reconnect(&mut retry_count).await?;
+                    continue;
+                }
+                Err(e) => {
+                    tracing::error!("Fatal connect error: {:?}", e);
+                    let _ = self.tx_event.send(SttEvent::Error(e)).await;
+                    return Ok(());
+                }
+            };
+
 
             retry_count = 0;
 
             if !first_packet.is_empty() {
                 let slice = bytemuck::cast_slice(&first_packet);
-                if self.provider.send(slice).await.is_err() {
+                if session.send(slice).await.is_err() {
                     continue;
                 }
                 let _ = self.tx_recycle.send(first_packet).await;
@@ -73,13 +82,13 @@ impl GenericSttWorker {
                 .await;
             flag_first_connection = false;
 
-            if self.run_session_loop().await == StreamAction::Stop {
+            if self.run_session_loop(&mut session).await == StreamAction::Stop {
                 return Ok(());
             }
         }
     }
 
-    async fn run_session_loop(&mut self) -> StreamAction {
+    async fn run_session_loop(&mut self, session: &mut Box<dyn SttSession>) -> StreamAction {
         let mut hangover_counter = 0;
 
         loop {
@@ -97,7 +106,7 @@ impl GenericSttWorker {
                     }
 
                     let slice = bytemuck::cast_slice(&buffer);
-                    if self.provider.send(slice).await.is_err() {
+                    if session.send(slice).await.is_err() {
                         return StreamAction::Reconnect;
                     }
 
@@ -105,7 +114,7 @@ impl GenericSttWorker {
                     let _ = self.tx_recycle.send(buffer).await;
                 }
 
-                event_result = self.provider.recv_event() => {
+                event_result = session.recv_event() => {
                     match event_result {
                         Ok(SttEvent::Transcript(data)) => {
                             let _ = self.tx_event.send(SttEvent::Transcript(data)).await;

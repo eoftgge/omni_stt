@@ -1,7 +1,7 @@
 use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 use crate::stt::event::SttEvent;
-use crate::stt::factory::create_stt_provider;
+use crate::stt::factory::create_stt_backend;
 use crate::stt::worker::GenericSttWorker;
 use crate::transcription::audio::{AudioSample, AudioSession};
 use crate::transcription::device::MappableAvailableDevices;
@@ -38,7 +38,7 @@ impl TranscriptionService {
 
         let audio = AudioSession::open(device.into_inner(), tx_audio, rx_recycle)?;
 
-        let provider = create_stt_provider(&settings.provider)?;
+        let backend = create_stt_backend(&settings.provider)?;
         let tx_worker_2 = tx_worker.clone();
         let worker = GenericSttWorker::new(
             rx_audio,
@@ -46,7 +46,7 @@ impl TranscriptionService {
             tx_worker_2,
             settings.audio.hangover_chunks,
             settings.audio.vad_threshold,
-            provider,
+            backend,
         );
 
         audio.play()?;

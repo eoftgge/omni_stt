@@ -8,7 +8,7 @@ use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
 use crate::stt::adapters::soniox::types::SonioxTranscriptionToken;
-use crate::stt::prelude::{SttError, SttEvent, SttProvider, TranscriptData};
+use crate::stt::prelude::{SttError, SttEvent, SttBackend, SttSession, TranscriptData};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
 use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
@@ -17,31 +17,47 @@ const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
 const MODEL: &str = "stt-rt-v4";
 
-pub struct SonioxAdapter {
+pub struct SonioxBackend {
     request: SonioxTranscriptionRequest,
-    writer: Option<SonioxSessionWriter>,
-    reader: Option<SonioxSessionReader>,
-
-    event_queue: VecDeque<SttEvent>,
 }
 
-impl SonioxAdapter {
-    pub fn new(request: SonioxTranscriptionRequest) -> Self {
-        Self {
-            request,
-            writer: None,
-            reader: None,
-            event_queue: VecDeque::new(),
-        }
-    }
+pub struct SonioxSession {
+    pub(super) writer: SonioxSessionWriter,
+    pub(super) reader: SonioxSessionReader,
+    pub(super) event_queue: VecDeque<SttEvent>,
+}
 
+impl SonioxBackend {
+    pub fn new(request: SonioxTranscriptionRequest) -> Self {
+        Self { request }
+    }
+}
+
+#[async_trait]
+impl SttBackend for SonioxBackend {
+    async fn connect(&self) -> Result<Box<dyn SttSession>, SttError> {
+        let conn = SonioxConnection::connect(URL)
+            .await
+            .map_err(|_| SttError::ConnectionLost)?;
+        let (writer, reader) = conn
+            .into_session(&self.request)
+            .await
+            .map_err(|_| SttError::ConnectionLost)?;
+
+        Ok(Box::new(SonioxSession {
+            writer,
+            reader,
+            event_queue: VecDeque::new(),
+        }))
+    }
+}
+
+impl SonioxSession {
     async fn handle_ws_message(&mut self, msg: Message) -> Result<Option<SttEvent>, SttError> {
         match msg {
             Message::Text(txt) => self.handle_text_message(&txt),
             Message::Ping(data) => {
-                if let Some(writer) = self.writer.as_mut() {
-                    let _ = writer.send_pong(data).await;
-                }
+                let _ = self.writer.send_pong(data).await;
                 Ok(None)
             }
             Message::Close(_) => {
@@ -123,25 +139,9 @@ impl SonioxAdapter {
 }
 
 #[async_trait]
-impl SttProvider for SonioxAdapter {
-    async fn connect(&mut self) -> Result<(), SttError> {
-        let conn = SonioxConnection::connect(URL)
-            .await
-            .map_err(|_| SttError::ConnectionLost)?;
-        let (w, r) = conn
-            .into_session(&self.request)
-            .await
-            .map_err(|_| SttError::ConnectionLost)?;
-
-        self.writer = Some(w);
-        self.reader = Some(r);
-        self.event_queue.clear();
-        Ok(())
-    }
-
+impl SttSession for SonioxSession {
     async fn send(&mut self, audio: &[u8]) -> Result<(), SttError> {
-        let writer = self.writer.as_mut().ok_or(SttError::ConnectionLost)?;
-        writer
+        self.writer
             .send_bytes(Bytes::copy_from_slice(audio))
             .await
             .map_err(|_| SttError::ConnectionLost)
@@ -153,14 +153,10 @@ impl SttProvider for SonioxAdapter {
         }
 
         loop {
-            let msg = {
-                let reader = self.reader.as_mut().ok_or(SttError::ConnectionLost)?;
-                reader.recv_message().await.map_err(|e| {
-                    tracing::error!("WS Error/EOF: {}", e);
-                    SttError::ConnectionLost
-                })?
-            };
-
+            let msg = self.reader.recv_message().await.map_err(|e| {
+                tracing::error!("WS Error/EOF: {}", e);
+                SttError::ConnectionLost
+            })?;
             if let Some(event) = self.handle_ws_message(msg).await? {
                 return Ok(event);
             }
