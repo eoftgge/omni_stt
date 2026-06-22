@@ -25,11 +25,15 @@ embed_plist = "1.2.2"
 async-trait = "0.1.89"
 tokio-util = "0.7.18"
 rfd = "0.17.2"
-vosk = "0.3.1"
+vosk = { version = "0.3.1", optional = true }
 
 [build-dependencies]
 winres = "0.1.12"
 image = "0.25.10"
+
+[features]
+default = []
+vosk = ["dep:vosk"]
 
 [profile.release]
 lto = true
