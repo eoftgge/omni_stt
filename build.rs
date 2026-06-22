@@ -2,7 +2,9 @@ use image::{ImageFormat, open};
 use std::env;
 
 fn main() {
-    if env::var("CARGO_CFG_TARGET_OS").is_ok() {
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+
+    if target_os == "windows" {
         let img = open("assets/icon.png").expect("Couldn't open icon.png");
         let out_dir = std::env::var("OUT_DIR").unwrap();
         let ico_path = std::path::PathBuf::from(out_dir).join("icon.ico");
@@ -16,7 +18,7 @@ fn main() {
                 .expect("Couldn't convert icon path to string"),
         );
         res.compile().expect("Failed to compile resource");
-    } else if cfg!(target_os = "macos") {
+    } else if target_os == "macos" {
         println!("cargo:rustc-link-arg=-Wl,-sectcreate,__TEXT,__info_plist,Info.plist");
     }
 
