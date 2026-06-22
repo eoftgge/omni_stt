@@ -147,6 +147,7 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
                 ProviderType::Soniox,
                 "☁ Soniox (Cloud)",
             );
+            #[cfg(feature = "vosk")]
             ui.selectable_value(
                 &mut settings_provider.active_type,
                 ProviderType::Vosk,
@@ -158,7 +159,10 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
 
         match settings_provider.active_type {
             ProviderType::Soniox => ui_soniox_settings(ui, &mut settings_provider.soniox),
+            #[cfg(feature = "vosk")]
             ProviderType::Vosk => ui_vosk_settings(ui, &mut settings_provider.vosk),
+            #[cfg(not(feature = "vosk"))]
+            ProviderType::Vosk => {}
         }
     });
 }
