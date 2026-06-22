@@ -1,6 +1,6 @@
 use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
-use crate::gui::state::{AppState, StateManager};
+use crate::gui::state::{AppState, LoadingOutcome, StateManager};
 use crate::settings::SettingsManager;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
@@ -79,9 +79,9 @@ impl SubtitlesApp {
 
 impl App for SubtitlesApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
-        let manager = &mut self.state_manager;
+        let state_manager = &mut self.state_manager;
         let settings = &self.settings_manager.settings;
-        if let Err(err) = manager.resolve(
+        if let Err(err) = state_manager.resolve(
             ui.ctx(),
             &mut self.store,
             settings,
@@ -89,15 +89,25 @@ impl App for SubtitlesApp {
         ) {
             self.toasts.error(format!("{:?}", err)).closable(false);
         }
-        if let Err(err) = manager.poll_loading(ui.ctx(), settings.ui.enable_high_priority) {
-            self.toasts.error(err.to_string()).closable(false);
+
+        match state_manager.poll_loading(ui.ctx(), settings.ui.enable_high_priority) {
+            Ok(LoadingOutcome::Ready) => {
+                self.toasts
+                    .info("Starting subtitles overlay...")
+                    .duration(Duration::from_secs(3))
+                    .closable(false);
+            }
+            Ok(_) => {}
+            Err(e) => {
+                self.toasts.error(e.to_string()).closable(false);
+            }
         }
 
-        match manager.app_state_mut() {
+        match state_manager.app_state_mut() {
             AppState::Settings => show_settings_window(
                 ui,
                 &mut self.settings_manager,
-                manager,
+                state_manager,
                 &mut self.toasts,
                 &mut self.devices,
             ),
@@ -107,7 +117,7 @@ impl App for SubtitlesApp {
                 let alpha = (120.0 + pulse * 135.0) as u8;
 
                 ui.centered_and_justified(|ui| {
-                    let dots = ((t * 2.0) as usize % 4);
+                    let dots = (t * 2.0) as usize % 4;
                     let text = format!("Loading model{}", ".".repeat(dots));
                     ui.label(
                         RichText::new(text)
@@ -118,7 +128,6 @@ impl App for SubtitlesApp {
                 ui.ctx().request_repaint();
             }
             AppState::Overlay(service) => {
-                self.toasts.info("Starting subtitles overlay...").closable(false);
                 let timeout = Duration::from_secs(15);
                 self.store.clear_if_silent(timeout);
                 self.store.schedule(ui.ctx().clone(), timeout);

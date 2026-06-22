@@ -28,6 +28,12 @@ pub struct StateManager {
     pending_state: Option<PendingState>,
 }
 
+pub enum LoadingOutcome {
+    Pending,
+    Ready,
+    Idle,
+}
+
 #[derive(Clone, Copy)]
 pub enum PendingState {
     Settings,
@@ -105,29 +111,30 @@ impl StateManager {
         Ok(())
     }
 
-    pub fn poll_loading(&mut self, ctx: &Context, enable_high_priority: bool) -> Result<(), OmniSttErrors> {
+    pub fn poll_loading(&mut self, ctx: &Context, enable_high_priority: bool) -> Result<LoadingOutcome, OmniSttErrors> {
         let AppState::Loading { rx } = &mut self.app_state else {
-            return Ok(());
+            return Ok(LoadingOutcome::Idle);
         };
 
         match rx.try_recv() {
             Ok(Ok(service)) => {
                 apply_overlay_window(ctx, enable_high_priority);
                 self.app_state = AppState::Overlay(service);
+                Ok(LoadingOutcome::Ready)
             }
             Ok(Err(e)) => {
                 self.switch(PendingState::Settings);
-                return Err(e);
+                Err(e)
             }
             Err(tokio::sync::oneshot::error::TryRecvError::Empty) => {
                 ctx.request_repaint();
+                Ok(LoadingOutcome::Pending)
             }
             Err(tokio::sync::oneshot::error::TryRecvError::Closed) => {
                 self.switch(PendingState::Settings);
-                return Err(OmniSttErrors::Internal("Model loading task failed".into()));
+                Err(OmniSttErrors::Internal("Model loading task failed".into()))
             }
         }
-        Ok(())
     }
 
     pub fn app_state(&self) -> &AppState {
