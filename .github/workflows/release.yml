@@ -139,6 +139,10 @@ jobs:
       - name: Install dependencies
         run: |
           ${{ matrix.packages_install }}
+      - name: Check for LLVM
+          run: |
+            command -v llvm-rc || echo "llvm-rc не найден в системе"
+            llvm-rc --version || true
       - name: Build artifacts
         run: |
           # Actually do builds and make zips and whatnot
