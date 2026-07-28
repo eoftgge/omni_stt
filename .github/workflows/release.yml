@@ -140,7 +140,7 @@ jobs:
         run: |
           ${{ matrix.packages_install }}
       - name: Check for LLVM
-          run: |
+        run: |
             command -v llvm-rc || echo "llvm-rc не найден в системе"
             llvm-rc --version || true
       - name: Build artifacts
