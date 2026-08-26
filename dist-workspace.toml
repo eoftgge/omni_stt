@@ -24,5 +24,10 @@ pkg-config = "*"
 mingw-w64 = { stage = ["build"] }
 llvm = { stage = ["build"] }
 
-[dist.dependencies.brew]
-llvm = { stage = ["build"] }
+[[dist.builds]]
+targets = ["x86_64-pc-windows-msvc"]
+features = ["vosk"]
+
+[[dist.builds]]
+targets = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu"]
+features = []
