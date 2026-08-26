@@ -10,7 +10,7 @@ use eframe::egui::{
     Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
 };
 use eframe::{App, Frame};
-use egui_notify::Toasts;
+use egui_toast::{Toast, ToastOptions, ToastStyle, ToastKind, Toasts};
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
 
@@ -25,31 +25,39 @@ fn process_events(
                 store.update(data);
             }
             SttEvent::Warning(msg) => {
-                toasts
-                    .warning(msg)
-                    .duration(Duration::from_secs(4))
-                    .closable(false);
+                toasts.add(Toast {
+                    text: msg.into(),
+                    kind: ToastKind::Warning,
+                    style: ToastStyle::default(),
+                    options: ToastOptions::default().duration_in_seconds(5.),
+                });
             }
             SttEvent::Error(err) => {
-                toasts
-                    .error(err.to_string())
-                    .duration(Duration::from_secs(4))
-                    .closable(false);
+                toasts.add(Toast {
+                    text: err.to_string().into(),
+                    kind: ToastKind::Error,
+                    style: ToastStyle::default(),
+                    options: ToastOptions::default().duration_in_seconds(8.),
+                });
             }
             SttEvent::Connected(flag_first_connection) => {
                 store.ensure_separator();
                 if flag_first_connection {
-                    toasts
-                        .info("Connected to speech server!")
-                        .duration(Duration::from_secs(4))
-                        .closable(false);
+                    toasts.add(Toast {
+                        text: "Connected to speech server!".into(),
+                        kind: ToastKind::Info,
+                        style: ToastStyle::default(),
+                        options: ToastOptions::default().duration_in_seconds(4.),
+                    });
                 }
             }
             SttEvent::Disconnected => {
-                toasts
-                    .warning("Connection lost. Reconnecting...")
-                    .duration(Duration::from_secs(2))
-                    .closable(false);
+                toasts.add(Toast {
+                    text: "Connection lost. Reconnecting...".into(),
+                    kind: ToastKind::Warning,
+                    style: ToastStyle::default(),
+                    options: ToastOptions::default().duration_in_seconds(2.),
+                });
             }
         };
     }
@@ -69,7 +77,7 @@ impl SubtitlesApp {
     pub fn new(settings_manager: SettingsManager, guard: Option<WorkerGuard>) -> Self {
         Self {
             store: TranscriptionStore::new(settings_manager.settings.ui.max_blocks),
-            toasts: Toasts::new(),
+            toasts: Toasts::default(),
             state_manager: StateManager::new(),
             settings_manager,
             frame_counter: 0,
@@ -85,19 +93,33 @@ impl App for SubtitlesApp {
         let settings = &self.settings_manager.settings;
         if let Err(err) = state_manager.resolve(ui.ctx(), &mut self.store, settings, &self.devices)
         {
-            self.toasts.error(format!("{:?}", err)).closable(false);
+            self.toasts.add(Toast {
+                text: format!("{:?}", err).into(),
+                kind: ToastKind::Error,
+                style: ToastStyle::default(),
+                options: ToastOptions::default().duration_in_seconds(3.),
+            });
         }
 
         match state_manager.poll_loading(ui.ctx(), settings.ui.enable_high_priority) {
             Ok(LoadingOutcome::Ready) => {
-                self.toasts
-                    .info("Starting subtitles overlay...")
-                    .duration(Duration::from_secs(3))
-                    .closable(false);
+                self.toasts.add(Toast {
+                    text: "Starting subtitles overlay...".into(),
+                    kind: ToastKind::Info,
+                    style: ToastStyle::default(),
+                    options: ToastOptions::default()
+                        .duration_in_seconds(3.),
+                });
             }
             Ok(_) => {}
             Err(e) => {
-                self.toasts.error(e.to_string()).closable(false);
+                self.toasts.add(Toast {
+                    text: e.to_string().into(),
+                    kind: ToastKind::Error,
+                    style: ToastStyle::default(),
+                    options: ToastOptions::default()
+                        .duration_in_seconds(3.),
+                });
             }
         }
 
@@ -157,7 +179,7 @@ impl App for SubtitlesApp {
             }
         }
 
-        self.toasts.show(ui.ctx());
+        self.toasts.show(ui);
     }
 
     fn clear_color(&self, visuals: &Visuals) -> [f32; 4] {

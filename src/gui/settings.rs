@@ -11,8 +11,7 @@ use eframe::egui::{
     self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
     vec2,
 };
-use egui_notify::Toasts;
-use std::time::Duration;
+use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 
 #[cfg(feature = "vosk")]
 use {crate::stt::adapters::types::VoskSettings, eframe::egui::Color32, std::path::PathBuf};
@@ -64,16 +63,20 @@ fn ui_bottom_panel(
                     {
                         match settings_manager.save() {
                             Ok(_) => {
-                                toasts
-                                    .success("Settings saved successfully!")
-                                    .duration(Duration::from_secs(3))
-                                    .closable(false);
+                                toasts.add(Toast {
+                                    text: "Settings saved successfully!".into(),
+                                    kind: ToastKind::Success,
+                                    style: ToastStyle::default(),
+                                    options: ToastOptions::default().duration_in_seconds(3.),
+                                });
                             }
                             Err(e) => {
-                                toasts
-                                    .error(format!("Failed to save: {}", e))
-                                    .duration(Duration::from_secs(5))
-                                    .closable(false);
+                                toasts.add(Toast {
+                                    text: format!("Failed to save: {}", e).into(),
+                                    kind: ToastKind::Error,
+                                    style: ToastStyle::default(),
+                                    options: ToastOptions::default().duration_in_seconds(5.),
+                                });
                             }
                         }
                     }
@@ -90,16 +93,22 @@ fn ui_bottom_panel(
                             ProviderType::Soniox
                                 if settings_provider.soniox.api_key.trim().is_empty() =>
                             {
-                                toasts
-                                    .warning("No API key provided for Soniox!")
-                                    .closable(false);
+                                toasts.add(Toast {
+                                    text: "No API key provided for Soniox!".into(),
+                                    kind: ToastKind::Warning,
+                                    style: ToastStyle::default(),
+                                    options: ToastOptions::default().duration_in_seconds(3.),
+                                });
                             }
                             ProviderType::Vosk
                                 if settings_provider.vosk.path.as_os_str().is_empty() =>
                             {
-                                toasts
-                                    .warning("No model path provided for Vosk!")
-                                    .closable(false);
+                                toasts.add(Toast {
+                                    text: "No model path provided for Vosk!".into(),
+                                    kind: ToastKind::Warning,
+                                    style: ToastStyle::default(),
+                                    options: ToastOptions::default().duration_in_seconds(3.),
+                                });
                             }
                             _ => {
                                 manager.switch(PendingState::Overlay);
