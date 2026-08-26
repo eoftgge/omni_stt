@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use crate::gui::state::{PendingState, StateManager};
 use crate::logger::LEVELS;
 use crate::settings::{
@@ -27,7 +28,7 @@ pub fn show_settings_window(
 
     egui::CentralPanel::default()
         .frame(egui::Frame::central_panel(&ui.ctx().global_style()).inner_margin(15.0))
-        .show_inside(ui, |ui| {
+        .show(ui, |ui| {
             ui.spacing_mut().item_spacing = vec2(8.0, 12.0);
             ui.heading("Settings");
             ui.separator();
@@ -53,7 +54,7 @@ fn ui_bottom_panel(
     egui::Panel::bottom("settings_bottom_panel")
         .resizable(false)
         .min_size(60.0)
-        .show_inside(ui, |ui| {
+        .show(ui, |ui| {
             ui.add_space(15.0);
             ui.columns(2, |cols| {
                 cols[0].vertical_centered_justified(|ui| {
@@ -365,7 +366,7 @@ fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
 
 fn ui_language_searchable_combo(
     ui: &mut Ui,
-    id_salt: impl std::hash::Hash,
+    id_salt: impl std::hash::Hash + Debug,
     selected: &mut LanguageHint,
 ) {
     let id = ui.make_persistent_id(id_salt);
