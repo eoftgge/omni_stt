@@ -10,7 +10,7 @@ use eframe::egui::{
     Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
 };
 use eframe::{App, Frame};
-use egui_toast::{Toast, ToastOptions, ToastStyle, ToastKind, Toasts};
+use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
 
@@ -107,8 +107,7 @@ impl App for SubtitlesApp {
                     text: "Starting subtitles overlay...".into(),
                     kind: ToastKind::Info,
                     style: ToastStyle::default(),
-                    options: ToastOptions::default()
-                        .duration_in_seconds(3.),
+                    options: ToastOptions::default().duration_in_seconds(3.),
                 });
             }
             Ok(_) => {}
@@ -117,8 +116,7 @@ impl App for SubtitlesApp {
                     text: e.to_string().into(),
                     kind: ToastKind::Error,
                     style: ToastStyle::default(),
-                    options: ToastOptions::default()
-                        .duration_in_seconds(3.),
+                    options: ToastOptions::default().duration_in_seconds(3.),
                 });
             }
         }

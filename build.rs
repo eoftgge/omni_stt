@@ -32,8 +32,7 @@ fn main() {
                     .expect("llvm-rc not found. Run: sudo apt install llvm");
 
                 let fake_toolkit = std::path::PathBuf::from(&out_dir).join("fake_toolkit");
-                std::fs::create_dir_all(&fake_toolkit)
-                    .expect("Failed to create fake_toolkit dir");
+                std::fs::create_dir_all(&fake_toolkit).expect("Failed to create fake_toolkit dir");
 
                 let rc_link = fake_toolkit.join("rc");
                 let _ = std::fs::remove_file(&rc_link);
@@ -42,9 +41,7 @@ fn main() {
                 std::os::unix::fs::symlink(&_llvm_rc, &rc_link)
                     .expect("Failed to create symlink rc -> llvm-rc");
 
-                res.set_toolkit_path(
-                    fake_toolkit.to_str().expect("Invalid fake_toolkit path"),
-                );
+                res.set_toolkit_path(fake_toolkit.to_str().expect("Invalid fake_toolkit path"));
             }
         }
 

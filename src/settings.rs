@@ -151,7 +151,10 @@ impl SettingsManager {
                 settings
             }
         };
-        Self { path, settings: Self::normalize_provider(settings) }
+        Self {
+            path,
+            settings: Self::normalize_provider(settings),
+        }
     }
 
     #[cfg(not(feature = "vosk"))]

@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use crate::gui::state::{PendingState, StateManager};
 use crate::logger::LEVELS;
 use crate::settings::{
@@ -12,6 +11,7 @@ use eframe::egui::{
     vec2,
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
+use std::fmt::Debug;
 
 #[cfg(feature = "vosk")]
 use {crate::stt::adapters::types::VoskSettings, eframe::egui::Color32, std::path::PathBuf};
