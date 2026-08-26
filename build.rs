@@ -28,7 +28,7 @@ fn main() {
                 res.set_windres_path(&windres);
                 res.set_toolkit_path("");
             } else if target.contains("msvc") {
-                let _ = find_llvm_tool("llvm-rc")
+                let _llvm_rc = find_llvm_tool("llvm-rc")
                     .expect("llvm-rc not found. Run: sudo apt install llvm");
 
                 let fake_toolkit = std::path::PathBuf::from(&out_dir).join("fake_toolkit");
@@ -39,7 +39,7 @@ fn main() {
                 let _ = std::fs::remove_file(&rc_link);
 
                 #[cfg(unix)]
-                std::os::unix::fs::symlink(&llvm_rc, &rc_link)
+                std::os::unix::fs::symlink(&_llvm_rc, &rc_link)
                     .expect("Failed to create symlink rc -> llvm-rc");
 
                 res.set_toolkit_path(
