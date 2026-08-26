@@ -21,3 +21,8 @@ info-plist = "Info.plist"
 [dist.dependencies.apt]
 libasound2-dev = "*"
 pkg-config = "*"
+mingw-w64 = { stage = ["build"] }
+llvm = { stage = ["build"] }
+
+[dist.dependencies.brew]
+llvm = { stage = ["build"] }
