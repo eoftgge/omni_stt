@@ -1,6 +1,6 @@
 [package]
 name = "omni_stt"
-version = "4.1.0"
+version = "4.1.1"
 edition = "2024"
 repository = "https://github.com/eoftgge/soniox_live"
 rust-version = "1.96.0"
@@ -13,7 +13,7 @@ serde_json = "1.0.150"
 tokio-tungstenite = { version = "0.30.0", features = ["native-tls"] }
 tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
 futures-util = "0.3.34"
-eframe = { version = "0.36.1", features = ["wgpu", "default_fonts", "x11"] }
+eframe = { version = "0.36.1", features = ["glow", "default_fonts"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["fmt"] }
 tracing-appender = "0.2.5"
