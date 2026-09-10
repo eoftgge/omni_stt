@@ -18,7 +18,7 @@ For build and start, you need [Rust Compiler](https://rust-lang.org/tools/instal
 
 ```terminaloutput
 >>> git clone https://github.com/eoftgge/omni-stt.git
->>> cd soniox_live
+>>> cd omni_stt
 >>> cargo build --release
 ```
 **Note:** After building, you will find the executable in target/release/. Move it to your preferred directory.
