@@ -1,10 +1,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use eframe::{wgpu, WgpuConfiguration};
 use eframe::egui::{IconData, ViewportBuilder};
 use eframe::egui_wgpu::WgpuSetup;
 use eframe::icon_data::from_png_bytes;
 use eframe::wgpu::Backends;
+use eframe::{WgpuConfiguration, wgpu};
 use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
@@ -16,7 +16,10 @@ use std::sync::Arc;
 const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
-fn select_adapter(adapters: &[wgpu::Adapter], _surface: Option<&wgpu::Surface<'_>>) -> Result<wgpu::Adapter, String> {
+fn select_adapter(
+    adapters: &[wgpu::Adapter],
+    _surface: Option<&wgpu::Surface<'_>>,
+) -> Result<wgpu::Adapter, String> {
     if let Some(adapter) = adapters.iter().find(|a| {
         let info = a.get_info();
         let name = info.name.to_lowercase();
