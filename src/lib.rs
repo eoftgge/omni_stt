@@ -1,3 +1,4 @@
+use eframe::egui::Vec2;
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::writer::BoxMakeWriter;
@@ -8,6 +9,10 @@ pub mod logger;
 pub mod settings;
 pub mod stt;
 pub mod transcription;
+
+pub const SETTINGS_WINDOW_SIZE: Vec2 = Vec2::new(400.0, 600.0);
+pub const TOOLTIP: &str = "OmniSTT";
+pub const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 pub fn setup_tracing(level: Level, log_to_file: bool) -> Option<WorkerGuard> {
     let (writer, guard) = if log_to_file {

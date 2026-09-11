@@ -9,11 +9,10 @@ use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
 use omni_stt::settings::SettingsManager;
-use omni_stt::setup_tracing;
+use omni_stt::{setup_tracing, SETTINGS_WINDOW_SIZE, ICON_BYTES, TOOLTIP};
 
 use std::sync::Arc;
-
-const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
+use omni_stt::gui::tray::AppTray;
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
 fn select_adapter(
@@ -41,24 +40,24 @@ fn run() -> Result<(), OmniSttErrors> {
     let settings_general = &settings_manager.settings.general;
     let level = settings_general.level();
     let guard = setup_tracing(level, settings_general.log_to_file());
-    let app = SubtitlesApp::new(settings_manager, guard);
-
     let mut wgpu_configuration = WgpuConfiguration::default();
     if let WgpuSetup::CreateNew(ref mut setup) = wgpu_configuration.wgpu_setup {
         setup.native_adapter_selector = Some(Arc::new(select_adapter));
         setup.instance_descriptor.backends = Backends::PRIMARY | Backends::DX12 | Backends::GL;
     }
+    let icon = from_png_bytes(ICON_BYTES).unwrap_or_else(|_| {
+        tracing::warn!("Bytes of icon is incorrect...");
+        IconData::default()
+    });
+    let tray_icon = icon.clone();
 
     let native_options = eframe::NativeOptions {
         renderer: eframe::Renderer::Wgpu,
         wgpu_options: wgpu_configuration,
         viewport: ViewportBuilder::default()
-            .with_app_id("omnistt")
-            .with_icon(from_png_bytes(ICON_BYTES).unwrap_or_else(|_| {
-                tracing::warn!("Bytes of icon is incorrect...");
-                IconData::default()
-            }))
-            .with_inner_size([400., 600.])
+            .with_app_id(TOOLTIP.to_lowercase())
+            .with_icon(icon)
+            .with_inner_size(SETTINGS_WINDOW_SIZE)
             .with_resizable(false)
             .with_decorations(true)
             .with_always_on_top()
@@ -69,10 +68,13 @@ fn run() -> Result<(), OmniSttErrors> {
 
     tracing::info!("Starting application");
     let res = eframe::run_native(
-        "OmniStt",
+        TOOLTIP,
         native_options,
         Box::new(move |cc| {
             setup_custom_fonts(&cc.egui_ctx);
+            let ctx = cc.egui_ctx.clone();
+            let tray = AppTray::spawn(tray_icon, ctx);
+            let app = SubtitlesApp::new(settings_manager, guard, tray);
             Ok(Box::new(app))
         }),
     );

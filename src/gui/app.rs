@@ -1,18 +1,17 @@
 use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
-use crate::gui::state::{AppState, LoadingOutcome, StateManager};
+use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::settings::SettingsManager;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
 use crate::transcription::service::TranscriptionService;
-use eframe::egui::{
-    Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
-};
-use eframe::{App, Frame};
+use eframe::egui::{Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel};
+use eframe::App;
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
+use crate::gui::tray::{AppTray, TrayAction};
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -70,11 +69,16 @@ pub struct SubtitlesApp {
     state_manager: StateManager,
     frame_counter: u64,
     devices: MappableAvailableDevices,
+    tray: AppTray,
     _guard: Option<WorkerGuard>,
 }
 
 impl SubtitlesApp {
-    pub fn new(settings_manager: SettingsManager, guard: Option<WorkerGuard>) -> Self {
+    pub fn new(
+        settings_manager: SettingsManager,
+        guard: Option<WorkerGuard>,
+        tray: AppTray,
+    ) -> Self {
         Self {
             store: TranscriptionStore::new(settings_manager.settings.ui.max_blocks),
             toasts: Toasts::default(),
@@ -83,13 +87,23 @@ impl SubtitlesApp {
             frame_counter: 0,
             devices: MappableAvailableDevices::from_default_host(),
             _guard: guard,
+            tray,
         }
     }
 }
 
 impl App for SubtitlesApp {
-    fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         let state_manager = &mut self.state_manager;
+
+        if let Some(Ok(action)) = self.tray.poll() {
+            match action {
+                TrayAction::OpenSettings => state_manager.switch(PendingState::Settings),
+                TrayAction::Restart => state_manager.switch(PendingState::Overlay),
+                TrayAction::Quit => ui.ctx().send_viewport_cmd(ViewportCommand::Close),
+            }
+        }
+
         let settings = &self.settings_manager.settings;
         if let Err(err) = state_manager.resolve(ui.ctx(), &mut self.store, settings, &self.devices)
         {

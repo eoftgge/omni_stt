@@ -4,6 +4,7 @@ use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
 use crate::transcription::service::TranscriptionService;
 use eframe::egui::{Context, ViewportCommand, Visuals, WindowLevel};
+use crate::SETTINGS_WINDOW_SIZE;
 
 fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {
     ctx.send_viewport_cmd(ViewportCommand::Decorations(false));
@@ -21,6 +22,8 @@ fn apply_settings_window(ctx: &Context) {
     ctx.send_viewport_cmd(ViewportCommand::MousePassthrough(false));
     ctx.send_viewport_cmd(ViewportCommand::Resizable(false));
     ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::Normal));
+    ctx.send_viewport_cmd(ViewportCommand::Maximized(false));        // + новое
+    ctx.send_viewport_cmd(ViewportCommand::InnerSize(SETTINGS_WINDOW_SIZE)); // + новое
 }
 
 pub struct StateManager {

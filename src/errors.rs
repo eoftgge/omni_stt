@@ -27,6 +27,12 @@ pub enum OmniSttErrors {
     API(usize, String),
     #[error("Provider error: {0}\nStopping audio...")]
     App(#[from] SttError),
+    #[error("Tray icon error: {0}")]
+    Tray(#[from] tray_icon::Error),
+    #[error("Invalid tray icon image: {0}")]
+    TrayIcon(#[from] tray_icon::BadIcon),
+    #[error("Invalid tray icon menu: {0}")]
+    TrayMenu(#[from] tray_icon::menu::Error),
 }
 
 impl From<&str> for OmniSttErrors {

@@ -20,6 +20,8 @@ info-plist = "Info.plist"
 
 [dist.dependencies.apt]
 libasound2-dev = "*"
+libgtk-3-dev = "*"
+libayatana-appindicator3-dev = "*"
 pkg-config = "*"
 mingw-w64 = { stage = ["build"] }
 llvm = { stage = ["build"] }
