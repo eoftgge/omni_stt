@@ -96,8 +96,5 @@ impl Drop for TranscriptionService {
         tracing::debug!("Dropping TranscriptionService, cancelling tasks...");
         self.cancel_token.cancel();
         self.proxy_handle.abort();
-        if self.cancel_token.is_cancelled() {
-            self.worker_handle.abort();
-        }
     }
 }
