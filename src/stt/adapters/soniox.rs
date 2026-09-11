@@ -48,7 +48,7 @@ impl SttBackend for SonioxBackend {
     async fn connect(&self) -> Result<Box<dyn SttSession>, SttError> {
         let conn = SonioxConnection::connect(URL)
             .await
-            .map_err(|_| SttError::ConnectionLost)?;
+            .map_err(classify_connect_error)?;
         let (writer, reader) = conn
             .into_session(&self.request)
             .await
