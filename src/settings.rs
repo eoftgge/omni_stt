@@ -20,6 +20,7 @@ pub struct SettingsUI {
 }
 
 #[derive(Deserialize, Serialize, Clone)]
+#[serde(default)]
 pub struct SettingsAudio {
     pub(crate) device_id: Option<SettingDeviceId>,
     pub(crate) hangover_chunks: usize,
