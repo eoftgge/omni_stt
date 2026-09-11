@@ -67,7 +67,7 @@ impl SonioxSession {
             _ => Ok(None),
         }
     }
-    
+
     fn handle_text_message(&mut self, txt: &str) -> Result<Option<SttEvent>, SttError> {
         let parsed_msg: SonioxTranscriptionMessage = serde_json::from_str(txt)
             .map_err(|e| SttError::FatalAPIError(format!("JSON parse error: {}", e)))?;

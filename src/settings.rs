@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use tracing::Level;
 
 #[derive(Deserialize, Serialize, Clone)]
+#[serde(default)]
 pub struct SettingsUI {
     pub(crate) max_blocks: usize,
     pub(crate) offset: (f32, f32),
@@ -26,6 +27,7 @@ pub struct SettingsAudio {
 }
 
 #[derive(Default, Deserialize, Serialize, Clone)]
+#[serde(default)]
 pub struct SettingsProvider {
     pub(crate) active_type: ProviderType,
     pub(crate) soniox: SonioxSettings,
@@ -33,6 +35,7 @@ pub struct SettingsProvider {
 }
 
 #[derive(Deserialize, Serialize, Clone)]
+#[serde(default)]
 pub struct SettingsGeneral {
     pub level: TracingLevel,
     pub log_to_file: bool,
