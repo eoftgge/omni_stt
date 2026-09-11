@@ -69,10 +69,9 @@ impl GenericSttWorker {
 
             if !first_packet.is_empty() {
                 let slice = bytemuck::cast_slice(&first_packet);
-                if session.send(slice).await.is_err() {
-                    continue;
-                }
+                let res = session.send(slice).await;
                 let _ = self.tx_recycle.send(first_packet).await;
+                if res.is_err() { continue; }
             }
 
             let _ = self
@@ -105,12 +104,14 @@ impl GenericSttWorker {
                     }
 
                     let slice = bytemuck::cast_slice(&buffer);
-                    if session.send(slice).await.is_err() {
-                        return StreamAction::Reconnect;
-                    }
+                    let res = session.send(slice).await;
 
                     buffer.clear();
                     let _ = self.tx_recycle.send(buffer).await;
+
+                    if res.is_err() {
+                        return StreamAction::Reconnect;
+                    }
                 }
 
                 event_result = session.recv_event() => {
