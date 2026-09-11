@@ -65,8 +65,6 @@ impl GenericSttWorker {
                 }
             };
 
-            retry_count = 0;
-
             if !first_packet.is_empty() {
                 let slice = bytemuck::cast_slice(&first_packet);
                 let res = session.send(slice).await;
@@ -79,9 +77,11 @@ impl GenericSttWorker {
                 .send(SttEvent::Connected(flag_first_connection))
                 .await;
             flag_first_connection = false;
+            retry_count = 0;
 
-            if self.run_session_loop(&mut session).await == StreamAction::Stop {
-                return Ok(());
+            match self.run_session_loop(&mut session).await {
+                StreamAction::Stop => return Ok(()),
+                StreamAction::Reconnect => self.handle_reconnect(&mut retry_count).await?,
             }
         }
     }
