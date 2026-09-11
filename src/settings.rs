@@ -146,13 +146,17 @@ impl SettingsManager {
                 Ok(settings) => settings,
                 Err(e) => Self::recover_from_broken(&path, &content, e),
             },
-            Err(_) => {
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
                 let settings = SettingsApp::default();
                 if let Ok(content) = toml::to_string_pretty(&settings) {
                     let _ = std::fs::write(&path, content);
                 }
                 settings
-            }
+            },
+            Err(e) => {
+                tracing::error!("Failed to read config at {}: {}", path.display(), e);
+                SettingsApp::default()
+            },
         };
         Self {
             path,
