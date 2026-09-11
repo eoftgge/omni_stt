@@ -4,27 +4,33 @@ pub fn convert_audio_chunk(input: &[f32], output: &mut Vec<i16>, channels: u16, 
     output.clear();
 
     let ch = channels as usize;
-    let gain = 5.0;
-
     let ratio = sample_rate as f32 / 16000.0;
-
     let total_frames = input.len() / ch;
+
+    let mut mono = Vec::with_capacity(total_frames);
+    let mut peak: f32 = 0.0;
+    for frame in input.chunks_exact(ch) {
+        let sample = frame.iter().sum::<f32>() / ch as f32;
+        peak = peak.max(sample.abs());
+        mono.push(sample);
+    }
+
+    const MAX_GAIN: f32 = 5.0;
+    const TARGET_PEAK: f32 = 0.9;
+    let gain = if peak > 0.001 {
+        (TARGET_PEAK / peak).min(MAX_GAIN)
+    } else {
+        1.0
+    };
+
     let target_frames = (total_frames as f32 / ratio) as usize;
-
     for i in 0..target_frames {
-        let src_frame_idx = (i as f32 * ratio) as usize;
-
-        if src_frame_idx >= total_frames {
+        let src_idx = (i as f32 * ratio) as usize;
+        if src_idx >= total_frames {
             break;
         }
-
-        let frame_start = src_frame_idx * ch;
-        let frame = &input[frame_start..frame_start + ch];
-
-        let sum: f32 = frame.iter().sum();
-        let mono_sample = (sum / ch as f32) * gain;
-
-        output.push((mono_sample.clamp(-1.0, 1.0) * SCALE) as i16);
+        let sample = (mono[src_idx] * gain).clamp(-1.0, 1.0);
+        output.push((sample * SCALE) as i16);
     }
 }
 
