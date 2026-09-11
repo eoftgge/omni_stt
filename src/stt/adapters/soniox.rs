@@ -12,10 +12,20 @@ use crate::stt::prelude::{SttBackend, SttError, SttEvent, SttSession, Transcript
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
 use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
+use crate::errors::OmniSttErrors;
 
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
 const MODEL: &str = "stt-rt-v4";
+
+fn classify_connect_error(err: OmniSttErrors) -> SttError {
+    match err {
+        OmniSttErrors::WebSocket(tungstenite::Error::Http(resp))
+            if matches!(resp.status().as_u16(), 400 | 401 | 403) =>
+            SttError::FatalAPIError(format!("Handshake rejected: {}", resp.status())),
+        other => SttError::RecoverableAPIError(other.to_string()),
+    }
+}
 
 pub struct SonioxBackend {
     request: SonioxTranscriptionRequest,
@@ -42,7 +52,7 @@ impl SttBackend for SonioxBackend {
         let (writer, reader) = conn
             .into_session(&self.request)
             .await
-            .map_err(|_| SttError::ConnectionLost)?;
+            .map_err(classify_connect_error)?;
 
         Ok(Box::new(SonioxSession {
             writer,
