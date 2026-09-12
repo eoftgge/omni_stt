@@ -87,13 +87,13 @@ impl SubtitlesApp {
             store: TranscriptionStore::new(settings_manager.settings.ui.max_blocks),
             toasts: Toasts::default(),
             state_manager: StateManager::new(),
-            settings_manager,
             frame_counter: 0,
             devices: MappableAvailableDevices::from_default_host(),
+            tray_failed: false,
+            applied_log: settings_manager.settings.general.clone(),
+            settings_manager,
             tracing_control,
             tray,
-            tray_failed: false,
-            applied_log: SettingsGeneral::default(),
         }
     }
 }
