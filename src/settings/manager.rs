@@ -3,6 +3,24 @@ use crate::settings::secret::Secret;
 use crate::settings::{KeyStorage, keystore};
 use crate::settings::{SettingsApp, SettingsGeneral};
 use std::path::{Path, PathBuf};
+use std::io::Write;
+
+fn write_atomic(path: &Path, content: &str) -> std::io::Result<()> {
+    let tmp = path.with_extension(format!("toml.{}.tmp", std::process::id()));
+
+    let result = (|| {
+        let mut file = std::fs::File::create(&tmp)?;
+        file.write_all(content.as_bytes())?;
+        file.sync_all()?;
+        drop(file);
+        std::fs::rename(&tmp, path)
+    })();
+
+    if result.is_err() {
+        let _ = std::fs::remove_file(&tmp);
+    }
+    result
+}
 
 pub fn logging_settings(path: &str) -> SettingsGeneral {
     std::fs::read_to_string(path)
@@ -118,7 +136,7 @@ impl SettingsManager {
             to_write.provider.soniox.api_key = Default::default();
         }
 
-        std::fs::write(&self.path, toml::to_string_pretty(&to_write)?)?;
+        write_atomic(&self.path, &toml::to_string_pretty(&to_write)?)?;
         Ok(())
     }
 
