@@ -1,7 +1,7 @@
 use crate::errors::OmniSttErrors;
 use crate::transcription::utils::convert_audio_chunk;
 use cpal::traits::{DeviceTrait, StreamTrait};
-use cpal::{Device, Stream, StreamConfig};
+use cpal::{Device, Stream};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
@@ -9,12 +9,11 @@ pub type AudioSample = Vec<i16>;
 
 pub struct AudioSession {
     stream: Stream,
-    config: StreamConfig,
 }
 
 impl AudioSession {
-    pub fn new(config: StreamConfig, stream: Stream) -> Self {
-        Self { config, stream }
+    pub fn new(stream: Stream) -> Self {
+        Self { stream }
     }
 
     pub fn open(
@@ -61,18 +60,10 @@ impl AudioSession {
             None,
         )?;
 
-        Ok(Self::new(config, stream))
-    }
-
-    pub fn config(&self) -> &StreamConfig {
-        &self.config
+        Ok(Self::new(stream))
     }
 
     pub fn play(&self) -> Result<(), cpal::Error> {
         self.stream.play()
-    }
-
-    pub fn pause(&self) -> Result<(), cpal::Error> {
-        self.stream.pause()
     }
 }
