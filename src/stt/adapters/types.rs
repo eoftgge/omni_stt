@@ -1,6 +1,7 @@
 use crate::stt::languages::LanguageHint;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use crate::settings::secret::Secret;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ProviderType {
@@ -13,7 +14,7 @@ pub enum ProviderType {
 pub struct SonioxSettings {
     pub(crate) language_hints: Vec<LanguageHint>,
     pub(crate) context: String,
-    pub(crate) api_key: String,
+    pub(crate) api_key: Secret<String>,
     pub(crate) target_language: LanguageHint,
     pub(crate) enable_translate: bool,
     pub(crate) enable_speakers: bool,
@@ -29,7 +30,7 @@ impl Default for SonioxSettings {
         Self {
             language_hints: vec![LanguageHint::default()],
             context: String::from("some kind context"),
-            api_key: String::new(),
+            api_key: Secret(String::new()),
             target_language: LanguageHint::default(),
             enable_translate: false,
             enable_speakers: true,

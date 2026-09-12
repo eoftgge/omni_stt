@@ -14,7 +14,6 @@ pub struct SonioxTranslationObject {
 #[derive(Debug,  Serialize, Default)]
 #[serde(default)]
 pub struct SonioxTranscriptionRequest {
-    #[serde(skip_serializing, default)]
     pub api_key: Secret<Arc<str>>,
     pub model: &'static str,
     pub audio_format: &'static str,

@@ -9,7 +9,7 @@ pub(crate) fn create_request(
     settings: SonioxSettings,
 ) -> Result<SonioxTranscriptionRequest, OmniSttErrors> {
     let mut request = SonioxTranscriptionRequest {
-        api_key: Secret(Arc::from(settings.api_key)),
+        api_key: Secret(Arc::from(settings.api_key.0)),
         model: MODEL,
         audio_format: "pcm_s16le",
         sample_rate: Some(16000),
