@@ -2,7 +2,7 @@
 name = "omni_stt"
 version = "4.1.2"
 edition = "2024"
-repository = "https://github.com/eoftgge/soniox_live"
+repository = "https://github.com/eoftgge/omni_stt"
 rust-version = "1.96.0"
 
 [dependencies]

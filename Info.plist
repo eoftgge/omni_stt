@@ -3,20 +3,17 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.soniox.live</string>
+    <string>com.omni.stt</string>
     <key>CFBundleName</key>
-    <string>Soniox Live</string>
+    <string>OmniSTT</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
 
     <key>CFBundleShortVersionString</key>
-    <string>1.9.4</string>
+    <string>5.0.0</string>
 
     <key>CFBundleExecutable</key>
-    <string>soniox_live</string>
-
-    <key>CFBundleShortVersionString</key>
-    <string>1.9.3</string>
+    <string>omni_stt</string>
 
     <key>NSMicrophoneUsageDescription</key>
     <string>The app requires access to your microphone to transcribe your speech.</string>

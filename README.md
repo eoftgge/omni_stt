@@ -17,7 +17,7 @@ Key Features
 For build and start, you need [Rust Compiler](https://rust-lang.org/tools/install/)
 
 ```terminaloutput
->>> git clone https://github.com/eoftgge/omni-stt.git
+>>> git clone https://github.com/eoftgge/omni_stt.git
 >>> cd omni_stt
 >>> cargo build --release
 ```
