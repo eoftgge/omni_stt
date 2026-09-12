@@ -1,7 +1,7 @@
 use crate::APP_ID;
 use keyring::{Entry, Error};
 
-pub const KEY_NAME: &str = "soniox_api_key";
+const KEY_NAME: &str = "soniox_api_key";
 
 pub enum KeyStorage {
     Keyring,
@@ -24,6 +24,7 @@ pub fn store(key: &str) -> Result<(), Error> {
     entry()?.set_password(key)
 }
 
+#[allow(dead_code)] // возможно понадобится
 pub fn delete() -> Result<(), Error> {
     match entry()?.delete_credential() {
         Ok(()) | Err(Error::NoEntry) => Ok(()),
