@@ -1,7 +1,7 @@
 const SCALE: f32 = i16::MAX as f32;
 
+/// it's function appends audio.
 pub fn convert_audio_chunk(input: &[f32], output: &mut Vec<i16>, channels: u16, sample_rate: u32) {
-    output.clear();
     let ch = channels as usize;
     if ch == 0 || input.is_empty() {
         return;
