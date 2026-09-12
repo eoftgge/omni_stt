@@ -1,9 +1,9 @@
 use crate::errors::OmniSttErrors;
-use crate::transcription::utils::convert_audio_chunk;
 use cpal::traits::{DeviceTrait, StreamTrait};
 use cpal::{Device, Stream};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
+use crate::transcription::resample::AudioConverter;
 
 pub type AudioSample = Vec<i16>;
 
@@ -25,12 +25,13 @@ impl AudioSession {
         let target_samples = 3200;
         let mut accumulator = Vec::with_capacity(target_samples);
 
-        let channel = config.channels;
+        let channels = config.channels;
         let sample_rate = config.sample_rate;
+        let mut converter = AudioConverter::new(sample_rate, channels);
         let stream = device.build_input_stream(
             config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                convert_audio_chunk(data, &mut accumulator, channel, sample_rate);
+                converter.push(data, &mut accumulator);
                 if accumulator.len() >= target_samples {
                     let mut next_accumulator = match rx_recycle.try_recv() {
                         Ok(mut recycled) => {

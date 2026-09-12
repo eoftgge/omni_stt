@@ -4,3 +4,4 @@ pub mod replicas;
 pub mod service;
 pub mod subtitles;
 pub mod utils;
+pub mod resample;
