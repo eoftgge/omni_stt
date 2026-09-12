@@ -25,7 +25,7 @@ fn select_adapter(
         let info = a.get_info();
         let name = info.name.to_lowercase();
         // todo: DIRTY HACK!!! ADJUST IF POSSIBLE!!!
-        (name.contains("amd") || name.contains("radeon")) && info.backend == wgpu::Backend::Gl
+        (name.contains("amd") && name.contains("radeon")) && info.backend == wgpu::Backend::Gl
     }) {
         return Ok(adapter.clone());
     }
