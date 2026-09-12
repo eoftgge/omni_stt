@@ -195,7 +195,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings) {
         .spacing([10.0, 10.0])
         .show(ui, |ui| {
             ui.add(egui::Label::new("API Key:").extend());
-            ui.add(TextEdit::singleline(&mut soniox.api_key).password(true));
+            ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
             ui.end_row();
 
             ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
