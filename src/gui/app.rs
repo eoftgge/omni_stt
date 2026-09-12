@@ -2,7 +2,7 @@ use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::gui::tray::{AppTray, TrayAction};
-use crate::settings::SettingsManager;
+use crate::settings::{SettingsGeneral, SettingsManager};
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
@@ -13,7 +13,7 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
-use tracing_appender::non_blocking::WorkerGuard;
+use crate::logger::TracingControl;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -73,13 +73,14 @@ pub struct SubtitlesApp {
     devices: MappableAvailableDevices,
     tray: AppTray,
     tray_failed: bool,
-    _guard: Option<WorkerGuard>,
+    tracing_control: TracingControl,
+    applied_log: SettingsGeneral,
 }
 
 impl SubtitlesApp {
     pub fn new(
         settings_manager: SettingsManager,
-        guard: Option<WorkerGuard>,
+        tracing_control: TracingControl,
         tray: AppTray,
     ) -> Self {
         Self {
@@ -89,9 +90,10 @@ impl SubtitlesApp {
             settings_manager,
             frame_counter: 0,
             devices: MappableAvailableDevices::from_default_host(),
-            _guard: guard,
+            tracing_control,
             tray,
             tray_failed: false,
+            applied_log: SettingsGeneral::default()
         }
     }
 }
@@ -208,6 +210,11 @@ impl App for SubtitlesApp {
         }
 
         self.toasts.show(ui);
+        let general = &self.settings_manager.settings.general;
+        if *general != self.applied_log {
+            self.tracing_control.apply(general);
+            self.applied_log = general.clone();
+        }
     }
 
     fn clear_color(&self, visuals: &Visuals) -> [f32; 4] {

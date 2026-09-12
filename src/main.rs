@@ -9,10 +9,12 @@ use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
 use omni_stt::settings::SettingsManager;
-use omni_stt::{APP_ID, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP, setup_tracing};
+use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 
 use omni_stt::gui::tray::AppTray;
 use std::sync::Arc;
+use omni_stt::logger::setup_tracing;
+use omni_stt::settings::manager::logging_settings;
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
 fn select_adapter(
@@ -36,10 +38,9 @@ fn select_adapter(
 }
 
 fn run() -> Result<(), OmniSttErrors> {
-    let settings_manager = SettingsManager::new("omni.toml");
-    let settings_general = &settings_manager.settings.general;
-    let level = settings_general.level();
-    let guard = setup_tracing(level, settings_general.log_to_file());
+    let general = logging_settings(CONFIG_PATH);
+    let tracing_control = setup_tracing(general.level(), general.log_to_file());
+    let settings_manager = SettingsManager::new(CONFIG_PATH);
     let mut wgpu_configuration = WgpuConfiguration::default();
     if let WgpuSetup::CreateNew(ref mut setup) = wgpu_configuration.wgpu_setup {
         setup.native_adapter_selector = Some(Arc::new(select_adapter));
@@ -74,7 +75,7 @@ fn run() -> Result<(), OmniSttErrors> {
             setup_custom_fonts(&cc.egui_ctx);
             let ctx = cc.egui_ctx.clone();
             let tray = AppTray::spawn(tray_icon, ctx);
-            let app = SubtitlesApp::new(settings_manager, guard, tray);
+            let app = SubtitlesApp::new(settings_manager, tracing_control , tray);
             Ok(Box::new(app))
         }),
     );

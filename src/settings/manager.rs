@@ -1,8 +1,16 @@
 use crate::errors::OmniSttErrors;
-use crate::settings::SettingsApp;
+use crate::settings::{SettingsApp, SettingsGeneral};
 use crate::settings::{keystore, KeyStorage};
 use crate::settings::secret::Secret;
 use std::path::{Path, PathBuf};
+
+pub fn logging_settings(path: &str) -> SettingsGeneral {
+    std::fs::read_to_string(path)
+        .ok()
+        .and_then(|content| toml::from_str::<SettingsApp>(&content).ok())
+        .map(|settings| settings.general)
+        .unwrap_or_default()
+}
 
 pub struct SettingsManager {
     pub(crate) key_storage: KeyStorage,

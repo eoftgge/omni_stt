@@ -6,13 +6,14 @@ use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::{
     self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
+    Color32,
     vec2,
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
 
 #[cfg(feature = "vosk")]
-use {crate::stt::adapters::types::VoskSettings, eframe::egui::Color32, std::path::PathBuf};
+use {crate::stt::adapters::types::VoskSettings, std::path::PathBuf};
 
 pub fn show_settings_window(
     ui: &mut Ui,

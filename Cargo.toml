@@ -15,7 +15,7 @@ tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "macros", "sy
 futures-util = "0.3.34"
 eframe = { version = "0.36.1", features = ["wgpu", "default_fonts", "x11"] }
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.23", features = ["fmt"] }
+tracing-subscriber = { version = "0.3.23", features = ["fmt", "registry"] }
 tracing-appender = "0.2.5"
 toml = "1.1.4"
 egui-toast = "0.22.0"
