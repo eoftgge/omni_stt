@@ -13,6 +13,7 @@ pub mod transcription;
 pub const SETTINGS_WINDOW_SIZE: Vec2 = Vec2::new(400.0, 600.0);
 pub const TOOLTIP: &str = "OmniSTT";
 pub const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
+pub const APP_ID: &str = "omni_stt";
 
 pub fn setup_tracing(level: Level, log_to_file: bool) -> Option<WorkerGuard> {
     let (writer, guard) = if log_to_file {

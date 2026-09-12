@@ -9,7 +9,7 @@ use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
 use omni_stt::settings::SettingsManager;
-use omni_stt::{setup_tracing, SETTINGS_WINDOW_SIZE, ICON_BYTES, TOOLTIP};
+use omni_stt::{setup_tracing, SETTINGS_WINDOW_SIZE, ICON_BYTES, TOOLTIP, APP_ID};
 
 use std::sync::Arc;
 use omni_stt::gui::tray::AppTray;
@@ -55,7 +55,7 @@ fn run() -> Result<(), OmniSttErrors> {
         renderer: eframe::Renderer::Wgpu,
         wgpu_options: wgpu_configuration,
         viewport: ViewportBuilder::default()
-            .with_app_id(TOOLTIP.to_lowercase())
+            .with_app_id(APP_ID)
             .with_icon(icon)
             .with_inner_size(SETTINGS_WINDOW_SIZE)
             .with_resizable(false)
