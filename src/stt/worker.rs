@@ -70,6 +70,7 @@ impl GenericSttWorker {
                 let res = session.send(slice).await;
                 let _ = self.tx_recycle.send(first_packet).await;
                 if res.is_err() {
+                    self.handle_reconnect(&mut retry_count).await?;
                     continue;
                 }
             }
