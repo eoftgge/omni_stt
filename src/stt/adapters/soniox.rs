@@ -76,7 +76,7 @@ impl SonioxSession {
                 Ok(None)
             },
             Message::Pong(_) => {
-                tracing::trace!("Pong received");
+                tracing::debug!("Pong received");
                 Ok(None)
             },
             Message::Close(_) => {
