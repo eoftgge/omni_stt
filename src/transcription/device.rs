@@ -47,13 +47,12 @@ impl AvailableDevice {
 
 impl MappableAvailableDevices {
     pub fn from_host(host: cpal::Host) -> Self {
-        let devices = host
-            .output_devices()
-            .into_iter()
-            .flatten()
-            .filter_map(AvailableDevice::new)
-            .collect();
+        let devices = Self::enumerate(&host);
         Self(host, devices)
+    }
+
+    pub fn refresh(&mut self) {
+        self.1 = Self::enumerate(&self.0);
     }
 
     pub fn from_default_host() -> Self {
@@ -72,6 +71,14 @@ impl MappableAvailableDevices {
 
     pub fn iter(&self) -> impl Iterator<Item = &AvailableDevice> {
         self.1.iter()
+    }
+
+    fn enumerate(host: &cpal::Host) -> Vec<AvailableDevice> {
+        host.output_devices()
+            .into_iter()
+            .flatten()
+            .filter_map(AvailableDevice::new)
+            .collect()
     }
 }
 

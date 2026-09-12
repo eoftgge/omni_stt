@@ -123,7 +123,7 @@ impl App for SubtitlesApp {
         }
 
         let settings = &self.settings_manager.settings;
-        if let Err(err) = state_manager.resolve(ui.ctx(), &mut self.store, settings, &self.devices)
+        if let Err(err) = state_manager.resolve(ui.ctx(), &mut self.store, settings, &mut self.devices)
         {
             self.toasts.add(Toast {
                 text: format!("{:?}", err).into(),

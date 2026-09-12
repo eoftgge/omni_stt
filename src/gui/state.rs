@@ -74,7 +74,7 @@ impl StateManager {
         ctx: &Context,
         store: &mut TranscriptionStore,
         settings: &SettingsApp,
-        devices: &MappableAvailableDevices,
+        devices: &mut MappableAvailableDevices,
     ) -> Result<(), OmniSttErrors> {
         let Some(resolved) = self.pending_state.take() else {
             return Ok(());
@@ -82,6 +82,7 @@ impl StateManager {
 
         match resolved {
             PendingState::Settings => {
+                devices.refresh();
                 resolved.apply_window_state(ctx, settings.ui.enable_high_priority);
                 self.app_state = AppState::Settings;
             }
