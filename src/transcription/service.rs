@@ -11,8 +11,8 @@ use tokio_util::sync::CancellationToken;
 pub struct TranscriptionService {
     pub(crate) _audio: AudioSession,
     pub receiver: Receiver<SttEvent>,
+    _worker_handle: tokio::task::JoinHandle<()>,
     cancel_token: CancellationToken,
-    worker_handle: tokio::task::JoinHandle<()>,
     proxy_handle: tokio::task::JoinHandle<()>,
 }
 
@@ -83,9 +83,9 @@ impl TranscriptionService {
 
         Ok(Self {
             _audio: audio,
+            _worker_handle: worker_handle,
             receiver: rx_event,
             cancel_token,
-            worker_handle,
             proxy_handle,
         })
     }
