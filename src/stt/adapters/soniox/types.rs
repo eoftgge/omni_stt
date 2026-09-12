@@ -6,8 +6,11 @@ use std::sync::Arc;
 #[derive(Debug, Serialize, Default)]
 pub struct SonioxTranslationObject {
     pub r#type: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub language_a: Option<LanguageHint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub language_b: Option<LanguageHint>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_language: Option<LanguageHint>,
 }
 
@@ -17,15 +20,24 @@ pub struct SonioxTranscriptionRequest {
     pub api_key: Secret<Arc<str>>,
     pub model: &'static str,
     pub audio_format: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub num_channels: Option<u32>,           // required for raw audio
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sample_rate: Option<u32>,            // required for raw audio
     pub language_hints: Arc<[LanguageHint]>, // required
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<Arc<str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_speaker_diarization: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_language_identification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_non_final_tokens: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_endpoint_detection: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub client_reference_id: Option<Arc<str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub translation: Option<SonioxTranslationObject>,
 }
 
