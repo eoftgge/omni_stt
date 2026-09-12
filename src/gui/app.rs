@@ -108,7 +108,7 @@ impl App for SubtitlesApp {
                 tracing::error!("Tray unavailable: {e}");
                 self.tray_failed = true;
                 self.toasts.add(Toast {
-                    text: "Fatal tray error! Failed tray, he's unavailable....".into(),
+                    text: "Tray unavailable: there will be no way to exit the overla".into(),
                     kind: ToastKind::Error,
                     style: ToastStyle::default(),
                     options: ToastOptions::default().duration_in_seconds(8.),
