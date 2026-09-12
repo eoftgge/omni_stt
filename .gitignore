@@ -2,7 +2,6 @@
 /logs
 /assets/models
 .idea
-Cargo.lock
 soniox.toml
 soniox.log
 omni.log
