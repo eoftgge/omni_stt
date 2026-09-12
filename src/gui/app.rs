@@ -24,7 +24,7 @@ fn process_events(
         match event {
             SttEvent::Transcript(data) => {
                 store.update(data);
-            },
+            }
             SttEvent::Interim(segments) => store.update_interim(segments),
             SttEvent::Warning(msg) => {
                 toasts.add(Toast {
@@ -123,7 +123,8 @@ impl App for SubtitlesApp {
         }
 
         let settings = &self.settings_manager.settings;
-        if let Err(err) = state_manager.resolve(ui.ctx(), &mut self.store, settings, &mut self.devices)
+        if let Err(err) =
+            state_manager.resolve(ui.ctx(), &mut self.store, settings, &mut self.devices)
         {
             self.toasts.add(Toast {
                 text: format!("{:?}", err).into(),

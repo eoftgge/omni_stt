@@ -74,11 +74,11 @@ impl SonioxSession {
             Message::Ping(data) => {
                 let _ = self.writer.send_pong(data).await;
                 Ok(None)
-            },
+            }
             Message::Pong(_) => {
                 tracing::debug!("Pong received");
                 Ok(None)
-            },
+            }
             Message::Close(_) => {
                 tracing::warn!("Server sent Close frame");
                 Ok(Some(SttEvent::Disconnected))

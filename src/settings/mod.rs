@@ -4,8 +4,8 @@ pub mod secret;
 
 pub use keystore::KeyStorage;
 pub use manager::SettingsManager;
-pub use secret::Secret;
 pub use manager::logging_settings;
+pub use secret::Secret;
 
 use crate::logger::TracingLevel;
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};

@@ -21,9 +21,9 @@ pub struct SonioxTranscriptionRequest {
     pub model: &'static str,
     pub audio_format: &'static str,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub num_channels: Option<u32>,           // required for raw audio
+    pub num_channels: Option<u32>, // required for raw audio
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sample_rate: Option<u32>,            // required for raw audio
+    pub sample_rate: Option<u32>, // required for raw audio
     pub language_hints: Arc<[LanguageHint]>, // required
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<Arc<str>>,

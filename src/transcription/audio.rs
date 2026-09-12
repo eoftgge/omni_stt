@@ -1,9 +1,9 @@
 use crate::errors::OmniSttErrors;
+use crate::transcription::resample::AudioConverter;
 use cpal::traits::{DeviceTrait, StreamTrait};
 use cpal::{Device, Stream};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
-use crate::transcription::resample::AudioConverter;
 
 pub type AudioSample = Vec<i16>;
 

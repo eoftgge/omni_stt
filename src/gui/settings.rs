@@ -323,7 +323,11 @@ fn ui_section_audio(
                         }
                     });
 
-                if ui.button("⟳").on_hover_text("Rescan audio devices").clicked() {
+                if ui
+                    .button("⟳")
+                    .on_hover_text("Rescan audio devices")
+                    .clicked()
+                {
                     devices.refresh();
                 }
             });

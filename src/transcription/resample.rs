@@ -46,7 +46,11 @@ impl AudioConverter {
         } else {
             self.gain
         };
-        let alpha = if target < self.gain { Self::ATTACK } else { Self::RELEASE };
+        let alpha = if target < self.gain {
+            Self::ATTACK
+        } else {
+            Self::RELEASE
+        };
         self.gain += (target - self.gain) * alpha;
 
         output.reserve((frames as f64 / self.ratio).ceil() as usize + 1);
@@ -61,7 +65,11 @@ impl AudioConverter {
                 break;
             }
 
-            let left = if left_idx < 0 { self.prev } else { mono(left_idx as usize) };
+            let left = if left_idx < 0 {
+                self.prev
+            } else {
+                mono(left_idx as usize)
+            };
             let sample = left + (mono(right_idx as usize) - left) * frac;
 
             output.push(((sample * self.gain).clamp(-1.0, 1.0) * SCALE) as i16);

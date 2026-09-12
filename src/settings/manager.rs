@@ -2,8 +2,8 @@ use crate::errors::OmniSttErrors;
 use crate::settings::secret::Secret;
 use crate::settings::{KeyStorage, keystore};
 use crate::settings::{SettingsApp, SettingsGeneral};
-use std::path::{Path, PathBuf};
 use std::io::Write;
+use std::path::{Path, PathBuf};
 
 fn write_atomic(path: &Path, content: &str) -> std::io::Result<()> {
     let tmp = path.with_extension(format!("toml.{}.tmp", std::process::id()));
