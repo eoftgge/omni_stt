@@ -1,4 +1,5 @@
-#[cfg(target_os = "windows")] pub mod pump;
+#[cfg(target_os = "windows")]
+pub mod pump;
 
 use std::sync::mpsc::{Receiver, Sender, channel};
 
@@ -6,8 +7,8 @@ use eframe::egui::{Context, IconData};
 use tray_icon::menu::{Menu, MenuEvent, MenuId, MenuItem};
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
-use crate::errors::OmniSttErrors;
 use crate::TOOLTIP;
+use crate::errors::OmniSttErrors;
 
 #[derive(Clone, Copy, Debug)]
 pub enum TrayAction {
@@ -50,7 +51,10 @@ impl AppTray {
             }
         };
 
-        Self { events, _icon: icon }
+        Self {
+            events,
+            _icon: icon,
+        }
     }
 
     pub fn poll(&self) -> Option<Result<TrayAction, OmniSttErrors>> {

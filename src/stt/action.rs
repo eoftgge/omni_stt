@@ -1,6 +1,4 @@
 pub enum StreamAction {
-    Reconnect {
-        transcribed: bool,
-    },
+    Reconnect { transcribed: bool },
     Stop,
 }

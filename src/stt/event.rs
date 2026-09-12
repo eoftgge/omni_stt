@@ -21,6 +21,9 @@ pub enum SttError {
 
 impl SttError {
     pub fn is_reconnect(&self) -> bool {
-        matches!(self, SttError::RecoverableAPIError(_) | SttError::ConnectionLost)
+        matches!(
+            self,
+            SttError::RecoverableAPIError(_) | SttError::ConnectionLost
+        )
     }
 }

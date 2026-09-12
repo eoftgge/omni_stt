@@ -7,12 +7,12 @@ use async_trait::async_trait;
 use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
+use crate::errors::OmniSttErrors;
 use crate::stt::adapters::soniox::types::SonioxTranscriptionToken;
 use crate::stt::prelude::{SttBackend, SttError, SttEvent, SttSession, TranscriptData};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
 use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
-use crate::errors::OmniSttErrors;
 
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
@@ -22,7 +22,9 @@ fn classify_connect_error(err: OmniSttErrors) -> SttError {
     match err {
         OmniSttErrors::WebSocket(tungstenite::Error::Http(resp))
             if matches!(resp.status().as_u16(), 400 | 401 | 403) =>
-            SttError::FatalAPIError(format!("Handshake rejected: {}", resp.status())),
+        {
+            SttError::FatalAPIError(format!("Handshake rejected: {}", resp.status()))
+        }
         other => SttError::RecoverableAPIError(other.to_string()),
     }
 }

@@ -1,7 +1,7 @@
 #[cfg(target_os = "windows")]
 pub fn run() {
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        DispatchMessageW, GetMessageW, TranslateMessage, MSG,
+        DispatchMessageW, GetMessageW, MSG, TranslateMessage,
     };
     unsafe {
         let mut msg: MSG = std::mem::zeroed();

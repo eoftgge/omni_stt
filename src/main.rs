@@ -9,10 +9,10 @@ use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
 use omni_stt::settings::SettingsManager;
-use omni_stt::{setup_tracing, SETTINGS_WINDOW_SIZE, ICON_BYTES, TOOLTIP, APP_ID};
+use omni_stt::{APP_ID, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP, setup_tracing};
 
-use std::sync::Arc;
 use omni_stt::gui::tray::AppTray;
+use std::sync::Arc;
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
 fn select_adapter(

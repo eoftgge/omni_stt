@@ -153,11 +153,11 @@ impl SettingsManager {
                     let _ = std::fs::write(&path, content);
                 }
                 settings
-            },
+            }
             Err(e) => {
                 tracing::error!("Failed to read config at {}: {}", path.display(), e);
                 SettingsApp::default()
-            },
+            }
         };
         Self {
             path,

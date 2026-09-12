@@ -3,7 +3,9 @@ const SCALE: f32 = i16::MAX as f32;
 pub fn convert_audio_chunk(input: &[f32], output: &mut Vec<i16>, channels: u16, sample_rate: u32) {
     output.clear();
     let ch = channels as usize;
-    if ch == 0 || input.is_empty() { return; }
+    if ch == 0 || input.is_empty() {
+        return;
+    }
 
     let ratio = sample_rate as f32 / 16000.0;
     let total_frames = input.len() / ch;

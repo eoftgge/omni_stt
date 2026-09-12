@@ -1,17 +1,19 @@
 use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
+use crate::gui::tray::{AppTray, TrayAction};
 use crate::settings::SettingsManager;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
 use crate::transcription::service::TranscriptionService;
-use eframe::egui::{Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel};
 use eframe::App;
+use eframe::egui::{
+    Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
+};
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
 use tracing_appender::non_blocking::WorkerGuard;
-use crate::gui::tray::{AppTray, TrayAction};
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -155,7 +157,7 @@ impl App for SubtitlesApp {
                 state_manager,
                 &mut self.toasts,
                 &mut self.devices,
-                self.tray_failed
+                self.tray_failed,
             ),
             AppState::Loading { .. } => {
                 let t = ui.ctx().input(|i| i.time);

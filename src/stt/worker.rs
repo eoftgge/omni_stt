@@ -69,7 +69,9 @@ impl GenericSttWorker {
                 let slice = bytemuck::cast_slice(&first_packet);
                 let res = session.send(slice).await;
                 let _ = self.tx_recycle.send(first_packet).await;
-                if res.is_err() { continue; }
+                if res.is_err() {
+                    continue;
+                }
             }
 
             let _ = self
@@ -81,9 +83,11 @@ impl GenericSttWorker {
             match self.run_session_loop(&mut session).await {
                 StreamAction::Stop => return Ok(()),
                 StreamAction::Reconnect { transcribed } => {
-                    if transcribed { retry_count = 0; }
+                    if transcribed {
+                        retry_count = 0;
+                    }
                     self.handle_reconnect(&mut retry_count).await?
-                },
+                }
             }
         }
     }
