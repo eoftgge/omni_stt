@@ -9,7 +9,7 @@ use tokio::time::sleep;
 
 const MAX_RETRIES: u32 = 5;
 const RECONNECT_DELAY: u64 = 1000;
-const PING_INTERVAL: Duration = Duration::from_secs(20);
+const PING_INTERVAL: Duration = Duration::from_secs(10);
 
 pub struct GenericSttWorker {
     rx_audio: Receiver<AudioSample>,
