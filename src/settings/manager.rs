@@ -1,13 +1,13 @@
 use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
-use crate::settings::keystore::{self, KeyStorage};
+use crate::settings::{keystore, KeyStorage};
 use crate::settings::secret::Secret;
 use std::path::{Path, PathBuf};
 
 pub struct SettingsManager {
+    pub(crate) key_storage: KeyStorage,
     pub settings: SettingsApp,
     path: PathBuf,
-    key_storage: KeyStorage,
 }
 
 impl SettingsManager {

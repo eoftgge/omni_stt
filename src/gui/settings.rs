@@ -1,8 +1,6 @@
 use crate::gui::state::{PendingState, StateManager};
 use crate::logger::LEVELS;
-use crate::settings::{
-    SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
-};
+use crate::settings::{KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
@@ -34,10 +32,11 @@ pub fn show_settings_window(
             ui.separator();
 
             let settings = &mut settings_manager.settings;
+            let key_storage = &settings_manager.key_storage;
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_general(ui, &mut settings.general);
                 ui_section_audio(ui, &mut settings.audio, devices);
-                ui_section_provider(ui, &mut settings.provider);
+                ui_section_provider(ui, &mut settings.provider, key_storage);
                 ui_section_position(ui, &mut settings.ui);
                 ui_section_appearance(ui, &mut settings.ui);
                 ui.allocate_space(vec2(0.0, 60.0));
@@ -161,7 +160,7 @@ fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
     });
 }
 
-fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
+fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider, key_storage: &KeyStorage) {
     ui.collapsing("Speech Engine (STT)", |ui| {
         ui.horizontal(|ui| {
             ui.selectable_value(
@@ -180,7 +179,7 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
         ui.separator();
 
         match settings_provider.active_type {
-            ProviderType::Soniox => ui_soniox_settings(ui, &mut settings_provider.soniox),
+            ProviderType::Soniox => ui_soniox_settings(ui, &mut settings_provider.soniox, key_storage),
             #[cfg(feature = "vosk")]
             ProviderType::Vosk => ui_vosk_settings(ui, &mut settings_provider.vosk),
             #[cfg(not(feature = "vosk"))]
@@ -189,13 +188,18 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider) {
     });
 }
 
-fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings) {
+fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &KeyStorage) {
     Grid::new("soniox_grid")
         .num_columns(2)
         .spacing([10.0, 10.0])
         .show(ui, |ui| {
-            ui.add(egui::Label::new("API Key:").extend());
-            ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
+            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                ui.label("API Key:");
+            });
+            ui.vertical(|ui| {
+                ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
+                ui_key_storage_hint(ui, key_storage);
+            });
             ui.end_row();
 
             ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
@@ -490,4 +494,20 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 );
             });
     });
+}
+
+fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
+    match key_storage {
+        KeyStorage::Keyring => {
+            ui.label(RichText::new("🔒 Stored in the system keychain").small().weak());
+        }
+        KeyStorage::PlainFile { reason } => {
+            ui.label(
+                RichText::new("⚠ System keychain unavailable — the key is stored in omni.toml as plain text")
+                    .small()
+                    .color(Color32::from_rgb(220, 160, 60)),
+            )
+                .on_hover_text(reason);
+        }
+    }
 }
