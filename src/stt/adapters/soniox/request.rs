@@ -3,12 +3,13 @@ use crate::errors::OmniSttErrors;
 use crate::stt::adapters::soniox::MODEL;
 use crate::stt::adapters::types::SonioxSettings;
 use std::sync::Arc;
+use crate::stt::secret::Secret;
 
 pub(crate) fn create_request(
     settings: SonioxSettings,
 ) -> Result<SonioxTranscriptionRequest, OmniSttErrors> {
     let mut request = SonioxTranscriptionRequest {
-        api_key: Arc::from(settings.api_key),
+        api_key: Secret(Arc::from(settings.api_key)),
         model: MODEL,
         audio_format: "pcm_s16le",
         sample_rate: Some(16000),

@@ -1,6 +1,7 @@
 use crate::stt::languages::LanguageHint;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use crate::stt::secret::Secret;
 
 #[derive(Debug, Serialize, Default)]
 pub struct SonioxTranslationObject {
@@ -10,10 +11,11 @@ pub struct SonioxTranslationObject {
     pub target_language: Option<LanguageHint>,
 }
 
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug,  Serialize, Default)]
 #[serde(default)]
 pub struct SonioxTranscriptionRequest {
-    pub api_key: Arc<str>,
+    #[serde(skip_serializing, default)]
+    pub api_key: Secret<Arc<str>>,
     pub model: &'static str,
     pub audio_format: &'static str,
     pub num_channels: Option<u32>,           // required for raw audio
