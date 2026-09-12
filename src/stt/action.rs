@@ -1,5 +1,7 @@
 #[derive(PartialEq, Eq)]
 pub enum StreamAction {
-    Reconnect,
+    Reconnect {
+        transcribed: bool,
+    },
     Stop,
 }

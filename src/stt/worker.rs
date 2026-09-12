@@ -77,17 +77,20 @@ impl GenericSttWorker {
                 .send(SttEvent::Connected(flag_first_connection))
                 .await;
             flag_first_connection = false;
-            retry_count = 0;
 
             match self.run_session_loop(&mut session).await {
                 StreamAction::Stop => return Ok(()),
-                StreamAction::Reconnect => self.handle_reconnect(&mut retry_count).await?,
+                StreamAction::Reconnect { transcribed } => {
+                    if transcribed { retry_count = 0; }
+                    self.handle_reconnect(&mut retry_count).await?
+                },
             }
         }
     }
 
     async fn run_session_loop(&mut self, session: &mut Box<dyn SttSession>) -> StreamAction {
         let mut hangover_counter = 0;
+        let mut transcribed = false;
 
         loop {
             tokio::select! {
@@ -110,13 +113,14 @@ impl GenericSttWorker {
                     let _ = self.tx_recycle.send(buffer).await;
 
                     if res.is_err() {
-                        return StreamAction::Reconnect;
+                        return StreamAction::Reconnect { transcribed };
                     }
                 }
 
                 event_result = session.recv_event() => {
                     match event_result {
                         Ok(SttEvent::Transcript(data)) => {
+                            transcribed = true;
                             let _ = self.tx_event.send(SttEvent::Transcript(data)).await;
                         },
                         Ok(SttEvent::Warning(msg)) => {
@@ -131,12 +135,12 @@ impl GenericSttWorker {
                         Ok(SttEvent::Connected(_)) => {},
                         Ok(SttEvent::Disconnected) => {
                             let _ = self.tx_event.send(SttEvent::Disconnected).await;
-                            return StreamAction::Reconnect;
+                            return StreamAction::Reconnect { transcribed } ;
                         },
-                        Err(SttError::RecoverableAPIError(e)) => {
-                            tracing::warn!("Temporary API Error: {}", e);
-                            return StreamAction::Reconnect;
-                        },
+                        Err(e) if e.is_reconnect() => {
+                            tracing::warn!("Recoverable error: {}", e);
+                            return StreamAction::Reconnect { transcribed } ;
+                        }
                         Err(e) => {
                             tracing::error!("Fatal API Error: {:?}", e);
                             let _ = self.tx_event.send(SttEvent::Error(e)).await;
