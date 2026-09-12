@@ -25,43 +25,36 @@ impl TranscriptionStore {
     pub fn update(&mut self, data: TranscriptData) {
         self.last_activity = Some(Instant::now());
 
-        if data.is_final {
-            self.interim_blocks.clear();
+        self.interim_blocks.clear();
 
-            let speaker = data.speaker;
-            let needs_new = match self.blocks.back() {
-                Some(last) if last.speaker != speaker => true,
-                Some(last) if last.text.len() > 200 => {
-                    let trimmed = data.text.trim();
-                    if trimmed.is_empty() || is_punctuation_or_symbol(trimmed) {
-                        false
-                    } else {
-                        let last_char = last.text.chars().last().unwrap_or(' ');
-                        let first_char = data.text.chars().next().unwrap_or(' ');
+        let speaker = data.speaker;
+        let needs_new = match self.blocks.back() {
+            Some(last) if last.speaker != speaker => true,
+            Some(last) if last.text.len() > 200 => {
+                let trimmed = data.text.trim();
+                if trimmed.is_empty() || is_punctuation_or_symbol(trimmed) {
+                    false
+                } else {
+                    let last_char = last.text.chars().last().unwrap_or(' ');
+                    let first_char = data.text.chars().next().unwrap_or(' ');
 
-                        let is_space_boundary =
-                            last_char.is_whitespace() || first_char.is_whitespace();
-                        let is_cjk_boundary = is_cjk(last_char) || is_cjk(first_char);
+                    let is_space_boundary = last_char.is_whitespace() || first_char.is_whitespace();
+                    let is_cjk_boundary = is_cjk(last_char) || is_cjk(first_char);
 
-                        is_space_boundary || is_cjk_boundary
-                    }
+                    is_space_boundary || is_cjk_boundary
                 }
-                None => true,
-                _ => false,
-            };
-
-            if needs_new {
-                self.blocks.push_back(SubtitleBlock::new(speaker.clone()));
-                self.pop_if_overflow();
             }
+            None => true,
+            _ => false,
+        };
 
-            if let Some(block) = self.blocks.back_mut() {
-                block.text.push_str(&data.text);
-            }
-        } else {
-            let mut new_block = SubtitleBlock::new(data.speaker);
-            new_block.text = data.text;
-            self.interim_blocks = vec![new_block];
+        if needs_new {
+            self.blocks.push_back(SubtitleBlock::new(speaker.clone()));
+            self.pop_if_overflow();
+        }
+
+        if let Some(block) = self.blocks.back_mut() {
+            block.text.push_str(&data.text);
         }
     }
 

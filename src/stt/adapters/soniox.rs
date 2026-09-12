@@ -157,14 +157,12 @@ impl SonioxSession {
             self.event_queue
                 .push_back(SttEvent::Transcript(TranscriptData {
                     text: std::mem::take(final_text),
-                    is_final: true,
                     speaker: speaker.clone(),
                 }));
         }
         if !interim_text.is_empty() {
             interims.push(TranscriptData {
                 text: std::mem::take(interim_text),
-                is_final: false,
                 speaker: speaker.clone(),
             });
         }
