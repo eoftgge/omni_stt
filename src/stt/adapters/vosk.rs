@@ -41,7 +41,6 @@ fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent>
             }
             Some(SttEvent::Transcript(TranscriptData {
                 text: format!("{text} "),
-                is_final: true,
                 speaker: None,
             }))
         }
@@ -52,7 +51,6 @@ fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent>
             }
             Some(SttEvent::Interim(vec![TranscriptData {
                 text,
-                is_final: false,
                 speaker: None,
             }]))
         }
