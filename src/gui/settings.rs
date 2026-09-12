@@ -89,7 +89,6 @@ fn ui_bottom_panel(
                         .add(Button::new("🚀 Start").min_size(vec2(0.0, 40.0)))
                         .clicked()
                     {
-                        let settings_provider = &settings_manager.settings.provider;
                         if tray_failed {
                             toasts.add(Toast {
                                 text: "Tray is unavailable, there will be nothing to exit the overlay. The launch has been cancelled.".into(),
@@ -100,6 +99,7 @@ fn ui_bottom_panel(
                             return;
                         }
 
+                        let settings_provider = &settings_manager.settings.provider;
                         match settings_provider.active_type {
                             ProviderType::Soniox
                                 if settings_provider.soniox.api_key.trim().is_empty() =>
