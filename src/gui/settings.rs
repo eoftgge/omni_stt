@@ -1,13 +1,14 @@
 use crate::gui::state::{PendingState, StateManager};
 use crate::logger::LEVELS;
-use crate::settings::{KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI};
+use crate::settings::{
+    KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
+};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::{
-    self, Button, Checkbox, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider, TextEdit, Ui,
-    Color32,
-    vec2,
+    self, Button, Checkbox, Color32, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider,
+    TextEdit, Ui, vec2,
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
@@ -161,7 +162,11 @@ fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
     });
 }
 
-fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider, key_storage: &KeyStorage) {
+fn ui_section_provider(
+    ui: &mut Ui,
+    settings_provider: &mut SettingsProvider,
+    key_storage: &KeyStorage,
+) {
     ui.collapsing("Speech Engine (STT)", |ui| {
         ui.horizontal(|ui| {
             ui.selectable_value(
@@ -180,7 +185,9 @@ fn ui_section_provider(ui: &mut Ui, settings_provider: &mut SettingsProvider, ke
         ui.separator();
 
         match settings_provider.active_type {
-            ProviderType::Soniox => ui_soniox_settings(ui, &mut settings_provider.soniox, key_storage),
+            ProviderType::Soniox => {
+                ui_soniox_settings(ui, &mut settings_provider.soniox, key_storage)
+            }
             #[cfg(feature = "vosk")]
             ProviderType::Vosk => ui_vosk_settings(ui, &mut settings_provider.vosk),
             #[cfg(not(feature = "vosk"))]
@@ -500,15 +507,21 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
 fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
     match key_storage {
         KeyStorage::Keyring => {
-            ui.label(RichText::new("🔒 Stored in the system keychain").small().weak());
+            ui.label(
+                RichText::new("🔒 Stored in the system keychain")
+                    .small()
+                    .weak(),
+            );
         }
         KeyStorage::PlainFile { reason } => {
             ui.label(
-                RichText::new("⚠ System keychain unavailable — the key is stored in omni.toml as plain text")
-                    .small()
-                    .color(Color32::from_rgb(220, 160, 60)),
+                RichText::new(
+                    "⚠ System keychain unavailable — the key is stored in omni.toml as plain text",
+                )
+                .small()
+                .color(Color32::from_rgb(220, 160, 60)),
             )
-                .on_hover_text(reason);
+            .on_hover_text(reason);
         }
     }
 }

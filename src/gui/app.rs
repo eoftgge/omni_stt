@@ -2,6 +2,7 @@ use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::gui::tray::{AppTray, TrayAction};
+use crate::logger::TracingControl;
 use crate::settings::{SettingsGeneral, SettingsManager};
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
@@ -13,7 +14,6 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
-use crate::logger::TracingControl;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -93,7 +93,7 @@ impl SubtitlesApp {
             tracing_control,
             tray,
             tray_failed: false,
-            applied_log: SettingsGeneral::default()
+            applied_log: SettingsGeneral::default(),
         }
     }
 }

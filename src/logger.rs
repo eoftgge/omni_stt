@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
-use tracing::Level;
 use crate::settings::SettingsGeneral;
+use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::sync::{Arc, RwLock};
+use tracing::Level;
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::MakeWriter;
@@ -68,7 +68,11 @@ pub fn setup_tracing(level: Level, log_to_file: bool) -> TracingControl {
         )
         .init();
 
-    TracingControl { level_handle, sink, guard }
+    TracingControl {
+        level_handle,
+        sink,
+        guard,
+    }
 }
 
 impl From<TracingLevel> for Level {
@@ -108,7 +112,10 @@ impl TracingControl {
     }
 
     fn set_log_to_file(&mut self, enabled: bool) {
-        let is_file = matches!(&*self.sink.read().expect("sink lock poisoned"), Sink::File(_));
+        let is_file = matches!(
+            &*self.sink.read().expect("sink lock poisoned"),
+            Sink::File(_)
+        );
         if is_file == enabled {
             return;
         }

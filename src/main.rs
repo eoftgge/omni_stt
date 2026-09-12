@@ -12,9 +12,9 @@ use omni_stt::settings::SettingsManager;
 use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 
 use omni_stt::gui::tray::AppTray;
-use std::sync::Arc;
 use omni_stt::logger::setup_tracing;
 use omni_stt::settings::manager::logging_settings;
+use std::sync::Arc;
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
 fn select_adapter(
@@ -75,7 +75,7 @@ fn run() -> Result<(), OmniSttErrors> {
             setup_custom_fonts(&cc.egui_ctx);
             let ctx = cc.egui_ctx.clone();
             let tray = AppTray::spawn(tray_icon, ctx);
-            let app = SubtitlesApp::new(settings_manager, tracing_control , tray);
+            let app = SubtitlesApp::new(settings_manager, tracing_control, tray);
             Ok(Box::new(app))
         }),
     );

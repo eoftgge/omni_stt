@@ -1,17 +1,17 @@
 pub mod keystore;
-pub mod secret;
 pub mod manager;
+pub mod secret;
 
 pub use keystore::KeyStorage;
 pub use manager::SettingsManager;
 pub use secret::Secret;
 
+use crate::logger::TracingLevel;
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::transcription::device::SettingDeviceId;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
 use tracing::Level;
-use crate::logger::TracingLevel;
 
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]

@@ -1,7 +1,7 @@
 use crate::errors::OmniSttErrors;
-use crate::settings::{SettingsApp, SettingsGeneral};
-use crate::settings::{keystore, KeyStorage};
 use crate::settings::secret::Secret;
+use crate::settings::{KeyStorage, keystore};
+use crate::settings::{SettingsApp, SettingsGeneral};
 use std::path::{Path, PathBuf};
 
 pub fn logging_settings(path: &str) -> SettingsGeneral {
