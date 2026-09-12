@@ -1,4 +1,4 @@
-pub mod pump;
+#[cfg(target_os = "windows")] pub mod pump;
 
 use std::sync::mpsc::{Receiver, Sender, channel};
 
@@ -17,19 +17,40 @@ pub enum TrayAction {
 }
 
 struct Tray {
-    _icon: TrayIcon,
+    icon: TrayIcon,
     ids: [(MenuId, TrayAction); 3],
 }
 
 pub struct AppTray {
     events: Receiver<Result<TrayAction, OmniSttErrors>>,
+    #[cfg(not(target_os = "windows"))]
+    _icon: Option<TrayIcon>,
 }
 
 impl AppTray {
+    #[cfg(target_os = "windows")]
     pub fn spawn(icon: IconData, ctx: Context) -> Self {
         let (tx, events) = channel();
         std::thread::spawn(move || tray_main(icon, ctx, tx));
         Self { events }
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn spawn(icon: IconData, ctx: Context) -> Self {
+        let (tx, events) = channel();
+
+        let icon = match build_tray(icon) {
+            Ok(Tray { icon, ids }) => {
+                std::thread::spawn(move || forward_menu_events(ids, ctx, tx));
+                Some(icon)
+            }
+            Err(e) => {
+                let _ = tx.send(Err(e));
+                None
+            }
+        };
+
+        Self { events, _icon: icon }
     }
 
     pub fn poll(&self) -> Option<Result<TrayAction, OmniSttErrors>> {
@@ -37,8 +58,9 @@ impl AppTray {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn tray_main(icon: IconData, ctx: Context, tx: Sender<Result<TrayAction, OmniSttErrors>>) {
-    let Tray { _icon, ids } = match build_tray(icon) {
+    let Tray { icon: _icon, ids } = match build_tray(icon) {
         Ok(tray) => tray,
         Err(err) => {
             let _ = tx.send(Err(err));
@@ -75,7 +97,7 @@ fn build_tray(icon: IconData) -> Result<Tray, OmniSttErrors> {
         .with_icon(image)
         .build()?;
 
-    Ok(Tray { _icon: icon, ids })
+    Ok(Tray { icon, ids })
 }
 
 fn forward_menu_events(
@@ -89,7 +111,7 @@ fn forward_menu_events(
         };
 
         if tx.send(Ok(*action)).is_err() {
-            break; 
+            break;
         }
         ctx.request_repaint();
     }

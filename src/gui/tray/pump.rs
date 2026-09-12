@@ -11,10 +11,3 @@ pub fn run() {
         }
     }
 }
-
-#[cfg(not(target_os = "windows"))]
-pub fn run() {
-    loop {
-        std::thread::park();
-    }
-}
