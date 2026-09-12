@@ -108,6 +108,7 @@ impl SonioxSession {
     }
 
     fn enqueue_tokens(&mut self, tokens: Vec<SonioxTranscriptionToken>) {
+        let had_tokens = !tokens.is_empty();
         let mut final_text = String::new();
         let mut interim_text = String::new();
         let mut interims: Vec<TranscriptData> = Vec::new();
@@ -143,7 +144,10 @@ impl SonioxSession {
             &current_speaker,
             &mut interims,
         );
-        self.event_queue.push_back(SttEvent::Interim(interims));
+
+        if had_tokens {
+            self.event_queue.push_back(SttEvent::Interim(interims));
+        }
     }
 
     fn flush_buffers(
