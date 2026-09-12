@@ -10,4 +10,7 @@ pub trait SttBackend: Send + Sync {
 pub trait SttSession: Send {
     async fn send(&mut self, audio: &[u8]) -> Result<(), SttError>;
     async fn recv_event(&mut self) -> Result<SttEvent, SttError>;
+    async fn keepalive(&mut self) -> Result<(), SttError> {
+        Ok(())
+    }
 }

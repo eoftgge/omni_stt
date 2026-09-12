@@ -17,6 +17,7 @@ use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
 const MODEL: &str = "stt-rt-v4";
+const READ_TIMEOUT: std::time::Duration = std::time::Duration::from_mins(1);
 
 fn classify_connect_error(err: OmniSttErrors) -> SttError {
     match err {
@@ -37,6 +38,7 @@ pub struct SonioxSession {
     pub(super) writer: SonioxSessionWriter,
     pub(super) reader: SonioxSessionReader,
     pub(super) event_queue: VecDeque<SttEvent>,
+    pub(super) deadline: tokio::time::Instant,
 }
 
 impl SonioxBackend {
@@ -60,6 +62,7 @@ impl SttBackend for SonioxBackend {
             writer,
             reader,
             event_queue: VecDeque::new(),
+            deadline: tokio::time::Instant::now() + READ_TIMEOUT,
         }))
     }
 }
@@ -71,7 +74,11 @@ impl SonioxSession {
             Message::Ping(data) => {
                 let _ = self.writer.send_pong(data).await;
                 Ok(None)
-            }
+            },
+            Message::Pong(_) => {
+                tracing::trace!("Pong received");
+                Ok(None)
+            },
             Message::Close(_) => {
                 tracing::warn!("Server sent Close frame");
                 Ok(Some(SttEvent::Disconnected))
@@ -167,13 +174,28 @@ impl SttSession for SonioxSession {
         }
 
         loop {
-            let msg = self.reader.recv_message().await.map_err(|e| {
-                tracing::error!("WS Error/EOF: {}", e);
-                SttError::ConnectionLost
-            })?;
+            let msg = tokio::select! {
+                res = self.reader.recv_message() => res.map_err(|e| {
+                    tracing::error!("WS Error/EOF: {e}");
+                    SttError::ConnectionLost
+                })?,
+                _ = tokio::time::sleep_until(self.deadline) => {
+                    tracing::warn!("No frames from Soniox for {READ_TIMEOUT:?}");
+                    return Err(SttError::ConnectionLost);
+                }
+            };
+
+            self.deadline = tokio::time::Instant::now() + READ_TIMEOUT;
             if let Some(event) = self.handle_ws_message(msg).await? {
                 return Ok(event);
             }
         }
+    }
+
+    async fn keepalive(&mut self) -> Result<(), SttError> {
+        self.writer
+            .send_ping()
+            .await
+            .map_err(|_| SttError::ConnectionLost)
     }
 }

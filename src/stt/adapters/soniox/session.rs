@@ -37,4 +37,10 @@ impl SonioxSessionWriter {
         self.0.send(message).await?;
         Ok(())
     }
+
+    pub async fn send_ping(&mut self) -> Result<(), OmniSttErrors> {
+        tracing::debug!("Sending ping");
+        self.0.send(Message::Ping(Bytes::new())).await?;
+        Ok(())
+    }
 }

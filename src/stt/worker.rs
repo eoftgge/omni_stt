@@ -9,6 +9,7 @@ use tokio::time::sleep;
 
 const MAX_RETRIES: u32 = 5;
 const RECONNECT_DELAY: u64 = 1000;
+const PING_INTERVAL: Duration = Duration::from_secs(20);
 
 pub struct GenericSttWorker {
     rx_audio: Receiver<AudioSample>,
@@ -96,6 +97,7 @@ impl GenericSttWorker {
     async fn run_session_loop(&mut self, session: &mut Box<dyn SttSession>) -> StreamAction {
         let mut hangover_counter = 0;
         let mut transcribed = false;
+        let mut next_ping = tokio::time::Instant::now() + PING_INTERVAL;
 
         loop {
             tokio::select! {
@@ -152,6 +154,12 @@ impl GenericSttWorker {
                             return StreamAction::Stop;
                         }
                     }
+                },
+                _ = tokio::time::sleep_until(next_ping) => {
+                    if session.keepalive().await.is_err() {
+                        return StreamAction::Reconnect { transcribed };
+                    }
+                    next_ping = tokio::time::Instant::now() + PING_INTERVAL;
                 }
             }
         }
