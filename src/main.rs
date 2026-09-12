@@ -13,7 +13,7 @@ use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 
 use omni_stt::gui::tray::AppTray;
 use omni_stt::logger::setup_tracing;
-use omni_stt::settings::manager::logging_settings;
+use omni_stt::settings::logging_settings;
 use std::sync::Arc;
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
