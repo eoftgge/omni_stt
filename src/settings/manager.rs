@@ -1,5 +1,5 @@
-use crate::errors::OmniSttErrors;
 use std::path::{Path, PathBuf};
+use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 
 pub struct SettingsManager {
@@ -36,6 +36,8 @@ impl SettingsManager {
 
     #[cfg(not(feature = "vosk"))]
     fn normalize_provider(mut settings: SettingsApp) -> SettingsApp {
+        use crate::stt::adapters::types::ProviderType;
+
         if settings.provider.active_type == ProviderType::Vosk {
             settings.provider.active_type = ProviderType::Soniox;
         }

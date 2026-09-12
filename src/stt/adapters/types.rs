@@ -1,7 +1,7 @@
 use crate::stt::languages::LanguageHint;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use crate::settings::secret::Secret;
+use crate::settings::Secret;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ProviderType {

@@ -1,4 +1,4 @@
-use crate::settings::secret::Secret;
+use crate::settings::Secret;
 use crate::stt::languages::LanguageHint;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
