@@ -130,6 +130,9 @@ impl GenericSttWorker {
                             transcribed = true;
                             let _ = self.tx_event.send(SttEvent::Transcript(data)).await;
                         },
+                        Ok(SttEvent::Interim(segments)) => {
+                            let _ = self.tx_event.send(SttEvent::Interim(segments)).await; 
+                        },
                         Ok(SttEvent::Warning(msg)) => {
                             tracing::warn!("Provider warning: {}", msg);
                             let _ = self.tx_event.send(SttEvent::Warning(msg)).await;

@@ -5,6 +5,7 @@ pub enum SttEvent {
     Connected(bool),
     Disconnected,
     Transcript(TranscriptData),
+    Interim(Vec<TranscriptData>),
     Warning(String),
     Error(SttError),
 }

@@ -65,6 +65,19 @@ impl TranscriptionStore {
         }
     }
 
+    pub fn update_interim(&mut self, segments: Vec<TranscriptData>) {
+        self.interim_blocks.clear();
+        if segments.is_empty() {
+            return;
+        }
+        self.last_activity = Some(Instant::now());
+        for seg in segments {
+            let mut block = SubtitleBlock::new(seg.speaker);
+            block.text = seg.text;
+            self.interim_blocks.push(block);
+        }
+    }
+
     pub fn ensure_separator(&mut self) {
         for block in self.interim_blocks.drain(..) {
             let mut new_block = SubtitleBlock::new(block.speaker);

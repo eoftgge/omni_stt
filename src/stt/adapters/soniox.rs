@@ -110,6 +110,7 @@ impl SonioxSession {
     fn enqueue_tokens(&mut self, tokens: Vec<SonioxTranscriptionToken>) {
         let mut final_text = String::new();
         let mut interim_text = String::new();
+        let mut interims: Vec<TranscriptData> = Vec::new();
         let mut current_speaker = None;
 
         for token in tokens {
@@ -120,7 +121,12 @@ impl SonioxSession {
             let token_speaker = token.speaker.clone();
 
             if current_speaker.is_some() && current_speaker != token_speaker {
-                self.flush_buffers(&mut final_text, &mut interim_text, &current_speaker);
+                self.flush_buffers(
+                    &mut final_text,
+                    &mut interim_text,
+                    &current_speaker,
+                    &mut interims,
+                );
             }
 
             current_speaker = token_speaker;
@@ -131,7 +137,13 @@ impl SonioxSession {
             }
         }
 
-        self.flush_buffers(&mut final_text, &mut interim_text, &current_speaker);
+        self.flush_buffers(
+            &mut final_text,
+            &mut interim_text,
+            &current_speaker,
+            &mut interims,
+        );
+        self.event_queue.push_back(SttEvent::Interim(interims));
     }
 
     fn flush_buffers(
@@ -139,6 +151,7 @@ impl SonioxSession {
         final_text: &mut String,
         interim_text: &mut String,
         speaker: &Option<String>,
+        interims: &mut Vec<TranscriptData>,
     ) {
         if !final_text.is_empty() {
             self.event_queue
@@ -149,12 +162,11 @@ impl SonioxSession {
                 }));
         }
         if !interim_text.is_empty() {
-            self.event_queue
-                .push_back(SttEvent::Transcript(TranscriptData {
-                    text: std::mem::take(interim_text),
-                    is_final: false,
-                    speaker: speaker.clone(),
-                }));
+            interims.push(TranscriptData {
+                text: std::mem::take(interim_text),
+                is_final: false,
+                speaker: speaker.clone(),
+            });
         }
     }
 }

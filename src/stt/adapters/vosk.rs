@@ -50,11 +50,11 @@ fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent>
             if text.is_empty() {
                 return None;
             }
-            Some(SttEvent::Transcript(TranscriptData {
+            Some(SttEvent::Interim(vec![TranscriptData {
                 text,
                 is_final: false,
                 speaker: None,
-            }))
+            }]))
         }
         Ok(DecodingState::Failed) => {
             tracing::warn!("Vosk decoding failed for this chunk");

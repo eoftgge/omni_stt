@@ -24,7 +24,8 @@ fn process_events(
         match event {
             SttEvent::Transcript(data) => {
                 store.update(data);
-            }
+            },
+            SttEvent::Interim(segments) => store.update_interim(segments),
             SttEvent::Warning(msg) => {
                 toasts.add(Toast {
                     text: msg.into(),
