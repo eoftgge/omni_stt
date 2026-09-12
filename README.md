@@ -25,11 +25,11 @@ For build and start, you need [Rust Compiler](https://rust-lang.org/tools/instal
 Antivirus software may flag the executable due to its ability to draw overlays — this is normal.
 
 ### Releases
-You can also download the latest pre-compiled binaries from the [GitHub Releases page](https://github.com/eoftgge/omni-stt.git).
+You can also download the latest pre-compiled binaries from the [GitHub Releases page](https://github.com/eoftgge/omni_stt.git).
 
 ## Supported Providers
 * Soniox: Integrated and ready to use.
 * More providers (Vosk, Google, etc.) are coming soon!
 
 ### Support
-If you encounter any issues or have feature requests, please check the [Issues section](https://github.com/eoftgge/omni-stt/issues) on GitHub.
+If you encounter any issues or have feature requests, please check the [Issues section](https://github.com/eoftgge/omni_stt/issues) on GitHub.
