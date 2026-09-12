@@ -3,7 +3,7 @@ use crate::errors::OmniSttErrors;
 use crate::stt::adapters::soniox::MODEL;
 use crate::stt::adapters::types::SonioxSettings;
 use std::sync::Arc;
-use crate::stt::secret::Secret;
+use crate::settings::secret::Secret;
 
 pub(crate) fn create_request(
     settings: SonioxSettings,

@@ -1,3 +1,7 @@
+pub mod keystore;
+pub mod secret;
+mod manager;
+
 use crate::errors::OmniSttErrors;
 use crate::logger::TracingLevel;
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};

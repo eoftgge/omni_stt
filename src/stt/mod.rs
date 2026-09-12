@@ -8,7 +8,6 @@ pub mod languages;
 pub mod store;
 pub mod utils;
 pub mod worker;
-mod secret;
 
 pub mod prelude {
     pub use super::{

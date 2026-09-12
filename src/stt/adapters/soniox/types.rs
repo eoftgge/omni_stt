@@ -1,7 +1,7 @@
 use crate::stt::languages::LanguageHint;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use crate::stt::secret::Secret;
+use crate::settings::secret::Secret;
 
 #[derive(Debug, Serialize, Default)]
 pub struct SonioxTranslationObject {

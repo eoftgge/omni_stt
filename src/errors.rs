@@ -33,6 +33,8 @@ pub enum OmniSttErrors {
     TrayIcon(#[from] tray_icon::BadIcon),
     #[error("Invalid tray icon menu: {0}")]
     TrayMenu(#[from] tray_icon::menu::Error),
+    #[error("Key storage error: {0}")]
+    KeyStore(#[from] keyring::Error),
 }
 
 impl From<&str> for OmniSttErrors {
