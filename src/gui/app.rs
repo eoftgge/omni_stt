@@ -70,6 +70,7 @@ pub struct SubtitlesApp {
     frame_counter: u64,
     devices: MappableAvailableDevices,
     tray: AppTray,
+    tray_failed: bool,
     _guard: Option<WorkerGuard>,
 }
 
@@ -88,6 +89,7 @@ impl SubtitlesApp {
             devices: MappableAvailableDevices::from_default_host(),
             _guard: guard,
             tray,
+            tray_failed: false,
         }
     }
 }
@@ -96,12 +98,23 @@ impl App for SubtitlesApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         let state_manager = &mut self.state_manager;
 
-        if let Some(Ok(action)) = self.tray.poll() {
-            match action {
+        match self.tray.poll() {
+            Some(Ok(action)) => match action {
                 TrayAction::OpenSettings => state_manager.switch(PendingState::Settings),
                 TrayAction::Restart => state_manager.switch(PendingState::Overlay),
                 TrayAction::Quit => ui.ctx().send_viewport_cmd(ViewportCommand::Close),
+            },
+            Some(Err(e)) => {
+                tracing::error!("Tray unavailable: {e}");
+                self.tray_failed = true;
+                self.toasts.add(Toast {
+                    text: "Fatal tray error! Failed tray, he's unavailable....".into(),
+                    kind: ToastKind::Error,
+                    style: ToastStyle::default(),
+                    options: ToastOptions::default().duration_in_seconds(8.),
+                });
             }
+            None => {}
         }
 
         let settings = &self.settings_manager.settings;
@@ -142,6 +155,7 @@ impl App for SubtitlesApp {
                 state_manager,
                 &mut self.toasts,
                 &mut self.devices,
+                self.tray_failed
             ),
             AppState::Loading { .. } => {
                 let t = ui.ctx().input(|i| i.time);

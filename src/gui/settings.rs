@@ -22,8 +22,9 @@ pub fn show_settings_window(
     manager: &mut StateManager,
     toasts: &mut Toasts,
     devices: &mut MappableAvailableDevices,
+    tray_failed: bool,
 ) {
-    ui_bottom_panel(ui, settings_manager, manager, toasts);
+    ui_bottom_panel(ui, settings_manager, manager, toasts, tray_failed);
 
     egui::CentralPanel::default()
         .frame(egui::Frame::central_panel(&ui.ctx().global_style()).inner_margin(15.0))
@@ -49,6 +50,7 @@ fn ui_bottom_panel(
     settings_manager: &mut SettingsManager,
     manager: &mut StateManager,
     toasts: &mut Toasts,
+    tray_failed: bool,
 ) {
     egui::Panel::bottom("settings_bottom_panel")
         .resizable(false)
@@ -88,6 +90,15 @@ fn ui_bottom_panel(
                         .clicked()
                     {
                         let settings_provider = &settings_manager.settings.provider;
+                        if tray_failed {
+                            toasts.add(Toast {
+                                text: "Tray is unavailable, there will be nothing to exit the overlay. The launch has been cancelled.".into(),
+                                kind: ToastKind::Warning,
+                                style: ToastStyle::default(),
+                                options: ToastOptions::default().duration_in_seconds(3.),
+                            });
+                            return;
+                        }
 
                         match settings_provider.active_type {
                             ProviderType::Soniox
