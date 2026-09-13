@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::stt::action::StreamAction;
 use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::event::{SttError, SttEvent};
