@@ -496,17 +496,7 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
             ui.end_row();
         });
 
-        egui::Frame::new()
-            .fill(settings_ui.background_color())
-            .corner_radius(5.0)
-            .inner_margin(8.0)
-            .show(ui, |ui| {
-                ui.label(
-                    RichText::new(format!("Preview ({:.0}px)", settings_ui.font_size))
-                        .color(settings_ui.text_color())
-                        .size(settings_ui.font_size as f32),
-                );
-            });
+        ui_preview(ui,  settings_ui);
     });
 }
 
