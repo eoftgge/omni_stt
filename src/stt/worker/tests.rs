@@ -40,5 +40,5 @@ async fn session_closes_itself_before_the_server_does() {
     let action = worker.run_session_loop(&mut session).await;
 
     assert!(matches!(action, StreamAction::Idle));
-    let _ = tx_audio;
+    drop(tx_audio);
 }
