@@ -1,3 +1,5 @@
+//! Source: https://github.com/alphacep/vosk-api/blob/master/src/vosk_api.h
+
 use libloading::{Library, Symbol};
 use std::ffi::{c_char, c_int};
 use std::path::{Path, PathBuf};
