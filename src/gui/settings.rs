@@ -291,11 +291,9 @@ fn ui_section_audio(
                     .selected_text(current)
                     .width(100.0)
                     .show_ui(ui, |ui| {
-                        if ui.button("⟳  Rescan devices").clicked() {
-                            want_refresh = true;
-                        }
-                        ui.selectable_value(&mut settings_audio.device_id, None, default_label);
+                        if ui.button("⟳  Rescan devices").clicked() { want_refresh = true; }
                         ui.separator();
+                        ui.selectable_value(&mut settings_audio.device_id, None, default_label);
                         for device in devices.iter() {
                             ui.selectable_value(
                                 &mut settings_audio.device_id,
