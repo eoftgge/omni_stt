@@ -14,6 +14,7 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
+use crate::stt::adapters::vosk::probe::VoskProbe;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -76,6 +77,7 @@ pub struct SubtitlesApp {
     tray_failed: bool,
     tracing_control: TracingControl,
     applied_log: SettingsGeneral,
+    vosk_probe: VoskProbe,
 }
 
 impl SubtitlesApp {
@@ -95,6 +97,7 @@ impl SubtitlesApp {
             settings_manager,
             tracing_control,
             tray,
+            vosk_probe: VoskProbe::default(),
         }
     }
 }
@@ -162,6 +165,7 @@ impl App for SubtitlesApp {
                 &mut self.toasts,
                 &mut self.devices,
                 self.tray_failed,
+                &mut self.vosk_probe,
             ),
             AppState::Loading { .. } => {
                 let t = ui.ctx().input(|i| i.time);
