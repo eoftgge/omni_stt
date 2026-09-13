@@ -6,10 +6,7 @@ use crate::settings::{
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
-use eframe::egui::{
-    self, Button, Checkbox, Color32, ComboBox, DragValue, Grid, RichText, ScrollArea, Slider,
-    TextEdit, Ui, vec2,
-};
+use eframe::egui::{self, vec2, Button, Checkbox, Color32, ComboBox, DragValue, Grid, Response, RichText, ScrollArea, Slider, TextEdit, Ui};
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
 
@@ -135,9 +132,7 @@ fn ui_bottom_panel(
 
 fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
     ui.collapsing("General", |ui| {
-        Grid::new("general_grid")
-            .num_columns(2)
-            .spacing([10.0, 10.0])
+        settings_grid("general_grid")
             .show(ui, |ui| {
                 ui.label("Log Level:");
                 ComboBox::from_id_salt("log_level")
@@ -154,10 +149,8 @@ fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
                     });
                 ui.end_row();
 
-                ui.label("Log to file:");
-                ui.add(Checkbox::without_text(&mut settings_general.log_to_file))
+                row(ui, "Log to file:", Checkbox::without_text(&mut settings_general.log_to_file))
                     .on_hover_text("Save logs to a .log file in the app directory");
-                ui.end_row();
             });
     });
 }
@@ -197,9 +190,7 @@ fn ui_section_provider(
 }
 
 fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &KeyStorage) {
-    Grid::new("soniox_grid")
-        .num_columns(2)
-        .spacing([10.0, 10.0])
+    settings_grid("soniox_grid")
         .show(ui, |ui| {
             ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                 ui.label("API Key:");
@@ -243,21 +234,14 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
             }
             ui.end_row();
 
-            ui.add(egui::Label::new("Context:").extend());
-            ui.add(TextEdit::multiline(&mut soniox.context).desired_rows(2));
-            ui.end_row();
-
-            ui.add(egui::Label::new("Options:").extend());
-            ui.checkbox(&mut soniox.enable_speakers, "Enable Speakers ID");
-            ui.end_row();
+            row(ui, "Context:", TextEdit::multiline(&mut soniox.context).desired_rows(2));
+            row(ui, "Options:",  Checkbox::new(&mut soniox.enable_speakers, "Enable Speakers ID"));
         });
 }
 
 #[cfg(feature = "vosk")]
 fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
-    Grid::new("vosk_grid")
-        .num_columns(2)
-        .spacing([10.0, 10.0])
+    settings_grid("vosk_grid")
         .show(ui, |ui| {
             ui.add(egui::Label::new("Model File:").extend());
             ui.horizontal(|ui| {
@@ -289,17 +273,10 @@ fn ui_section_audio(
     devices: &mut MappableAvailableDevices,
 ) {
     ui.collapsing("Audio", |ui| {
-        Grid::new("audio_grid")
-            .num_columns(2)
-            .spacing([10.0, 10.0])
+        settings_grid("audio_grid")
             .show(ui, |ui| {
-                ui.label("Hangover Chunks:");
-                ui.add(Slider::new(&mut settings_audio.hangover_chunks, 0..=50));
-                ui.end_row();
-
-                ui.label("Threshold:");
-                ui.add(Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true));
-                ui.end_row();
+                row(ui, "Hangover Chunks:", Slider::new(&mut settings_audio.hangover_chunks, 0..=50));
+                row(ui, "Threshold:", Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true));
 
                 ui.label("Output Device:");
                 let default_label = "System Default";
@@ -337,7 +314,7 @@ fn ui_section_audio(
 
 fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     ui.collapsing("Position", |ui| {
-        Grid::new("pos_grid").spacing([10.0, 10.0]).show(ui, |ui| {
+        settings_grid("position_grid").show(ui, |ui| {
             ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
                 ui.add(
@@ -357,8 +334,7 @@ fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 ui.add(egui::Label::new("Snap to:").extend());
             });
             ui.vertical(|ui| {
-                Grid::new("snap_buttons")
-                    .spacing([5.0, 5.0])
+                settings_grid("snap_buttons_grid")
                     .show(ui, |ui| {
                         let mut btn =
                             |ui: &mut Ui,
@@ -385,7 +361,7 @@ fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
 
                         let pad = 30.0;
                         btn(ui, "↖", 0, (pad, pad));
-                        btn(ui, "⬆", 1, (0.0, pad));
+                        btn(ui, "↑", 1, (0.0, pad));
                         btn(ui, "↗", 2, (-pad, pad));
                         ui.end_row();
 
@@ -395,7 +371,7 @@ fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                         ui.end_row();
 
                         btn(ui, "↙", 6, (pad, -pad));
-                        btn(ui, "⬇", 7, (0.0, -pad));
+                        btn(ui, "↓", 7, (0.0, -pad));
                         btn(ui, "↘", 8, (-pad, -pad));
                         ui.end_row();
                     });
@@ -446,33 +422,17 @@ fn ui_language_searchable_combo(
 
 fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     ui.collapsing("Appearance", |ui| {
-        Grid::new("appearance_grid")
-            .spacing([10.0, 10.0])
+        settings_grid("apperance_grid")
             .show(ui, |ui| {
-                ui.label("Max Blocks:");
-                ui.add(Slider::new(&mut settings_ui.max_blocks, 1..=10));
-                ui.end_row();
-
-                ui.label("Font Size:");
-                ui.add(Slider::new(&mut settings_ui.font_size, 10..=80));
-                ui.end_row();
-
-                ui.label("Always On Top:");
-                ui.add(Checkbox::without_text(
-                    &mut settings_ui.enable_high_priority,
-                ));
-                ui.end_row();
-
-                ui.label("Text Outline:");
-                ui.add(Checkbox::without_text(&mut settings_ui.text_outline));
-                ui.end_row();
+                row(ui, "Max Blocks:", Slider::new(&mut settings_ui.max_blocks, 1..=10));
+                row(ui, "Font Size:", Slider::new(&mut settings_ui.font_size, 10..=80));
+                row(ui, "Always On Top:", Checkbox::without_text(&mut settings_ui.enable_high_priority));
+                row(ui, "Text Outline:", Checkbox::without_text(&mut settings_ui.text_outline));
             });
 
         ui.separator();
 
-        Grid::new("colors_grid")
-            .num_columns(2)
-            .spacing([10.0, 8.0])
+        settings_grid("color_grid")
             .show(ui, |ui| {
                 ui.label("Background Color:");
                 ui.horizontal(|ui| {
@@ -537,4 +497,15 @@ fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
             .on_hover_text(reason);
         }
     }
+}
+
+fn row(ui: &mut Ui, label: &str, widget: impl egui::Widget) -> Response {
+    let label_response = ui.label(label);
+    let widget_response = ui.add(widget);
+    ui.end_row();
+    label_response | widget_response
+}
+
+fn settings_grid(id: &str) -> Grid {
+    Grid::new(id).num_columns(2).spacing([12.0, 10.0])
 }

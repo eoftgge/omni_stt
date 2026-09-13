@@ -14,7 +14,6 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
-use crate::gui::overlay::outline::TextOutline;
 
 fn process_events(
     service: &mut TranscriptionService,
