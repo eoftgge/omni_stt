@@ -288,7 +288,7 @@ fn ui_section_audio(
     settings_audio: &mut SettingsAudio,
     devices: &mut MappableAvailableDevices,
 ) {
-    ui.collapsing("Configuration Audio", |ui| {
+    ui.collapsing("Audio", |ui| {
         Grid::new("audio_grid")
             .num_columns(2)
             .spacing([10.0, 10.0])
@@ -308,10 +308,15 @@ fn ui_section_audio(
                     .and_then(|d| devices.get(&d))
                     .map(|d| d.name())
                     .unwrap_or(default_label);
+
+                let mut want_refresh = false;
                 ComboBox::from_id_salt("selector_device")
                     .selected_text(current)
                     .width(100.0)
                     .show_ui(ui, |ui| {
+                        if ui.button("⟳  Rescan devices").clicked() {
+                            want_refresh = true;
+                        }
                         ui.selectable_value(&mut settings_audio.device_id, None, default_label);
                         ui.separator();
                         for device in devices.iter() {
@@ -323,11 +328,7 @@ fn ui_section_audio(
                         }
                     });
 
-                if ui
-                    .button("⟳")
-                    .on_hover_text("Rescan audio devices")
-                    .clicked()
-                {
+                if want_refresh {
                     devices.refresh();
                 }
             });
