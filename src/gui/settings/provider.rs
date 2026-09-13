@@ -97,7 +97,9 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
 
 fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe) {
     settings_grid("vosk_grid").show(ui, |ui| {
-        ui.add(egui::Label::new("Model:").extend());
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            ui.label("Model:");
+        });
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 let mut path = vosk.model_path.display().to_string();
@@ -120,7 +122,9 @@ fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe)
         });
         ui.end_row();
 
-        ui.add(egui::Label::new("Library:").extend());
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            ui.label("Library:");
+        });
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 let mut path = vosk.library_path.display().to_string();
