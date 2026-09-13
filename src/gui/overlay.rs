@@ -1,13 +1,15 @@
-pub(crate) mod outline;
 pub(crate) mod color;
+pub(crate) mod outline;
 
+use crate::gui::overlay::color::get_interim_color;
+use crate::gui::overlay::outline::TextOutline;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::replicas::{VisualReplica, prepare_replicas};
 use eframe::egui::text::LayoutJob;
-use eframe::egui::{Color32, FontId, Frame, LayerId, Order, Rect, Sense, Stroke, TextFormat, Ui, Vec2};
+use eframe::egui::{
+    Color32, FontId, Frame, LayerId, Order, Rect, Sense, Stroke, TextFormat, Ui, Vec2,
+};
 use eframe::epaint::StrokeKind;
-use crate::gui::overlay::color::get_interim_color;
-use crate::gui::overlay::outline::TextOutline;
 
 const ANIM_TIME: f32 = 0.08;
 
@@ -52,7 +54,14 @@ pub fn draw_subtitles(
             ui.set_max_width(max_width);
             ui.vertical(|ui| {
                 for replica in visible_replicas {
-                    draw_replica_row(ui, replica, font_size, text_color, interim_color, text_outline);
+                    draw_replica_row(
+                        ui,
+                        replica,
+                        font_size,
+                        text_color,
+                        interim_color,
+                        text_outline,
+                    );
                     ui.add_space(4.0);
                 }
             });
@@ -106,23 +115,25 @@ fn draw_replica_row(
     let wrap_width = ui.available_width();
 
     let main_job = build_job(replica, font_size, wrap_width, |is_interim| {
-        if is_interim { interim_color } else { text_color }
+        if is_interim {
+            interim_color
+        } else {
+            text_color
+        }
     });
     let main = ui.fonts_mut(|f| f.layout_job(main_job));
 
     let pad = outline.map_or(0.0, |o| o.width);
     let wrap_width = ui.available_width() - pad * 2.0;
-    let (rect, _) = ui.allocate_exact_size(
-        main.size() + Vec2::splat(pad * 2.0),
-        Sense::hover(),
-    );
+    let (rect, _) = ui.allocate_exact_size(main.size() + Vec2::splat(pad * 2.0), Sense::hover());
     let pos = rect.min + Vec2::splat(pad);
 
     if let Some(outline) = outline {
         let shadow_job = build_job(replica, font_size, wrap_width, |_| outline.color);
         let shadow = ui.fonts_mut(|f| f.layout_job(shadow_job));
         for offset in outline.offsets() {
-            ui.painter().galley(pos + offset, shadow.clone(), outline.color);
+            ui.painter()
+                .galley(pos + offset, shadow.clone(), outline.color);
         }
     }
 
@@ -169,4 +180,3 @@ fn build_job(
 
     job
 }
-

@@ -6,7 +6,10 @@ use crate::settings::{
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
-use eframe::egui::{self, vec2, Button, Checkbox, Color32, ComboBox, DragValue, Grid, Response, RichText, ScrollArea, Slider, TextEdit, Ui};
+use eframe::egui::{
+    self, Button, Checkbox, Color32, ComboBox, DragValue, Grid, Response, RichText, ScrollArea,
+    Slider, TextEdit, Ui, vec2,
+};
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
 
@@ -132,26 +135,25 @@ fn ui_bottom_panel(
 
 fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
     ui.collapsing("General", |ui| {
-        settings_grid("general_grid")
-            .show(ui, |ui| {
-                ui.label("Log Level:");
-                ComboBox::from_id_salt("log_level")
-                    .selected_text(settings_general.level.to_string())
-                    .width(80.0)
-                    .show_ui(ui, |ui| {
-                        for level in LEVELS {
-                            ui.selectable_value(
-                                &mut settings_general.level,
-                                *level,
-                                level.to_string(),
-                            );
-                        }
-                    });
-                ui.end_row();
+        settings_grid("general_grid").show(ui, |ui| {
+            ui.label("Log Level:");
+            ComboBox::from_id_salt("log_level")
+                .selected_text(settings_general.level.to_string())
+                .width(80.0)
+                .show_ui(ui, |ui| {
+                    for level in LEVELS {
+                        ui.selectable_value(&mut settings_general.level, *level, level.to_string());
+                    }
+                });
+            ui.end_row();
 
-                row(ui, "Log to file:", Checkbox::without_text(&mut settings_general.log_to_file))
-                    .on_hover_text("Save logs to a .log file in the app directory");
-            });
+            row(
+                ui,
+                "Log to file:",
+                Checkbox::without_text(&mut settings_general.log_to_file),
+            )
+            .on_hover_text("Save logs to a .log file in the app directory");
+        });
     });
 }
 
@@ -190,81 +192,87 @@ fn ui_section_provider(
 }
 
 fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &KeyStorage) {
-    settings_grid("soniox_grid")
-        .show(ui, |ui| {
-            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                ui.label("API Key:");
-            });
-            ui.vertical(|ui| {
-                ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
-                ui_key_storage_hint(ui, key_storage);
-            });
-            ui.end_row();
-
-            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                ui.label("Languages:");
-            });
-            ui.vertical(|ui| {
-                let mut to_remove = None;
-                for (i, hint) in soniox.language_hints.iter_mut().enumerate() {
-                    ui.horizontal(|ui| {
-                        ui.label(format!("{}.", i + 1));
-                        ui_language_searchable_combo(ui, format!("hint_{}", i), hint);
-                        if ui.button("🗑").clicked() {
-                            to_remove = Some(i);
-                        }
-                    });
-                }
-                if let Some(i) = to_remove {
-                    soniox.language_hints.remove(i);
-                }
-                if ui.button("➕ Add").clicked() {
-                    soniox.language_hints.push(LanguageHint::English);
-                }
-            });
-            ui.end_row();
-
-            ui.add(egui::Label::new("Translation:").extend());
-            ui.checkbox(&mut soniox.enable_translate, "Enable");
-
-            if soniox.enable_translate {
-                ui.end_row();
-                ui.add(egui::Label::new("Target language:").extend());
-                ui_language_searchable_combo(ui, "target_lang", &mut soniox.target_language);
-            }
-            ui.end_row();
-
-            row(ui, "Context:", TextEdit::multiline(&mut soniox.context).desired_rows(2));
-            row(ui, "Options:",  Checkbox::new(&mut soniox.enable_speakers, "Enable Speakers ID"));
+    settings_grid("soniox_grid").show(ui, |ui| {
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            ui.label("API Key:");
         });
+        ui.vertical(|ui| {
+            ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
+            ui_key_storage_hint(ui, key_storage);
+        });
+        ui.end_row();
+
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            ui.label("Languages:");
+        });
+        ui.vertical(|ui| {
+            let mut to_remove = None;
+            for (i, hint) in soniox.language_hints.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    ui.label(format!("{}.", i + 1));
+                    ui_language_searchable_combo(ui, format!("hint_{}", i), hint);
+                    if ui.button("🗑").clicked() {
+                        to_remove = Some(i);
+                    }
+                });
+            }
+            if let Some(i) = to_remove {
+                soniox.language_hints.remove(i);
+            }
+            if ui.button("➕ Add").clicked() {
+                soniox.language_hints.push(LanguageHint::English);
+            }
+        });
+        ui.end_row();
+
+        ui.add(egui::Label::new("Translation:").extend());
+        ui.checkbox(&mut soniox.enable_translate, "Enable");
+
+        if soniox.enable_translate {
+            ui.end_row();
+            ui.add(egui::Label::new("Target language:").extend());
+            ui_language_searchable_combo(ui, "target_lang", &mut soniox.target_language);
+        }
+        ui.end_row();
+
+        row(
+            ui,
+            "Context:",
+            TextEdit::multiline(&mut soniox.context).desired_rows(2),
+        );
+        row(
+            ui,
+            "Options:",
+            Checkbox::new(&mut soniox.enable_speakers, "Enable Speakers ID"),
+        );
+    });
 }
 
 #[cfg(feature = "vosk")]
 fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
-    settings_grid("vosk_grid")
-        .show(ui, |ui| {
-            ui.add(egui::Label::new("Model File:").extend());
-            ui.horizontal(|ui| {
-                let mut path_str = vosk.path.display().to_string();
-                if ui
-                    .add(TextEdit::singleline(&mut path_str).desired_width(200.0))
-                    .changed()
-                {
-                    vosk.path = PathBuf::from(path_str);
-                }
+    settings_grid("vosk_grid").show(ui, |ui| {
+        ui.add(egui::Label::new("Model File:").extend());
+        ui.horizontal(|ui| {
+            let mut path_str = vosk.path.display().to_string();
+            if ui
+                .add(TextEdit::singleline(&mut path_str).desired_width(200.0))
+                .changed()
+            {
+                vosk.path = PathBuf::from(path_str);
+            }
 
-                if ui.button("📂 Browse").clicked()
-                    && let Some(path) = rfd::FileDialog::new().pick_folder()
-                {
-                    vosk.path = path;
-                }
-            });
-            ui.end_row();
-
-            ui.label("");
-            ui.label(RichText::new("todo...").color(Color32::GRAY).small());
-            ui.end_row();
+            if ui.button("📂 Browse").clicked()
+                && let Some(path) = rfd::FileDialog::new().pick_folder()
+            {
+                vosk.path = path;
+            }
         });
+        ui.end_row();
+
+        ui.label("");
+        ui.label(RichText::new("todo...").color(Color32::GRAY).small());
+        ui.end_row();
+    });
 }
 
 fn ui_section_audio(
@@ -273,40 +281,49 @@ fn ui_section_audio(
     devices: &mut MappableAvailableDevices,
 ) {
     ui.collapsing("Audio", |ui| {
-        settings_grid("audio_grid")
-            .show(ui, |ui| {
-                row(ui, "Hangover Chunks:", Slider::new(&mut settings_audio.hangover_chunks, 0..=50));
-                row(ui, "Threshold:", Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true));
+        settings_grid("audio_grid").show(ui, |ui| {
+            row(
+                ui,
+                "Hangover Chunks:",
+                Slider::new(&mut settings_audio.hangover_chunks, 0..=50),
+            );
+            row(
+                ui,
+                "Threshold:",
+                Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true),
+            );
 
-                ui.label("Output Device:");
-                let default_label = "System Default";
-                let current = settings_audio
-                    .device_id()
-                    .and_then(|d| devices.get(&d))
-                    .map(|d| d.name())
-                    .unwrap_or(default_label);
+            ui.label("Output Device:");
+            let default_label = "System Default";
+            let current = settings_audio
+                .device_id()
+                .and_then(|d| devices.get(&d))
+                .map(|d| d.name())
+                .unwrap_or(default_label);
 
-                let mut want_refresh = false;
-                ComboBox::from_id_salt("selector_device")
-                    .selected_text(current)
-                    .width(100.0)
-                    .show_ui(ui, |ui| {
-                        if ui.button("⟳  Rescan devices").clicked() { want_refresh = true; }
-                        ui.separator();
-                        ui.selectable_value(&mut settings_audio.device_id, None, default_label);
-                        for device in devices.iter() {
-                            ui.selectable_value(
-                                &mut settings_audio.device_id,
-                                Some(device.id().clone()),
-                                device.name(),
-                            );
-                        }
-                    });
+            let mut want_refresh = false;
+            ComboBox::from_id_salt("selector_device")
+                .selected_text(current)
+                .width(100.0)
+                .show_ui(ui, |ui| {
+                    if ui.button("⟳  Rescan devices").clicked() {
+                        want_refresh = true;
+                    }
+                    ui.separator();
+                    ui.selectable_value(&mut settings_audio.device_id, None, default_label);
+                    for device in devices.iter() {
+                        ui.selectable_value(
+                            &mut settings_audio.device_id,
+                            Some(device.id().clone()),
+                            device.name(),
+                        );
+                    }
+                });
 
-                if want_refresh {
-                    devices.refresh();
-                }
-            });
+            if want_refresh {
+                devices.refresh();
+            }
+        });
     });
 }
 
@@ -421,46 +438,60 @@ fn ui_language_searchable_combo(
 
 fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     ui.collapsing("Appearance", |ui| {
-        settings_grid("apperance_grid")
-            .show(ui, |ui| {
-                row(ui, "Max Blocks:", Slider::new(&mut settings_ui.max_blocks, 1..=10));
-                row(ui, "Font Size:", Slider::new(&mut settings_ui.font_size, 10..=80));
-                row(ui, "Always On Top:", Checkbox::without_text(&mut settings_ui.enable_high_priority));
-                row(ui, "Text Outline:", Checkbox::without_text(&mut settings_ui.is_text_outline));
-            });
+        settings_grid("apperance_grid").show(ui, |ui| {
+            row(
+                ui,
+                "Max Blocks:",
+                Slider::new(&mut settings_ui.max_blocks, 1..=10),
+            );
+            row(
+                ui,
+                "Font Size:",
+                Slider::new(&mut settings_ui.font_size, 10..=80),
+            );
+            row(
+                ui,
+                "Always On Top:",
+                Checkbox::without_text(&mut settings_ui.enable_high_priority),
+            );
+            row(
+                ui,
+                "Text Outline:",
+                Checkbox::without_text(&mut settings_ui.is_text_outline),
+            );
+        });
 
         ui.separator();
 
-        settings_grid("color_grid")
-            .show(ui, |ui| {
-                ui.label("Background Color:");
-                ui.horizontal(|ui| {
-                    let color = &mut settings_ui.background_color;
-                    if ui.color_edit_button_srgba_unmultiplied(color).changed() {
-                        settings_ui.background_color = [color[0], color[1], color[2], color[3]];
-                    }
-                    if ui.button("Clear").clicked() {
-                        settings_ui.background_color = SettingsUI::DEFAULT_BACKGROUND_COLOR;
-                    }
-                });
-                ui.end_row();
-
-                ui.label("Text Color:");
-                ui.horizontal(|ui| {
-                    let color = &mut settings_ui.text_color;
-                    if ui.color_edit_button_srgb(color).changed() {
-                        settings_ui.text_color = [color[0], color[1], color[2]];
-                    }
-                    if ui
-                        .button("Clear")
-                        .on_hover_text("Reset to default")
-                        .clicked()
-                    {
-                        settings_ui.text_color = SettingsUI::DEFAULT_TEXT_COLOR; // yellow
-                    }
-                });
-                ui.end_row();
+        settings_grid("color_grid").show(ui, |ui| {
+            ui.label("Background Color:");
+            ui.horizontal(|ui| {
+                let color = &mut settings_ui.background_color;
+                if ui.color_edit_button_srgba_unmultiplied(color).changed() {
+                    settings_ui.background_color = [color[0], color[1], color[2], color[3]];
+                }
+                if ui.button("Clear").clicked() {
+                    settings_ui.background_color = SettingsUI::DEFAULT_BACKGROUND_COLOR;
+                }
             });
+            ui.end_row();
+
+            ui.label("Text Color:");
+            ui.horizontal(|ui| {
+                let color = &mut settings_ui.text_color;
+                if ui.color_edit_button_srgb(color).changed() {
+                    settings_ui.text_color = [color[0], color[1], color[2]];
+                }
+                if ui
+                    .button("Clear")
+                    .on_hover_text("Reset to default")
+                    .clicked()
+                {
+                    settings_ui.text_color = SettingsUI::DEFAULT_TEXT_COLOR; // yellow
+                }
+            });
+            ui.end_row();
+        });
 
         egui::Frame::new()
             .fill(settings_ui.background_color())

@@ -9,9 +9,14 @@ pub struct TextOutline {
 impl TextOutline {
     pub(crate) fn offsets(&self) -> impl Iterator<Item = Vec2> + '_ {
         const DIRS: [(f32, f32); 8] = [
-            (-1.0, -1.0), (0.0, -1.0), (1.0, -1.0),
-            (-1.0,  0.0),              (1.0,  0.0),
-            (-1.0,  1.0), (0.0,  1.0), (1.0,  1.0),
+            (-1.0, -1.0),
+            (0.0, -1.0),
+            (1.0, -1.0),
+            (-1.0, 0.0),
+            (1.0, 0.0),
+            (-1.0, 1.0),
+            (0.0, 1.0),
+            (1.0, 1.0),
         ];
         DIRS.iter().map(move |&(x, y)| Vec2::new(x, y) * self.width)
     }

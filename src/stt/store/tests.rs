@@ -91,10 +91,7 @@ fn blocks_do_not_grow_past_the_limit() {
 #[test]
 fn separator_promotes_every_interim_block() {
     let mut store = TranscriptionStore::new(8);
-    store.update_interim(vec![
-        data("первый ", Some("1")),
-        data("второй ", Some("2")),
-    ]);
+    store.update_interim(vec![data("первый ", Some("1")), data("второй ", Some("2"))]);
     store.ensure_separator();
 
     assert!(store.interim_blocks.is_empty());

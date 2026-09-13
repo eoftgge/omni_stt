@@ -34,8 +34,14 @@ async fn session_closes_itself_before_the_server_does() {
     let (tx_recycle, _rx_recycle) = tokio::sync::mpsc::channel(4);
     let (tx_event, _rx_event) = tokio::sync::mpsc::channel(16);
 
-    let mut worker =
-        GenericSttWorker::new(rx_audio, tx_recycle, tx_event, 0, 0, Box::new(UnusedBackend));
+    let mut worker = GenericSttWorker::new(
+        rx_audio,
+        tx_recycle,
+        tx_event,
+        0,
+        0,
+        Box::new(UnusedBackend),
+    );
 
     let mut session: Box<dyn SttSession> = Box::new(IdleSession);
     let action = worker.run_session_loop(&mut session).await;
@@ -49,8 +55,14 @@ async fn sent_audio_pushes_the_idle_deadline_back() {
     let (tx_audio, rx_audio) = tokio::sync::mpsc::channel(4);
     let (tx_recycle, mut rx_recycle) = tokio::sync::mpsc::channel(4);
     let (tx_event, _rx_event) = tokio::sync::mpsc::channel(16);
-    let mut worker =
-        GenericSttWorker::new(rx_audio, tx_recycle, tx_event, 0, 0, Box::new(UnusedBackend));
+    let mut worker = GenericSttWorker::new(
+        rx_audio,
+        tx_recycle,
+        tx_event,
+        0,
+        0,
+        Box::new(UnusedBackend),
+    );
 
     tokio::spawn(async move { while rx_recycle.recv().await.is_some() {} });
     tokio::spawn(async move {
@@ -64,7 +76,7 @@ async fn sent_audio_pushes_the_idle_deadline_back() {
         Duration::from_millis(300),
         worker.run_session_loop(&mut session),
     )
-        .await;
+    .await;
 
     assert!(
         outcome.is_err(),
