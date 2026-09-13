@@ -4,6 +4,7 @@ version = "5.2.0"
 edition = "2024"
 repository = "https://github.com/eoftgge/omni_stt"
 rust-version = "1.96.0"
+license = "MIT"
 
 [dependencies]
 thiserror = "2.0.18"
