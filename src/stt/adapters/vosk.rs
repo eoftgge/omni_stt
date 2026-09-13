@@ -30,10 +30,8 @@ fn run_recognition_loop(
 ) {
     let mut recognizer = match Recognizer::new(model, 16000.0) {
         Ok(r) => r,
-        Err(_) => {
-            let _ = event_tx.blocking_send(SttEvent::Error(SttError::FatalAPIError(
-                "Failed to create Vosk recognizer".into(),
-            )));
+        Err(e) => {
+            let _ = event_tx.blocking_send(SttEvent::Error(SttError::FatalAPIError(e)));
             return;
         }
     };
@@ -44,6 +42,16 @@ fn run_recognition_loop(
         };
         if event_tx.blocking_send(event).is_err() {
             break;
+        }
+    }
+
+    if let Some(parsed) = parse::<VoskText>(&recognizer.final_result()) {
+        let text = parsed.text.trim();
+        if !text.is_empty() {
+            let _ = event_tx.blocking_send(SttEvent::Transcript(TranscriptData {
+                text: format!("{text} "),
+                speaker: None,
+            }));
         }
     }
 }
