@@ -135,7 +135,7 @@ fn ui_bottom_panel(
 }
 
 fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
-    section(ui, "General", true, |ui| {
+    section(ui, "General", false, |ui| {
         settings_grid("general_grid").show(ui, |ui| {
             ui.label("Log Level:");
             ComboBox::from_id_salt("log_level")
@@ -163,7 +163,7 @@ fn ui_section_provider(
     settings_provider: &mut SettingsProvider,
     key_storage: &KeyStorage,
 ) {
-    section(ui, "Speech Engine (STT)", false, |ui| {
+    section(ui, "Speech Engine (STT)", true, |ui| {
         ui.horizontal(|ui| {
             ui.selectable_value(
                 &mut settings_provider.active_type,
