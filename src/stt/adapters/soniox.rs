@@ -33,6 +33,73 @@ fn classify_connect_error(err: OmniSttErrors) -> SttError {
     }
 }
 
+fn push_token_events(tokens: Vec<SonioxTranscriptionToken>, queue: &mut VecDeque<SttEvent>) {
+    let had_tokens = !tokens.is_empty();
+    let mut final_text = String::new();
+    let mut interim_text = String::new();
+    let mut interims: Vec<TranscriptData> = Vec::new();
+    let mut current_speaker = None;
+
+    for token in tokens {
+        if token.translation_status.as_deref() == Some("original") {
+            continue;
+        }
+
+        let token_speaker = token.speaker.clone();
+
+        if current_speaker.is_some() && current_speaker != token_speaker {
+            flush_buffers(
+                &mut final_text,
+                &mut interim_text,
+                &current_speaker,
+                queue,
+                &mut interims,
+            );
+        }
+
+        current_speaker = token_speaker;
+        if token.is_final {
+            final_text.push_str(&token.text);
+        } else {
+            interim_text.push_str(&token.text);
+        }
+    }
+
+    flush_buffers(
+        &mut final_text,
+        &mut interim_text,
+        &current_speaker,
+        queue,
+        &mut interims,
+    );
+
+    if had_tokens {
+        queue.push_back(SttEvent::Interim(interims));
+    }
+}
+
+fn flush_buffers(
+    final_text: &mut String,
+    interim_text: &mut String,
+    speaker: &Option<String>,
+    queue: &mut VecDeque<SttEvent>,
+    interims: &mut Vec<TranscriptData>,
+) {
+    if !final_text.is_empty() {
+        queue
+            .push_back(SttEvent::Transcript(TranscriptData {
+                text: std::mem::take(final_text),
+                speaker: speaker.clone(),
+            }));
+    }
+    if !interim_text.is_empty() {
+        interims.push(TranscriptData {
+            text: std::mem::take(interim_text),
+            speaker: speaker.clone(),
+        });
+    }
+}
+
 pub struct SonioxBackend {
     request: SonioxTranscriptionRequest,
 }
@@ -97,7 +164,7 @@ impl SonioxSession {
 
         match parsed_msg {
             SonioxTranscriptionMessage::Response(r) => {
-                self.enqueue_tokens(r.tokens);
+                push_token_events(r.tokens, &mut self.event_queue);
                 Ok(self.event_queue.pop_front())
             }
             SonioxTranscriptionMessage::Error(e) => {
@@ -107,71 +174,6 @@ impl SonioxSession {
                     Err(SttError::FatalAPIError(e.error_message))
                 }
             }
-        }
-    }
-
-    fn enqueue_tokens(&mut self, tokens: Vec<SonioxTranscriptionToken>) {
-        let had_tokens = !tokens.is_empty();
-        let mut final_text = String::new();
-        let mut interim_text = String::new();
-        let mut interims: Vec<TranscriptData> = Vec::new();
-        let mut current_speaker = None;
-
-        for token in tokens {
-            if token.translation_status.as_deref() == Some("original") {
-                continue;
-            }
-
-            let token_speaker = token.speaker.clone();
-
-            if current_speaker.is_some() && current_speaker != token_speaker {
-                self.flush_buffers(
-                    &mut final_text,
-                    &mut interim_text,
-                    &current_speaker,
-                    &mut interims,
-                );
-            }
-
-            current_speaker = token_speaker;
-            if token.is_final {
-                final_text.push_str(&token.text);
-            } else {
-                interim_text.push_str(&token.text);
-            }
-        }
-
-        self.flush_buffers(
-            &mut final_text,
-            &mut interim_text,
-            &current_speaker,
-            &mut interims,
-        );
-
-        if had_tokens {
-            self.event_queue.push_back(SttEvent::Interim(interims));
-        }
-    }
-
-    fn flush_buffers(
-        &mut self,
-        final_text: &mut String,
-        interim_text: &mut String,
-        speaker: &Option<String>,
-        interims: &mut Vec<TranscriptData>,
-    ) {
-        if !final_text.is_empty() {
-            self.event_queue
-                .push_back(SttEvent::Transcript(TranscriptData {
-                    text: std::mem::take(final_text),
-                    speaker: speaker.clone(),
-                }));
-        }
-        if !interim_text.is_empty() {
-            interims.push(TranscriptData {
-                text: std::mem::take(interim_text),
-                speaker: speaker.clone(),
-            });
         }
     }
 }
