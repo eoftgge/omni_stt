@@ -5,7 +5,7 @@ use crate::logger::LEVELS;
 use crate::settings::{
     KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
 };
-use crate::stt::adapters::types::{ProviderType, SonioxSettings};
+use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::text::LayoutJob;
@@ -15,9 +15,7 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
-
-#[cfg(feature = "vosk")]
-use {crate::stt::adapters::types::VoskSettings, std::path::PathBuf};
+use std::path::PathBuf;
 
 pub fn show_settings_window(
     ui: &mut Ui,
@@ -116,7 +114,7 @@ fn ui_bottom_panel(
                                 });
                             }
                             ProviderType::Vosk
-                                if settings_provider.vosk.path.as_os_str().is_empty() =>
+                                if settings_provider.vosk.model_path.as_os_str().is_empty() =>
                             {
                                 toasts.add(Toast {
                                     text: "No model path provided for Vosk!".into(),
@@ -172,7 +170,6 @@ fn ui_section_provider(
                 ProviderType::Soniox,
                 "☁ Soniox (Cloud)",
             );
-            #[cfg(feature = "vosk")]
             ui.selectable_value(
                 &mut settings_provider.active_type,
                 ProviderType::Vosk,
@@ -186,10 +183,7 @@ fn ui_section_provider(
             ProviderType::Soniox => {
                 ui_soniox_settings(ui, &mut settings_provider.soniox, key_storage)
             }
-            #[cfg(feature = "vosk")]
             ProviderType::Vosk => ui_vosk_settings(ui, &mut settings_provider.vosk),
-            #[cfg(not(feature = "vosk"))]
-            ProviderType::Vosk => {}
         }
     });
 }
@@ -251,23 +245,22 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
     });
 }
 
-#[cfg(feature = "vosk")]
 fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
     settings_grid("vosk_grid").show(ui, |ui| {
         ui.add(egui::Label::new("Model File:").extend());
         ui.horizontal(|ui| {
-            let mut path_str = vosk.path.display().to_string();
+            let mut path_str = vosk.model_path.display().to_string();
             if ui
                 .add(TextEdit::singleline(&mut path_str).desired_width(200.0))
                 .changed()
             {
-                vosk.path = PathBuf::from(path_str);
+                vosk.model_path = PathBuf::from(path_str);
             }
 
             if ui.button("📂 Browse").clicked()
                 && let Some(path) = rfd::FileDialog::new().pick_folder()
             {
-                vosk.path = path;
+                vosk.model_path = path;
             }
         });
         ui.end_row();

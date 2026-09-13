@@ -1,11 +1,11 @@
 #[derive(serde::Deserialize, Default)]
 pub struct VoskText {
     #[serde(default)]
-    text: String,
+    pub text: String,
 }
 
 #[derive(serde::Deserialize, Default)]
 pub struct VoskPartial {
     #[serde(default)]
-    partial: String,
+    pub partial: String,
 }

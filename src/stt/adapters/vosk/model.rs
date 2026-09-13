@@ -50,6 +50,7 @@ impl Recognizer {
         let api = Arc::clone(&model.api);
         let ptr = unsafe { (api.recognizer_new)(model.ptr, sample_rate) };
         if ptr.is_null() {
+            // todo: вменяемая ошибка
             return Err("failed to create recognizer".to_owned());
         }
         Ok(Self {
