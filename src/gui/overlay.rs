@@ -2,7 +2,7 @@ pub(crate) mod color;
 pub(crate) mod outline;
 
 use crate::gui::overlay::color::get_interim_color;
-use crate::gui::overlay::outline::TextOutline;
+use crate::gui::overlay::outline::{add_outlined_text, TextOutline};
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::replicas::{VisualReplica, prepare_replicas};
 use eframe::egui::text::LayoutJob;
@@ -101,28 +101,15 @@ fn draw_replica_row(
     let pad = outline.map_or(0.0, |o| o.width);
     let wrap_width = ui.available_width() - pad * 2.0;
 
-    let main_job = build_job(replica, font_size, wrap_width, |is_interim| {
-        if is_interim {
-            interim_color
-        } else {
-            text_color
-        }
+    add_outlined_text(ui, outline, text_color, |override_color| {
+        build_job(replica, font_size, wrap_width, |is_interim| {
+            match override_color {
+                Some(color) => color,
+                None if is_interim => interim_color,
+                None => text_color,
+            }
+        })
     });
-    let main = ui.fonts_mut(|f| f.layout_job(main_job));
-
-    let (rect, _) = ui.allocate_exact_size(main.size() + Vec2::splat(pad * 2.0), Sense::hover());
-    let pos = rect.min + Vec2::splat(pad);
-
-    if let Some(outline) = outline {
-        let shadow_job = build_job(replica, font_size, wrap_width, |_| outline.color);
-        let shadow = ui.fonts_mut(|f| f.layout_job(shadow_job));
-        for offset in outline.offsets() {
-            ui.painter()
-                .galley(pos + offset, shadow.clone(), outline.color);
-        }
-    }
-
-    ui.painter().galley(pos, main, text_color);
 }
 
 fn build_job(
