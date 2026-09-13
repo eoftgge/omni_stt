@@ -11,8 +11,9 @@ use eframe::App;
 use eframe::egui::{
     Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
 };
-use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
+use egui_toast::{ToastKind, Toasts};
 use std::time::Duration;
+use crate::gui::Notify;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -25,40 +26,18 @@ fn process_events(
                 store.update(data);
             }
             SttEvent::Interim(segments) => store.update_interim(segments),
-            SttEvent::Warning(msg) => {
-                toasts.add(Toast {
-                    text: msg.into(),
-                    kind: ToastKind::Warning,
-                    style: ToastStyle::default(),
-                    options: ToastOptions::default().duration_in_seconds(5.),
-                });
-            }
-            SttEvent::Error(err) => {
-                toasts.add(Toast {
-                    text: err.to_string().into(),
-                    kind: ToastKind::Error,
-                    style: ToastStyle::default(),
-                    options: ToastOptions::default().duration_in_seconds(8.),
-                });
-            }
+            SttEvent::Warning(msg) => toasts.warn(msg),
+            SttEvent::Error(err) => toasts.error(err.to_string()),
             SttEvent::Connected(flag_first_connection) => {
                 store.ensure_separator();
                 if flag_first_connection {
-                    toasts.add(Toast {
-                        text: "Connected to speech server!".into(),
-                        kind: ToastKind::Info,
-                        style: ToastStyle::default(),
-                        options: ToastOptions::default().duration_in_seconds(4.),
-                    });
+                    toasts.info("Connected to speech server!");
                 }
             }
             SttEvent::Disconnected => {
-                toasts.add(Toast {
-                    text: "Connection lost. Reconnecting...".into(),
-                    kind: ToastKind::Warning,
-                    style: ToastStyle::default(),
-                    options: ToastOptions::default().duration_in_seconds(2.),
-                });
+                // deliberately shorter than the warning default: this fires on
+                // every reconnect and would be obtrusive at five seconds
+                toasts.notify(ToastKind::Warning, 2.0, "Connection lost. Reconnecting...");
             }
         };
     }
@@ -107,12 +86,8 @@ impl App for SubtitlesApp {
             Some(Err(e)) => {
                 tracing::error!("Tray unavailable: {e}");
                 self.tray.set_failed();
-                self.toasts.add(Toast {
-                    text: "Tray unavailable: there will be no way to exit the overlay".into(),
-                    kind: ToastKind::Error,
-                    style: ToastStyle::default(),
-                    options: ToastOptions::default().duration_in_seconds(8.),
-                });
+                self.toasts
+                    .error("Tray unavailable: there will be no way to exit the overlay");
             }
             None => {}
         }
@@ -121,32 +96,13 @@ impl App for SubtitlesApp {
         if let Err(err) =
             state_manager.resolve(ui.ctx(), &mut self.store, settings, &mut self.screen.devices)
         {
-            self.toasts.add(Toast {
-                text: format!("{:?}", err).into(),
-                kind: ToastKind::Error,
-                style: ToastStyle::default(),
-                options: ToastOptions::default().duration_in_seconds(3.),
-            });
+            self.toasts.error(format!("{err:?}"));
         }
 
         match state_manager.poll_loading(ui.ctx(), settings.ui.enable_high_priority) {
-            Ok(LoadingOutcome::Ready) => {
-                self.toasts.add(Toast {
-                    text: "Starting subtitles overlay...".into(),
-                    kind: ToastKind::Info,
-                    style: ToastStyle::default(),
-                    options: ToastOptions::default().duration_in_seconds(3.),
-                });
-            }
+            Ok(LoadingOutcome::Ready) => self.toasts.info("Starting subtitles overlay..."),
             Ok(_) => {}
-            Err(e) => {
-                self.toasts.add(Toast {
-                    text: e.to_string().into(),
-                    kind: ToastKind::Error,
-                    style: ToastStyle::default(),
-                    options: ToastOptions::default().duration_in_seconds(3.),
-                });
-            }
+            Err(e) => self.toasts.error(e.to_string()),
         }
 
         match state_manager.app_state_mut() {

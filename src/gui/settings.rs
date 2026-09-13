@@ -1,6 +1,6 @@
 use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
 use crate::gui::state::{PendingState, StateManager};
-use crate::gui::theme;
+use crate::gui::{theme, Notify};
 use crate::logger::LEVELS;
 use crate::settings::{
     KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
@@ -14,7 +14,7 @@ use eframe::egui::{
     self, Button, Checkbox, CollapsingHeader, Color32, ComboBox, DragValue, FontId, Grid, Response,
     RichText, ScrollArea, Slider, TextEdit, TextFormat, Ui, vec2,
 };
-use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
+use egui_toast::Toasts;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 
@@ -81,22 +81,8 @@ fn ui_bottom_panel(
                         .clicked()
                     {
                         match settings_manager.save() {
-                            Ok(_) => {
-                                toasts.add(Toast {
-                                    text: "Settings saved successfully!".into(),
-                                    kind: ToastKind::Success,
-                                    style: ToastStyle::default(),
-                                    options: ToastOptions::default().duration_in_seconds(3.),
-                                });
-                            }
-                            Err(e) => {
-                                toasts.add(Toast {
-                                    text: format!("Failed to save: {}", e).into(),
-                                    kind: ToastKind::Error,
-                                    style: ToastStyle::default(),
-                                    options: ToastOptions::default().duration_in_seconds(5.),
-                                });
-                            }
+                            Ok(_) => toasts.success("Settings saved successfully!"),
+                            Err(e) => toasts.error(format!("Failed to save: {e}")),
                         }
                     }
                 });
@@ -107,12 +93,10 @@ fn ui_bottom_panel(
                         .fill(theme::ACCENT);
                     if ui.add(start).clicked() {
                         if tray_failed {
-                            toasts.add(Toast {
-                                text: "Tray is unavailable, there will be nothing to exit the overlay. The launch has been cancelled.".into(),
-                                kind: ToastKind::Warning,
-                                style: ToastStyle::default(),
-                                options: ToastOptions::default().duration_in_seconds(3.),
-                            });
+                            toasts.warn(
+                                "Tray is unavailable, there will be nothing to exit the overlay. \
+                                 The launch has been cancelled.",
+                            );
                             return;
                         }
 
@@ -121,22 +105,12 @@ fn ui_bottom_panel(
                             ProviderType::Soniox
                                 if settings_provider.soniox.api_key.trim().is_empty() =>
                             {
-                                toasts.add(Toast {
-                                    text: "No API key provided for Soniox!".into(),
-                                    kind: ToastKind::Warning,
-                                    style: ToastStyle::default(),
-                                    options: ToastOptions::default().duration_in_seconds(3.),
-                                });
+                                toasts.warn("No API key provided for Soniox!");
                             }
                             ProviderType::Vosk
                                 if settings_provider.vosk.model_path.as_os_str().is_empty() =>
                             {
-                                toasts.add(Toast {
-                                    text: "No model path provided for Vosk!".into(),
-                                    kind: ToastKind::Warning,
-                                    style: ToastStyle::default(),
-                                    options: ToastOptions::default().duration_in_seconds(3.),
-                                });
+                                toasts.warn("No model path provided for Vosk!");
                             }
                             _ => {
                                 manager.switch(PendingState::Overlay);
