@@ -543,7 +543,7 @@ fn section(ui: &mut Ui, title: &str, default_open: bool, add_contents: impl FnOn
 }
 
 fn row(ui: &mut Ui, label: &str, widget: impl egui::Widget) -> Response {
-    let label_response = ui.label(label);
+    let label_response = ui.add(egui::Label::new(label).extend());
     let widget_response = ui.add(widget);
     ui.end_row();
     label_response | widget_response
