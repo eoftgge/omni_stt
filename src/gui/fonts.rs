@@ -2,7 +2,7 @@ use eframe::egui::{Context, FontData, FontDefinitions};
 use eframe::epaint::FontFamily;
 use std::sync::Arc;
 
-const FONTS: [&[u8]; 8] = [
+const FONTS: [&[u8]; 7] = [
     include_bytes!("../../assets/fonts/NotoSans-Medium.ttf"),
     include_bytes!("../../assets/fonts/NotoSansSC-Medium.ttf"),
     include_bytes!("../../assets/fonts/NotoSansJP-Medium.ttf"),
@@ -10,7 +10,6 @@ const FONTS: [&[u8]; 8] = [
     include_bytes!("../../assets/fonts/NotoSansKR-Medium.ttf"),
     include_bytes!("../../assets/fonts/NotoSansTC-Medium.ttf"),
     include_bytes!("../../assets/fonts/NotoSansGunjalaGondi-Medium.ttf"),
-    include_bytes!("../../assets/fonts/NotoEmoji-Medium.ttf"),
 ];
 
 pub fn setup_custom_fonts(ctx: &Context) {
