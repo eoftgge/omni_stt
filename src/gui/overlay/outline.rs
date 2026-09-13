@@ -15,4 +15,11 @@ impl TextOutline {
         ];
         DIRS.iter().map(move |&(x, y)| Vec2::new(x, y) * self.width)
     }
+
+    pub fn for_font_size(font_size: f32) -> Self {
+        Self {
+            color: Color32::from_black_alpha(220),
+            width: (font_size / 14.0).clamp(1.0, 3.0),
+        }
+    }
 }

@@ -205,7 +205,7 @@ impl App for SubtitlesApp {
                                 settings_ui.font_size as f32,
                                 settings_ui.text_color(),
                                 settings_ui.background_color(),
-                                settings_ui.get_text_outline()
+                                settings_ui.is_text_outline,
                             );
                         });
                     });

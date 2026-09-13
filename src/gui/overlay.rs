@@ -17,8 +17,9 @@ pub fn draw_subtitles(
     font_size: f32,
     text_color: Color32,
     background_color: Color32,
-    text_outline: Option<TextOutline>,
+    is_text_outline: bool,
 ) {
+    let text_outline = is_text_outline.then(|| TextOutline::for_font_size(font_size));
     let replicas = prepare_replicas(store);
     if replicas.is_empty() {
         return;

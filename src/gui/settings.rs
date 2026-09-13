@@ -427,7 +427,7 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 row(ui, "Max Blocks:", Slider::new(&mut settings_ui.max_blocks, 1..=10));
                 row(ui, "Font Size:", Slider::new(&mut settings_ui.font_size, 10..=80));
                 row(ui, "Always On Top:", Checkbox::without_text(&mut settings_ui.enable_high_priority));
-                row(ui, "Text Outline:", Checkbox::without_text(&mut settings_ui.text_outline));
+                row(ui, "Text Outline:", Checkbox::without_text(&mut settings_ui.is_text_outline));
             });
 
         ui.separator();

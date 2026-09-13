@@ -13,7 +13,6 @@ use crate::transcription::device::SettingDeviceId;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
 use tracing::Level;
-use crate::gui::overlay::outline::TextOutline;
 
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
@@ -25,7 +24,7 @@ pub struct SettingsUI {
     pub(crate) background_color: [u8; 4],
     pub(crate) text_color: [u8; 3],
     pub(crate) enable_high_priority: bool,
-    pub(crate) text_outline: bool,
+    pub(crate) is_text_outline: bool,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -75,7 +74,7 @@ impl Default for SettingsUI {
             background_color: Self::DEFAULT_BACKGROUND_COLOR,
             text_color: Self::DEFAULT_TEXT_COLOR,
             max_blocks: 3,
-            text_outline: false,
+            is_text_outline: false,
         }
     }
 }
@@ -124,16 +123,6 @@ impl SettingsUI {
             _ => Align2::CENTER_BOTTOM,
         };
         (align, vec2(self.offset.0, self.offset.1))
-    }
-
-    pub fn get_text_outline(&self) -> Option<TextOutline> {
-        let font_size = self.font_size;
-        let outline = self.text_outline.then(|| TextOutline {
-            color: Color32::from_black_alpha(220),
-            width: (font_size as f32/ 14.0).clamp(1.0, 3.0),
-        });
-
-        outline
     }
 }
 
