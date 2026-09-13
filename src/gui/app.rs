@@ -14,6 +14,7 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
+use crate::gui::overlay::outline::TextOutline;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -191,7 +192,9 @@ impl App for SubtitlesApp {
                     ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
                     self.frame_counter = 0;
                 }
+
                 let (anchor, offset) = settings_ui.get_anchor();
+
                 Area::new(Id::from("subtitles_area"))
                     .anchor(anchor, offset)
                     .order(Order::Foreground)
@@ -203,6 +206,7 @@ impl App for SubtitlesApp {
                                 settings_ui.font_size as f32,
                                 settings_ui.text_color(),
                                 settings_ui.background_color(),
+                                settings_ui.get_text_outline()
                             );
                         });
                     });

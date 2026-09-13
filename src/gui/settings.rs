@@ -462,6 +462,10 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                     &mut settings_ui.enable_high_priority,
                 ));
                 ui.end_row();
+
+                ui.label("Text Outline:");
+                ui.add(Checkbox::without_text(&mut settings_ui.text_outline));
+                ui.end_row();
             });
 
         ui.separator();

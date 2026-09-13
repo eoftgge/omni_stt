@@ -1,5 +1,5 @@
-mod outline;
-mod color;
+pub(crate) mod outline;
+pub(crate) mod color;
 
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::replicas::{VisualReplica, prepare_replicas};
@@ -17,6 +17,7 @@ pub fn draw_subtitles(
     font_size: f32,
     text_color: Color32,
     background_color: Color32,
+    text_outline: Option<TextOutline>,
 ) {
     let replicas = prepare_replicas(store);
     if replicas.is_empty() {
@@ -50,7 +51,7 @@ pub fn draw_subtitles(
             ui.set_max_width(max_width);
             ui.vertical(|ui| {
                 for replica in visible_replicas {
-                    draw_replica_row(ui, replica, font_size, text_color, interim_color,  None);
+                    draw_replica_row(ui, replica, font_size, text_color, interim_color, text_outline);
                     ui.add_space(4.0);
                 }
             });
