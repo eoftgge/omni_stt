@@ -91,10 +91,10 @@ fn ui_bottom_panel(
                 });
 
                 cols[1].vertical_centered_justified(|ui| {
-                    if ui
-                        .add(Button::new("🚀 Start").min_size(vec2(0.0, 40.0)))
-                        .clicked()
-                    {
+                    let start = Button::new("🚀 Start")
+                        .min_size(vec2(0.0, 40.0))
+                        .fill(theme::ACCENT);
+                    if ui.add(start).clicked() {
                         if tray_failed {
                             toasts.add(Toast {
                                 text: "Tray is unavailable, there will be nothing to exit the overlay. The launch has been cancelled.".into(),
