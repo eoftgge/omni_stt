@@ -21,6 +21,7 @@ pub struct SonioxSettings {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct VoskSettings {
     pub(crate) model_path: PathBuf,
     pub(crate) library_path: PathBuf,
