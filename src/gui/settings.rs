@@ -334,7 +334,8 @@ fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 ui.add(egui::Label::new("Snap to:").extend());
             });
             ui.vertical(|ui| {
-                settings_grid("snap_buttons_grid")
+                Grid::new("snap_buttons")
+                    .spacing([5.0, 5.0])
                     .show(ui, |ui| {
                         let mut btn =
                             |ui: &mut Ui,
