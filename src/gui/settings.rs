@@ -438,7 +438,7 @@ fn ui_language_searchable_combo(
 
 fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     ui.collapsing("Appearance", |ui| {
-        settings_grid("apperance_grid").show(ui, |ui| {
+        settings_grid("appearance_grid").show(ui, |ui| {
             row(
                 ui,
                 "Max Blocks:",
