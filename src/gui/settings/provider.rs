@@ -200,10 +200,10 @@ fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
                 RichText::new(
                     "⚠ System keychain unavailable — the key is stored in omni.toml as plain text",
                 )
-                    .small()
-                    .color(Color32::from_rgb(220, 160, 60)),
+                .small()
+                .color(Color32::from_rgb(220, 160, 60)),
             )
-                .on_hover_text(reason);
+            .on_hover_text(reason);
         }
     }
 }
@@ -237,7 +237,7 @@ fn ui_library_hint(ui: &mut Ui, status: &Result<(), String>) {
                     .small()
                     .color(Color32::from_rgb(220, 160, 60)),
             )
-                .on_hover_text(reason);
+            .on_hover_text(reason);
             ui.hyperlink_to(
                 RichText::new("Get it from the Vosk releases").small(),
                 "https://github.com/alphacep/vosk-api/releases",

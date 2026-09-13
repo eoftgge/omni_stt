@@ -1,7 +1,7 @@
-use eframe::egui::{ComboBox, Slider, Ui};
 use crate::gui::settings::layout::{row, section, settings_grid};
 use crate::settings::SettingsAudio;
 use crate::transcription::device::MappableAvailableDevices;
+use eframe::egui::{ComboBox, Slider, Ui};
 
 pub(super) fn ui_section_audio(
     ui: &mut Ui,

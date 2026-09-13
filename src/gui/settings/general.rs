@@ -1,4 +1,4 @@
-use super::layout::{row, settings_grid, section};
+use super::layout::{row, section, settings_grid};
 use crate::logger::LEVELS;
 use crate::settings::SettingsGeneral;
 use eframe::egui::{Checkbox, ComboBox, Ui};
@@ -22,7 +22,7 @@ pub(super) fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGen
                 "Log to file:",
                 Checkbox::without_text(&mut settings_general.log_to_file),
             )
-                .on_hover_text("Save logs to a .log file in the app directory");
+            .on_hover_text("Save logs to a .log file in the app directory");
         });
     });
 }

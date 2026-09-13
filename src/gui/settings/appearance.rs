@@ -1,9 +1,9 @@
-use eframe::egui;
-use eframe::egui::{Checkbox, FontId, Slider, TextFormat, Ui};
-use eframe::egui::text::LayoutJob;
-use crate::gui::overlay::outline::{add_outlined_text, TextOutline};
+use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
 use crate::gui::settings::layout::{row, section, settings_grid};
 use crate::settings::SettingsUI;
+use eframe::egui;
+use eframe::egui::text::LayoutJob;
+use eframe::egui::{Checkbox, FontId, Slider, TextFormat, Ui};
 
 pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     section(ui, "Appearance", false, |ui| {

@@ -1,7 +1,12 @@
 use crate::gui::theme;
 use eframe::egui::{self, CollapsingHeader, Grid, Response, RichText, Ui};
 
-pub(super) fn section(ui: &mut Ui, title: &str, default_open: bool, add_contents: impl FnOnce(&mut Ui)) {
+pub(super) fn section(
+    ui: &mut Ui,
+    title: &str,
+    default_open: bool,
+    add_contents: impl FnOnce(&mut Ui),
+) {
     CollapsingHeader::new(RichText::new(title).size(15.0).strong().color(theme::TEXT))
         .default_open(default_open)
         .show(ui, add_contents);

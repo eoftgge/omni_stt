@@ -1,10 +1,9 @@
-pub(super) mod layout;
-pub(super) mod general;
-pub(super) mod audio;
-pub(super) mod provider;
-pub(super) mod position;
 pub(super) mod appearance;
-
+pub(super) mod audio;
+pub(super) mod general;
+pub(super) mod layout;
+pub(super) mod position;
+pub(super) mod provider;
 
 use appearance::ui_section_appearance;
 use audio::ui_section_audio;
@@ -18,9 +17,8 @@ use crate::settings::SettingsManager;
 use crate::stt::adapters::types::ProviderType;
 use crate::stt::adapters::vosk::probe::VoskProbe;
 use crate::transcription::device::MappableAvailableDevices;
-use eframe::egui::{self, Button, ScrollArea, Ui, vec2, };
+use eframe::egui::{self, Button, ScrollArea, Ui, vec2};
 use egui_toast::Toasts;
-
 
 pub struct SettingsScreen {
     pub devices: MappableAvailableDevices,
