@@ -5,7 +5,8 @@ use crate::logger::LEVELS;
 use crate::settings::{
     KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
 };
-use crate::stt::adapters::types::{ProviderType, SonioxSettings};
+use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
+use crate::stt::adapters::vosk::probe::VoskProbe;
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::text::LayoutJob;
@@ -15,9 +16,7 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
-
-#[cfg(feature = "vosk")]
-use {crate::stt::adapters::types::VoskSettings, std::path::PathBuf};
+use std::path::{Path, PathBuf};
 
 pub fn show_settings_window(
     ui: &mut Ui,
@@ -26,6 +25,7 @@ pub fn show_settings_window(
     toasts: &mut Toasts,
     devices: &mut MappableAvailableDevices,
     tray_failed: bool,
+    vosk_probe: &mut VoskProbe,
 ) {
     ui_bottom_panel(ui, settings_manager, manager, toasts, tray_failed);
 
@@ -41,7 +41,7 @@ pub fn show_settings_window(
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_general(ui, &mut settings.general);
                 ui_section_audio(ui, &mut settings.audio, devices);
-                ui_section_provider(ui, &mut settings.provider, key_storage);
+                ui_section_provider(ui, &mut settings.provider, key_storage, vosk_probe);
                 ui_section_position(ui, &mut settings.ui);
                 ui_section_appearance(ui, &mut settings.ui);
                 ui.allocate_space(vec2(0.0, 60.0));
@@ -116,7 +116,7 @@ fn ui_bottom_panel(
                                 });
                             }
                             ProviderType::Vosk
-                                if settings_provider.vosk.path.as_os_str().is_empty() =>
+                                if settings_provider.vosk.model_path.as_os_str().is_empty() =>
                             {
                                 toasts.add(Toast {
                                     text: "No model path provided for Vosk!".into(),
@@ -164,6 +164,7 @@ fn ui_section_provider(
     ui: &mut Ui,
     settings_provider: &mut SettingsProvider,
     key_storage: &KeyStorage,
+    vosk_probe: &mut VoskProbe,
 ) {
     section(ui, "Speech Engine (STT)", true, |ui| {
         ui.horizontal(|ui| {
@@ -172,7 +173,6 @@ fn ui_section_provider(
                 ProviderType::Soniox,
                 "☁ Soniox (Cloud)",
             );
-            #[cfg(feature = "vosk")]
             ui.selectable_value(
                 &mut settings_provider.active_type,
                 ProviderType::Vosk,
@@ -186,10 +186,7 @@ fn ui_section_provider(
             ProviderType::Soniox => {
                 ui_soniox_settings(ui, &mut settings_provider.soniox, key_storage)
             }
-            #[cfg(feature = "vosk")]
-            ProviderType::Vosk => ui_vosk_settings(ui, &mut settings_provider.vosk),
-            #[cfg(not(feature = "vosk"))]
-            ProviderType::Vosk => {}
+            ProviderType::Vosk => ui_vosk_settings(ui, &mut settings_provider.vosk, vosk_probe),
         }
     });
 }
@@ -251,29 +248,53 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
     });
 }
 
-#[cfg(feature = "vosk")]
-fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings) {
+fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe) {
     settings_grid("vosk_grid").show(ui, |ui| {
-        ui.add(egui::Label::new("Model File:").extend());
-        ui.horizontal(|ui| {
-            let mut path_str = vosk.path.display().to_string();
-            if ui
-                .add(TextEdit::singleline(&mut path_str).desired_width(200.0))
-                .changed()
-            {
-                vosk.path = PathBuf::from(path_str);
-            }
-
-            if ui.button("📂 Browse").clicked()
-                && let Some(path) = rfd::FileDialog::new().pick_folder()
-            {
-                vosk.path = path;
-            }
+        ui.add(egui::Label::new("Model:").extend());
+        ui.vertical(|ui| {
+            ui.horizontal(|ui| {
+                let mut path = vosk.model_path.display().to_string();
+                if ui
+                    .add(TextEdit::singleline(&mut path).desired_width(200.0))
+                    .changed()
+                {
+                    vosk.model_path = PathBuf::from(path);
+                }
+                if ui
+                    .button("📂")
+                    .on_hover_text("Pick the model folder")
+                    .clicked()
+                    && let Some(picked) = rfd::FileDialog::new().pick_folder()
+                {
+                    vosk.model_path = picked;
+                }
+            });
+            ui_model_hint(ui, &vosk.model_path);
         });
         ui.end_row();
 
-        ui.label("");
-        ui.label(RichText::new("todo...").color(Color32::GRAY).small());
+        ui.add(egui::Label::new("Library:").extend());
+        ui.vertical(|ui| {
+            ui.horizontal(|ui| {
+                let mut path = vosk.library_path.display().to_string();
+                if ui
+                    .add(
+                        TextEdit::singleline(&mut path)
+                            .desired_width(200.0)
+                            .hint_text("auto"),
+                    )
+                    .changed()
+                {
+                    vosk.library_path = PathBuf::from(path);
+                }
+                if ui.button("📂").on_hover_text("Pick libvosk").clicked()
+                    && let Some(picked) = rfd::FileDialog::new().pick_file()
+                {
+                    vosk.library_path = picked;
+                }
+            });
+            ui_library_hint(ui, probe.check(&vosk.library_path));
+        });
         ui.end_row();
     });
 }
@@ -496,7 +517,7 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
             ui.end_row();
         });
 
-        ui_preview(ui,  settings_ui);
+        ui_preview(ui, settings_ui);
     });
 }
 
@@ -547,6 +568,44 @@ fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
                 .color(Color32::from_rgb(220, 160, 60)),
             )
             .on_hover_text(reason);
+        }
+    }
+}
+
+fn ui_model_hint(ui: &mut Ui, path: &Path) {
+    if path.as_os_str().is_empty() {
+        ui.label(
+            RichText::new("Pick the folder of an unpacked Vosk model")
+                .small()
+                .weak(),
+        );
+    } else if path.join("am").is_dir() && path.join("conf").is_dir() {
+        ui.label(RichText::new("✔ Looks like a Vosk model").small().weak());
+    } else {
+        ui.label(
+            RichText::new("⚠ No am/ and conf/ inside — probably not a model folder")
+                .small()
+                .color(Color32::from_rgb(220, 160, 60)),
+        );
+    }
+}
+
+fn ui_library_hint(ui: &mut Ui, status: &Result<(), String>) {
+    match status {
+        Ok(()) => {
+            ui.label(RichText::new("✔ libvosk found").small().weak());
+        }
+        Err(reason) => {
+            ui.label(
+                RichText::new("⚠ libvosk not found")
+                    .small()
+                    .color(Color32::from_rgb(220, 160, 60)),
+            )
+            .on_hover_text(reason);
+            ui.hyperlink_to(
+                RichText::new("Get it from the Vosk releases").small(),
+                "https://github.com/alphacep/vosk-api/releases",
+            );
         }
     }
 }

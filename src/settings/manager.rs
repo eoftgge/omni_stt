@@ -90,7 +90,7 @@ impl SettingsManager {
 
         let manager = Self {
             path,
-            settings: Self::normalize_provider(settings),
+            settings,
             key_storage,
         };
 
@@ -106,21 +106,6 @@ impl SettingsManager {
 
     pub fn key_storage(&self) -> &KeyStorage {
         &self.key_storage
-    }
-
-    #[cfg(not(feature = "vosk"))]
-    fn normalize_provider(mut settings: SettingsApp) -> SettingsApp {
-        use crate::stt::adapters::types::ProviderType;
-
-        if settings.provider.active_type == ProviderType::Vosk {
-            settings.provider.active_type = ProviderType::Soniox;
-        }
-        settings
-    }
-
-    #[cfg(feature = "vosk")]
-    fn normalize_provider(settings: SettingsApp) -> SettingsApp {
-        settings
     }
 
     pub fn save(&self) -> Result<(), OmniSttErrors> {
