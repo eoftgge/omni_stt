@@ -4,6 +4,7 @@ use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
 use crate::settings::{SettingsGeneral, SettingsManager};
+use crate::stt::adapters::vosk::probe::VoskProbe;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::device::MappableAvailableDevices;
@@ -14,7 +15,6 @@ use eframe::egui::{
 };
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::time::Duration;
-use crate::stt::adapters::vosk::probe::VoskProbe;
 
 fn process_events(
     service: &mut TranscriptionService,

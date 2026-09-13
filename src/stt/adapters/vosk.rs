@@ -1,7 +1,7 @@
 pub mod ffi;
 pub mod model;
-pub mod types;
 pub mod probe;
+pub mod types;
 
 use crate::stt::adapters::vosk::ffi::VoskApi;
 use crate::stt::adapters::vosk::model::{Decoding, Model, Recognizer};

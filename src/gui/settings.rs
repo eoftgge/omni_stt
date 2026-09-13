@@ -6,6 +6,7 @@ use crate::settings::{
     KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
 };
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
+use crate::stt::adapters::vosk::probe::VoskProbe;
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::text::LayoutJob;
@@ -16,7 +17,6 @@ use eframe::egui::{
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
-use crate::stt::adapters::vosk::probe::VoskProbe;
 
 pub fn show_settings_window(
     ui: &mut Ui,
@@ -260,7 +260,10 @@ fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe)
                 {
                     vosk.model_path = PathBuf::from(path);
                 }
-                if ui.button("📂").on_hover_text("Pick the model folder").clicked()
+                if ui
+                    .button("📂")
+                    .on_hover_text("Pick the model folder")
+                    .clicked()
                     && let Some(picked) = rfd::FileDialog::new().pick_folder()
                 {
                     vosk.model_path = picked;
@@ -598,7 +601,7 @@ fn ui_library_hint(ui: &mut Ui, status: &Result<(), String>) {
                     .small()
                     .color(Color32::from_rgb(220, 160, 60)),
             )
-                .on_hover_text(reason);
+            .on_hover_text(reason);
             ui.hyperlink_to(
                 RichText::new("Get it from the Vosk releases").small(),
                 "https://github.com/alphacep/vosk-api/releases",
