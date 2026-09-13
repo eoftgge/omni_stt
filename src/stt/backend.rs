@@ -1,6 +1,6 @@
 use std::time::Duration;
-use crate::stt::event::{SttError, SttEvent};
 use async_trait::async_trait;
+use crate::stt::event::{SttError, SttEvent};
 
 #[async_trait]
 pub trait SttBackend: Send + Sync {
