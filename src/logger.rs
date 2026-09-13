@@ -29,6 +29,7 @@ pub struct TracingControl {
     level_handle: reload::Handle<LevelFilter, Registry>,
     sink: Arc<RwLock<Sink>>,
     guard: Option<WorkerGuard>,
+    applied: SettingsGeneral
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
@@ -51,7 +52,7 @@ fn make_sink(log_to_file: bool) -> (Sink, Option<WorkerGuard>) {
     }
 }
 
-pub fn setup_tracing(level: Level, log_to_file: bool) -> TracingControl {
+pub fn setup_tracing(level: Level, log_to_file: bool, applied: SettingsGeneral) -> TracingControl {
     let (sink, guard) = make_sink(log_to_file);
     let sink = Arc::new(RwLock::new(sink));
     let (level_layer, level_handle) = reload::Layer::new(LevelFilter::from_level(level));
@@ -72,6 +73,7 @@ pub fn setup_tracing(level: Level, log_to_file: bool) -> TracingControl {
         level_handle,
         sink,
         guard,
+        applied,
     }
 }
 
@@ -109,6 +111,14 @@ impl TracingControl {
             tracing::error!("Failed to change log level: {e}");
         }
         self.set_log_to_file(general.log_to_file());
+    }
+
+    pub fn sync(&mut self, general: &SettingsGeneral) {
+        if self.applied == *general {
+            return;
+        }
+        self.apply(general);
+        self.applied = general.clone();
     }
 
     fn set_log_to_file(&mut self, enabled: bool) {

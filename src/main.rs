@@ -40,7 +40,7 @@ fn select_adapter(
 
 fn run() -> Result<(), OmniSttErrors> {
     let general = logging_settings(CONFIG_PATH);
-    let tracing_control = setup_tracing(general.level(), general.log_to_file());
+    let tracing_control = setup_tracing(general.level(), general.log_to_file(), general);
     let settings_manager = SettingsManager::new(CONFIG_PATH);
     let mut wgpu_configuration = WgpuConfiguration::default();
     if let WgpuSetup::CreateNew(ref mut setup) = wgpu_configuration.wgpu_setup {
