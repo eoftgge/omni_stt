@@ -1,5 +1,5 @@
-use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
-use crate::gui::settings::layout::{row, section, settings_grid};
+use super::layout::{row, section, settings_grid};
+use crate::gui::overlay::outline::{TextOutline, add_outlined_text}; 
 use crate::settings::SettingsUI;
 use eframe::egui;
 use eframe::egui::text::LayoutJob;

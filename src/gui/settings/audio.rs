@@ -1,4 +1,4 @@
-use crate::gui::settings::layout::{row, section, settings_grid};
+use super::layout::{row, section, settings_grid};
 use crate::settings::SettingsAudio;
 use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::{ComboBox, Slider, Ui};
