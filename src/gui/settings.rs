@@ -38,13 +38,9 @@ pub fn show_settings_window(
             let key_storage = &settings_manager.key_storage;
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_general(ui, &mut settings.general);
-                ui.add_space(6.0);
                 ui_section_audio(ui, &mut settings.audio, devices);
-                ui.add_space(6.0);
                 ui_section_provider(ui, &mut settings.provider, key_storage);
-                ui.add_space(6.0);
                 ui_section_position(ui, &mut settings.ui);
-                ui.add_space(6.0);
                 ui_section_appearance(ui, &mut settings.ui);
                 ui.allocate_space(vec2(0.0, 60.0));
             });
@@ -139,14 +135,7 @@ fn ui_bottom_panel(
 }
 
 fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
-    CollapsingHeader::new(
-        RichText::new("General")
-            .size(15.0)
-            .strong()
-            .color(theme::TEXT),
-    )
-    .default_open(true)
-    .show(ui, |ui| {
+    section(ui, "General", true, |ui| {
         settings_grid("general_grid").show(ui, |ui| {
             ui.label("Log Level:");
             ComboBox::from_id_salt("log_level")
@@ -164,7 +153,7 @@ fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
                 "Log to file:",
                 Checkbox::without_text(&mut settings_general.log_to_file),
             )
-            .on_hover_text("Save logs to a .log file in the app directory");
+                .on_hover_text("Save logs to a .log file in the app directory");
         });
     });
 }
@@ -174,13 +163,7 @@ fn ui_section_provider(
     settings_provider: &mut SettingsProvider,
     key_storage: &KeyStorage,
 ) {
-    CollapsingHeader::new(
-        RichText::new("Speech Engine (STT)")
-            .size(15.0)
-            .strong()
-            .color(theme::TEXT),
-    )
-    .show(ui, |ui| {
+    section(ui, "Speech Engine (STT)", false, |ui| {
         ui.horizontal(|ui| {
             ui.selectable_value(
                 &mut settings_provider.active_type,
@@ -298,13 +281,7 @@ fn ui_section_audio(
     settings_audio: &mut SettingsAudio,
     devices: &mut MappableAvailableDevices,
 ) {
-    CollapsingHeader::new(
-        RichText::new("Audio")
-            .size(15.0)
-            .strong()
-            .color(theme::TEXT),
-    )
-    .show(ui, |ui| {
+    section(ui, "Audio", false, |ui| {
         settings_grid("audio_grid").show(ui, |ui| {
             row(
                 ui,
@@ -352,7 +329,7 @@ fn ui_section_audio(
 }
 
 fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
-    CollapsingHeader::new(RichText::new("Position").size(15.0).color(theme::TEXT)).show(ui, |ui| {
+    section(ui, "Position", false, |ui| {
         settings_grid("position_grid").show(ui, |ui| {
             ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
@@ -461,13 +438,7 @@ fn ui_language_searchable_combo(
 }
 
 fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
-    CollapsingHeader::new(
-        RichText::new("Appearance")
-            .size(15.0)
-            .strong()
-            .color(theme::TEXT),
-    )
-    .show(ui, |ui| {
+    section(ui, "Appearance", false, |ui| {
         settings_grid("appearance_grid").show(ui, |ui| {
             row(
                 ui,
@@ -557,6 +528,18 @@ fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
             .on_hover_text(reason);
         }
     }
+}
+
+fn section(ui: &mut Ui, title: &str, default_open: bool, add_contents: impl FnOnce(&mut Ui)) {
+    CollapsingHeader::new(
+        RichText::new(title)
+            .size(15.0)
+            .strong()
+            .color(theme::TEXT),
+    )
+        .default_open(default_open)
+        .show(ui, add_contents);
+    ui.add_space(6.0);
 }
 
 fn row(ui: &mut Ui, label: &str, widget: impl egui::Widget) -> Response {
