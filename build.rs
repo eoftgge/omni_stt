@@ -49,26 +49,6 @@ fn main() {
     } else if target_os == "macos" {
         println!("cargo:rustc-link-arg=-Wl,-sectcreate,__TEXT,__info_plist,Info.plist");
     }
-
-    if env::var("CARGO_FEATURE_VOSK").is_ok() {
-        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-        let platform = if target_os == "windows" {
-            "windows"
-        } else if target_os == "macos" {
-            "macos"
-        } else {
-            "linux"
-        };
-
-        let lib_dir = format!("{manifest_dir}/assets/vosk/{platform}");
-        println!("cargo:rustc-link-search=native={lib_dir}");
-
-        if target_os == "linux" {
-            println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN");
-        } else if target_os == "macos" {
-            println!("cargo:rustc-link-arg=-Wl,-rpath,@loader_path");
-        }
-    }
 }
 
 fn find_cross_tool(target: &str, tool: &str) -> Option<String> {

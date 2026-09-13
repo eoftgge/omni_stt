@@ -5,7 +5,6 @@ use crate::stt::event::SttError;
 
 use crate::stt::adapters::soniox::request::create_request;
 use crate::stt::adapters::types::ProviderType;
-#[cfg(feature = "vosk")]
 use crate::stt::adapters::vosk::VoskBackend;
 
 pub async fn create_stt_backend(
@@ -18,13 +17,14 @@ pub async fn create_stt_backend(
             })?;
             Ok(Box::new(SonioxBackend::new(request)))
         }
-        #[cfg(feature = "vosk")]
-        ProviderType::Vosk => Ok(Box::new(
-            VoskBackend::new(settings_provider.vosk.path.to_owned()).await?,
-        )),
-        #[cfg(not(feature = "vosk"))]
-        ProviderType::Vosk => Err(SttError::FatalAPIError(
-            "This application does not support Vosk in the current binary".into(),
-        )),
+        ProviderType::Vosk => {
+            let vosk = &settings_provider.vosk;
+            let library_path =
+                (!vosk.library_path.as_os_str().is_empty()).then(|| vosk.library_path.clone());
+
+            Ok(Box::new(
+                VoskBackend::new(vosk.model_path.to_owned(), library_path).await?,
+            ))
+        }
     }
 }

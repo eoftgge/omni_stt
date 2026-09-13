@@ -1,3 +1,11 @@
+pub mod ffi;
+pub mod model;
+pub mod probe;
+pub mod types;
+
+use crate::stt::adapters::vosk::ffi::VoskApi;
+use crate::stt::adapters::vosk::model::{Decoding, Model, Recognizer};
+use crate::stt::adapters::vosk::types::{VoskPartial, VoskText};
 use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::data::TranscriptData;
 use crate::stt::event::{SttError, SttEvent};
@@ -5,19 +13,26 @@ use async_trait::async_trait;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
-use vosk::{DecodingState, Model, Recognizer};
+
+fn parse<T: serde::de::DeserializeOwned>(json: &str) -> Option<T> {
+    match serde_json::from_str(json) {
+        Ok(value) => Some(value),
+        Err(e) => {
+            tracing::warn!("Vosk returned a non-JSON payload: {e}");
+            None
+        }
+    }
+}
 
 fn run_recognition_loop(
     model: Arc<Model>,
     mut audio_rx: Receiver<Vec<i16>>,
     event_tx: Sender<SttEvent>,
 ) {
-    let mut recognizer = match Recognizer::new(&model, 16000.0) {
-        Some(r) => r,
-        None => {
-            let _ = event_tx.blocking_send(SttEvent::Error(SttError::FatalAPIError(
-                "Failed to create Vosk recognizer".into(),
-            )));
+    let mut recognizer = match Recognizer::new(model, 16000.0) {
+        Ok(r) => r,
+        Err(e) => {
+            let _ = event_tx.blocking_send(SttEvent::Error(SttError::FatalAPIError(e)));
             return;
         }
     };
@@ -30,12 +45,23 @@ fn run_recognition_loop(
             break;
         }
     }
+
+    if let Some(parsed) = parse::<VoskText>(&recognizer.final_result()) {
+        let text = parsed.text.trim();
+        if !text.is_empty() {
+            let _ = event_tx.blocking_send(SttEvent::Transcript(TranscriptData {
+                text: format!("{text} "),
+                speaker: None,
+            }));
+        }
+    }
 }
 
 fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent> {
-    match recognizer.accept_waveform(chunk) {
-        Ok(DecodingState::Finalized) => {
-            let text = recognizer.result().single()?.text.trim().to_string();
+    match recognizer.accept(chunk) {
+        Decoding::Final => {
+            let parsed: VoskText = parse(&recognizer.result())?;
+            let text = parsed.text.trim();
             if text.is_empty() {
                 return None;
             }
@@ -44,22 +70,19 @@ fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent>
                 speaker: None,
             }))
         }
-        Ok(DecodingState::Running) => {
-            let text = recognizer.partial_result().partial.trim().to_string();
+        Decoding::Partial => {
+            let parsed: VoskPartial = parse(&recognizer.partial_result())?;
+            let text = parsed.partial.trim();
             if text.is_empty() {
                 return None;
             }
             Some(SttEvent::Interim(vec![TranscriptData {
-                text,
+                text: text.into(),
                 speaker: None,
             }]))
         }
-        Ok(DecodingState::Failed) => {
+        Decoding::Failed => {
             tracing::warn!("Vosk decoding failed for this chunk");
-            None
-        }
-        Err(e) => {
-            tracing::error!("Error passing audio to Vosk: {:?}", e);
             None
         }
     }
@@ -70,12 +93,20 @@ pub struct VoskBackend {
 }
 
 impl VoskBackend {
-    pub async fn new(path: impl Into<PathBuf>) -> Result<Self, SttError> {
-        let path_str = path.into().to_string_lossy().to_string();
-        let model = tokio::task::spawn_blocking(move || Model::new(&path_str))
-            .await
-            .map_err(|_| SttError::FatalAPIError("Vosk model load task panicked".into()))?
-            .ok_or_else(|| SttError::FatalAPIError("Failed to load Vosk model".into()))?;
+    pub async fn new(
+        model_path: impl Into<PathBuf>,
+        library_path: Option<PathBuf>,
+    ) -> Result<Self, SttError> {
+        let model_path = model_path.into();
+
+        let model = tokio::task::spawn_blocking(move || {
+            let api = VoskApi::load(library_path.as_deref())?;
+            Model::load(Arc::new(api), &model_path)
+        })
+        .await
+        .map_err(|_| SttError::FatalAPIError("Vosk load task panicked".into()))?
+        .map_err(SttError::FatalAPIError)?;
+
         Ok(Self {
             model: Arc::new(model),
         })
