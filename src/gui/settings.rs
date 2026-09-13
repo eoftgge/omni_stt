@@ -366,7 +366,7 @@ fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                         ui.end_row();
 
                         btn(ui, "←", 3, (pad, 0.0));
-                        btn(ui, "X", 4, (0.0, 0.0));
+                        btn(ui, "•", 4, (0.0, 0.0));
                         btn(ui, "→", 5, (-pad, 0.0));
                         ui.end_row();
 
