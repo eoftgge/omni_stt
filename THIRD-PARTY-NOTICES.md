@@ -23,15 +23,22 @@ the SIL Open Font License, Version 1.1.
 
 The full text of the SIL Open Font License, Version 1.1 follows.
 -----------------------------------------------------------
+This Font Software is licensed under the SIL Open Font License,
+Version 1.1.
+
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+-----------------------------------------------------------
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
 -----------------------------------------------------------
 
 PREAMBLE
 The goals of the Open Font License (OFL) are to stimulate worldwide
-development of collaborative font projects, to support the font creation
-efforts of academic and linguistic communities, and to provide a free and
-open framework in which fonts may be shared and improved in partnership
-with others.
+development of collaborative font projects, to support the font
+creation efforts of academic and linguistic communities, and to
+provide a free and open framework in which fonts may be shared and
+improved in partnership with others.
 
 The OFL allows the licensed fonts to be used, studied, modified and
 redistributed freely as long as they are not sold by themselves. The
@@ -39,8 +46,8 @@ fonts, including any derivative works, can be bundled, embedded,
 redistributed and/or sold with any software provided that any reserved
 names are not used by derivative works. The fonts and derivatives,
 however, cannot be released under any other type of license. The
-requirement for fonts to remain under this license does not apply
-to any document created using the fonts or their derivatives.
+requirement for fonts to remain under this license does not apply to
+any document created using the fonts or their derivatives.
 
 DEFINITIONS
 "Font Software" refers to the set of files released by the Copyright
@@ -50,25 +57,25 @@ include source files, build scripts and documentation.
 "Reserved Font Name" refers to any names specified as such after the
 copyright statement(s).
 
-"Original Version" refers to the collection of Font Software components as
-distributed by the Copyright Holder(s).
+"Original Version" refers to the collection of Font Software
+components as distributed by the Copyright Holder(s).
 
-"Modified Version" refers to any derivative made by adding to, deleting,
-or substituting -- in part or in whole -- any of the components of the
-Original Version, by changing formats or by porting the Font Software to a
-new environment.
+"Modified Version" refers to any derivative made by adding to,
+deleting, or substituting -- in part or in whole -- any of the
+components of the Original Version, by changing formats or by porting
+the Font Software to a new environment.
 
 "Author" refers to any designer, engineer, programmer, technical
 writer or other person who contributed to the Font Software.
 
 PERMISSION & CONDITIONS
 Permission is hereby granted, free of charge, to any person obtaining
-a copy of the Font Software, to use, study, copy, merge, embed, modify,
-redistribute, and sell modified and unmodified copies of the Font
-Software, subject to the following conditions:
+a copy of the Font Software, to use, study, copy, merge, embed,
+modify, redistribute, and sell modified and unmodified copies of the
+Font Software, subject to the following conditions:
 
-1) Neither the Font Software nor any of its individual components,
-   in Original or Modified Versions, may be sold by itself.
+1) Neither the Font Software nor any of its individual components, in
+   Original or Modified Versions, may be sold by itself.
 
 2) Original or Modified Versions of the Font Software may be bundled,
    redistributed and/or sold with any software, provided that each copy
@@ -78,9 +85,9 @@ Software, subject to the following conditions:
    binary files as long as those fields can be easily viewed by the user.
 
 3) No Modified Version of the Font Software may use the Reserved Font
-   Name(s) unless explicit written permission is granted by the corresponding
-   Copyright Holder. This restriction only applies to the primary font name as
-   presented to the users.
+   Name(s) unless explicit written permission is granted by the
+   corresponding Copyright Holder. This restriction only applies to the
+   primary font name as presented to the users.
 
 4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
    Software shall not be used to promote, endorse or advertise any
@@ -91,8 +98,8 @@ Software, subject to the following conditions:
 5) The Font Software, modified or unmodified, in part or in whole,
    must be distributed entirely under this license, and must not be
    distributed under any other license. The requirement for fonts to
-   remain under this license does not apply to any document created
-   using the Font Software.
+   remain under this license does not apply to any document created using
+   the Font Software.
 
 TERMINATION
 This license becomes null and void if any of the above conditions are
@@ -109,7 +116,110 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 
+-------------------------------
+UBUNTU FONT LICENCE Version 1.0
+-------------------------------
+
+PREAMBLE
+This licence allows the licensed fonts to be used, studied, modified and
+redistributed freely. The fonts, including any derivative works, can be
+bundled, embedded, and redistributed provided the terms of this licence
+are met. The fonts and derivatives, however, cannot be released under
+any other licence. The requirement for fonts to remain under this
+licence does not require any document created using the fonts or their
+derivatives to be published under this licence, as long as the primary
+purpose of the document is not to be a vehicle for the distribution of
+the fonts.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this licence and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Original Version" refers to the collection of Font Software components
+as received under this licence.
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to
+a new environment.
+
+"Copyright Holder(s)" refers to all individuals and companies who have a
+copyright ownership of the Font Software.
+
+"Substantially Changed" refers to Modified Versions which can be easily
+identified as dissimilar to the Font Software by users of the Font
+Software comparing the Original Version with the Modified Version.
+
+To "Propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy. Propagation includes copying,
+distribution (with or without modification and with or without charging
+a redistribution fee), making available to the public, and in some
+countries other activities as well.
+
+PERMISSION & CONDITIONS
+This licence does not grant any rights under trademark law and all such
+rights are reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of the Font Software, to propagate the Font Software, subject to
+the below conditions:
+
+1) Each copy of the Font Software must contain the above copyright
+   notice and this licence. These can be included either as stand-alone
+   text files, human-readable headers or in the appropriate machine-
+   readable metadata fields within text or binary files as long as those
+   fields can be easily viewed by the user.
+
+2) The font name complies with the following:
+   (a) The Original Version must retain its name, unmodified.
+   (b) Modified Versions which are Substantially Changed must be renamed to
+   avoid use of the name of the Original Version or similar names entirely.
+   (c) Modified Versions which are not Substantially Changed must be
+   renamed to both (i) retain the name of the Original Version and (ii) add
+   additional naming elements to distinguish the Modified Version from the
+   Original Version. The name of such Modified Versions must be the name of
+   the Original Version, with "derivative X" where X represents the name of
+   the new work, appended to that name.
+
+3) The name(s) of the Copyright Holder(s) and any contributor to the
+   Font Software shall not be used to promote, endorse or advertise any
+   Modified Version, except (i) as required by this licence, (ii) to
+   acknowledge the contribution(s) of the Copyright Holder(s) or (iii) with
+   their explicit written permission.
+
+4) The Font Software, modified or unmodified, in part or in whole, must
+   be distributed entirely under this licence, and must not be distributed
+   under any other licence. The requirement for fonts to remain under this
+   licence does not affect any document created using the Font Software,
+   except any version of the Font Software extracted from a document
+   created using the Font Software may only be distributed under this
+   licence.
+
+TERMINATION
+This licence becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER
+DEALINGS IN THE FONT SOFTWARE.
+
 ---
+### egui bundled fonts (epaint_default_fonts)
+
+- Hack-Regular.ttf — MIT, Copyright (c) 2018 Source Foundry Authors
+- Ubuntu-Light.ttf — Ubuntu Font Licence 1.0, Copyright 2010–2011 Canonical Ltd.
+- NotoEmoji-Regular.ttf — SIL OFL 1.1, Copyright The Noto Project Authors
+- emoji-icon-font.ttf — MIT, Copyright (c) 2014 John Slegers
 
 ## Rust dependencies
 
@@ -134,13 +244,6 @@ BSL-1.0 (2): clipboard-win, error-code
 ISC (2): libloading, libloading
 MIT (149): aligned-vec, alsa-sys, android-properties, arg_enum_proc_macro, atk, atk-sys, av-scenechange, block2, block2, bytes, cairo-rs, cairo-sys-rs, calloop, calloop, calloop-wayland-source, calloop-wayland-source, color_quant, combine, crunchy, data-encoding, dispatch, dlib, egui-toast, endi, equator, equator-macro, fax, gdk, gdk-pixbuf, gdk-pixbuf-sys, gdk-sys, gio, gio-sys, glib, glib-macros, glib-sys, glutin-winit, gobject-sys, gtk, gtk-sys, gtk3-macros, harfrust, interpolate_name, libm, libredox, libxdo, libxdo-sys, loop9, maybe-rayon, memoffset, mio, new_debug_unreachable, nom, noop_proc_macro, nu-ansi-term, objc-sys, objc2, objc2, objc2-app-kit, objc2-cloud-kit, objc2-contacts, objc2-core-data, objc2-core-image, objc2-core-location, objc2-encode, objc2-foundation, objc2-foundation, objc2-link-presentation, objc2-metal, objc2-quartz-core, objc2-symbols, objc2-ui-kit, objc2-uniform-type-identifiers, objc2-user-notifications, openssl-sys, orbclient, ordered-float, pango, pango-sys, phf, phf_generator, phf_macros, phf_shared, pulp, pulp-wasm-simd-flag, quick-xml, raw-cpuid, reborrow, redox_syscall, redox_syscall, redox_syscall, redox_users, rfd, rgb, schannel, sctk-adwaita, sharded-slab, simd-adler32, simd_helpers, slab, smithay-client-toolkit, smithay-client-toolkit, smithay-clipboard, strict-num, synstructure, tiff, tokio, tokio-macros, tokio-native-tls, tokio-tungstenite, tokio-util, tracing, tracing-appender, tracing-attributes, tracing-core, tracing-log, tracing-subscriber, uds_windows, valuable, wayland-backend, wayland-client, wayland-csd-frame, wayland-cursor, wayland-protocols, wayland-protocols-experimental, wayland-protocols-misc, wayland-protocols-plasma, wayland-protocols-wlr, wayland-scanner, wayland-sys, winnow, winnow, x11, x11-dl, xcursor, xkbcommon-dl, y4m, zbus, zbus-lockstep, zbus-lockstep-macros, zbus_macros, zbus_names, zbus_xml, zcheapstr, zmij, zvariant, zvariant_derive, zvariant_utils
 MIT OR Unlicense (6): aho-corasick, byteorder, byteorder-lite, memchr, termcolor, winapi-util
-MPL-2.0 (1): option-ext (uses without changes)
+MPL-2.0 (1): option-ext (used without modification, source: https://github.com/soc/option-ext)
 Unicode-3.0 (18): icu_collections, icu_locale_core, icu_normalizer, icu_normalizer_data, icu_properties, icu_properties_data, icu_provider, litemap, potential_utf, tinystr, writeable, yoke, yoke-derive, zerofrom, zerofrom-derive, zerotrie, zerovec, zerovec-derive
 Zlib (3): foldhash, slotmap, zlib-rs
-
-### egui bundled fonts (epaint_default_fonts)
-
-- Hack-Regular.ttf — MIT, Copyright (c) 2018 Source Foundry Authors
-- Ubuntu-Light.ttf — Ubuntu Font Licence 1.0, Copyright 2010–2011 Canonical Ltd.
-- NotoEmoji-Regular.ttf — SIL OFL 1.1, Copyright The Noto Project Authors
-- emoji-icon-font.ttf — MIT, Copyright (c) 2014 John Slegers
