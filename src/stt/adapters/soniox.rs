@@ -3,6 +3,9 @@ pub mod request;
 pub mod session;
 pub mod types;
 
+#[cfg(test)]
+mod tests;
+
 use async_trait::async_trait;
 use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};

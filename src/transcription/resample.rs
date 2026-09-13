@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 const SCALE: f32 = i16::MAX as f32;
 const TARGET_RATE: f64 = 16_000.0;
 

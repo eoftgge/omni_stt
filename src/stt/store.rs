@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::stt::data::TranscriptData;
 use crate::transcription::subtitles::SubtitleBlock;
 use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
