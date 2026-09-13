@@ -111,6 +111,7 @@ fn draw_replica_row(
     let main = ui.fonts_mut(|f| f.layout_job(main_job));
 
     let pad = outline.map_or(0.0, |o| o.width);
+    let wrap_width = ui.available_width() - pad * 2.0;
     let (rect, _) = ui.allocate_exact_size(
         main.size() + Vec2::splat(pad * 2.0),
         Sense::hover(),
