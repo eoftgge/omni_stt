@@ -29,6 +29,20 @@ fn seen_events(queue: &mut VecDeque<SttEvent>) -> Vec<Seen> {
 }
 
 #[test]
+fn tokens_without_a_speaker_stay_one_segment() {
+    let mut q = VecDeque::new();
+    push_token_events(
+        vec![tok("одна ", false, None), tok("реплика", false, None)],
+        &mut q,
+    );
+
+    assert_eq!(
+        seen_events(&mut q),
+        vec![Seen::Interim(vec![(None, "одна реплика".into())])]
+    );
+}
+
+#[test]
 fn interim_is_split_per_speaker_and_sent_as_one_event() {
     let mut q = VecDeque::new();
     push_token_events(
