@@ -11,6 +11,17 @@ use std::sync::Arc;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
 use crate::stt::adapters::vosk::ffi::VoskApi;
 use crate::stt::adapters::vosk::model::{Decoding, Model, Recognizer};
+use crate::stt::adapters::vosk::types::{VoskPartial, VoskText};
+
+fn parse<T: serde::de::DeserializeOwned>(json: &str) -> Option<T> {
+    match serde_json::from_str(json) {
+        Ok(value) => Some(value),
+        Err(e) => {
+            tracing::warn!("Vosk returned a non-JSON payload: {e}");
+            None
+        }
+    }
+}
 
 fn run_recognition_loop(
     model: Arc<Model>,
@@ -40,7 +51,8 @@ fn run_recognition_loop(
 fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent> {
     match recognizer.accept(chunk) {
         Decoding::Final => {
-            let text = recognizer.result().trim().to_owned();
+            let parsed: VoskText = parse(&recognizer.result())?;
+            let text = parsed.text.trim();
             if text.is_empty() {
                 return None;
             }
@@ -50,7 +62,8 @@ fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent>
             }))
         }
         Decoding::Partial => {
-            let text = recognizer.partial_result().trim().to_owned();
+            let parsed: VoskPartial = parse(&recognizer.partial_result())?;
+            let text = parsed.partial.trim();
             if text.is_empty() {
                 return None;
             }
