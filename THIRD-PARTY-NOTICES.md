@@ -21,6 +21,13 @@ the SIL Open Font License, Version 1.1.
         Copyright (c) 2014-2021 Adobe (http://www.adobe.com/),
         with Reserved Font Name 'Source'.
 
+### egui bundled fonts (epaint_default_fonts)
+
+- Hack-Regular.ttf — MIT, Copyright (c) 2018 Source Foundry Authors
+- Ubuntu-Light.ttf — Ubuntu Font Licence 1.0, Copyright 2010–2011 Canonical Ltd.
+- NotoEmoji-Regular.ttf — SIL OFL 1.1, Copyright The Noto Project Authors
+- emoji-icon-font.ttf — MIT, Copyright (c) 2014 John Slegers
+
 The full text of the SIL Open Font License, Version 1.1 follows.
 -----------------------------------------------------------
 This Font Software is licensed under the SIL Open Font License,
@@ -214,12 +221,6 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER
 DEALINGS IN THE FONT SOFTWARE.
 
 ---
-### egui bundled fonts (epaint_default_fonts)
-
-- Hack-Regular.ttf — MIT, Copyright (c) 2018 Source Foundry Authors
-- Ubuntu-Light.ttf — Ubuntu Font Licence 1.0, Copyright 2010–2011 Canonical Ltd.
-- NotoEmoji-Regular.ttf — SIL OFL 1.1, Copyright The Noto Project Authors
-- emoji-icon-font.ttf — MIT, Copyright (c) 2014 John Slegers
 
 ## Rust dependencies
 
