@@ -161,6 +161,9 @@ impl GenericSttWorker {
                             let _ = self.tx_event.send(SttEvent::Disconnected).await;
                             return StreamAction::Reconnect { transcribed } ;
                         },
+                        // a backend never emits this: AudioSession reports
+                        // device loss straight to the GUI, bypassing the worker
+                        Ok(SttEvent::AudioLost(_)) => {}
                         Err(e) if e.is_reconnect() => {
                             tracing::warn!("Recoverable error: {}", e);
                             return StreamAction::Reconnect { transcribed } ;

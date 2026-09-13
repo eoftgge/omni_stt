@@ -1,7 +1,8 @@
 use crate::errors::OmniSttErrors;
 use crate::transcription::resample::AudioConverter;
+use crate::stt::event::SttEvent;
 use cpal::traits::{DeviceTrait, StreamTrait};
-use cpal::{Device, Stream};
+use cpal::{Device, Stream, Error, ErrorKind};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
@@ -20,6 +21,7 @@ impl AudioSession {
         device: Device,
         tx_audio: Sender<AudioSample>,
         mut rx_recycle: Receiver<AudioSample>,
+        tx_event: Sender<SttEvent>,
     ) -> Result<Self, OmniSttErrors> {
         let config = device.default_output_config()?.config();
         let target_samples = 3200;
@@ -55,9 +57,7 @@ impl AudioSession {
                     }
                 }
             },
-            |err| {
-                tracing::error!("Error in audio callback: {}", err);
-            },
+            audio_error_callback(tx_event),
             None,
         )?;
 
@@ -66,5 +66,29 @@ impl AudioSession {
 
     pub fn play(&self) -> Result<(), cpal::Error> {
         self.stream.play()
+    }
+}
+
+/// cpal calls this from the audio thread and never restarts the stream
+/// afterwards, so a single error ends the session. The latch keeps a backend
+/// that reports repeatedly from stacking toasts on the user.
+fn audio_error_callback(tx_event: Sender<SttEvent>) -> impl FnMut(Error) + Send + 'static {
+    let mut reported = false;
+
+    move |err| {
+        tracing::error!("Error in audio callback: {}", err);
+        if reported {
+            return;
+        }
+        reported = true;
+
+        let text = match &err.kind() {
+            ErrorKind::DeviceNotAvailable => "Audio device disconnected".to_string(),
+            other => format!("Audio capture failed: {other}"),
+        };
+
+        // try_send, never send: blocking the audio thread would stall capture,
+        // and the log line above has already recorded the error regardless.
+        let _ = tx_event.try_send(SttEvent::AudioLost(text));
     }
 }
