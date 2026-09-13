@@ -1,7 +1,6 @@
-use super::layout::{row, section, settings_grid};
+use super::layout::{section, settings_grid};
 use crate::settings::SettingsUI;
-use eframe::egui;
-use eframe::egui::{Button, DragValue, Grid, RichText, Ui, vec2};
+use eframe::egui::{self, Button, DragValue, Grid, RichText, Ui, vec2};
 
 pub(super) fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     section(ui, "Position", false, |ui| {
