@@ -6,16 +6,14 @@ use crate::settings::{
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
-use eframe::egui::{
-    self, Button, Checkbox, CollapsingHeader, Color32, ComboBox, DragValue, Grid, Response,
-    RichText, ScrollArea, Slider, TextEdit, Ui, vec2,
-};
+use eframe::egui::{self, vec2, Button, Checkbox, CollapsingHeader, Color32, ComboBox, DragValue, Grid, Response, RichText, ScrollArea, Slider, TextEdit, TextFormat, Ui, FontId};
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
-
+use eframe::egui::text::LayoutJob;
 use crate::gui::theme;
 #[cfg(feature = "vosk")]
 use {crate::stt::adapters::types::VoskSettings, std::path::PathBuf};
+use crate::gui::overlay::outline::{add_outlined_text, TextOutline};
 
 pub fn show_settings_window(
     ui: &mut Ui,
@@ -506,6 +504,35 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 );
             });
     });
+}
+
+fn ui_preview(ui: &mut Ui, settings_ui: &SettingsUI) {
+    let font_size = settings_ui.font_size as f32;
+    let text_color = settings_ui.text_color();
+    let outline = settings_ui
+        .is_text_outline
+        .then(|| TextOutline::for_font_size(font_size));
+
+    egui::Frame::new()
+        .fill(settings_ui.background_color())
+        .corner_radius(5.0)
+        .inner_margin(8.0)
+        .show(ui, |ui| {
+            let text = format!("Preview ({font_size:.0}px)");
+            add_outlined_text(ui, outline, text_color, |override_color| {
+                let mut job = LayoutJob::default();
+                job.append(
+                    &text,
+                    0.0,
+                    TextFormat {
+                        font_id: FontId::proportional(font_size),
+                        color: override_color.unwrap_or(text_color),
+                        ..Default::default()
+                    },
+                );
+                job
+            });
+        });
 }
 
 fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
