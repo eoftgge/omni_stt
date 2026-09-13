@@ -7,7 +7,7 @@ use crate::stt::store::TranscriptionStore;
 use crate::transcription::replicas::{VisualReplica, prepare_replicas};
 use eframe::egui::text::LayoutJob;
 use eframe::egui::{
-    Color32, FontId, Frame, LayerId, Order, Rect, Sense, Stroke, TextFormat, Ui, Vec2,
+    Color32, FontId, Frame, LayerId, Order, Rect, Stroke, TextFormat, Ui, Vec2,
 };
 use eframe::epaint::StrokeKind;
 
