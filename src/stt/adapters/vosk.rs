@@ -2,6 +2,9 @@ pub mod ffi;
 pub mod model;
 pub mod types;
 
+use crate::stt::adapters::vosk::ffi::VoskApi;
+use crate::stt::adapters::vosk::model::{Decoding, Model, Recognizer};
+use crate::stt::adapters::vosk::types::{VoskPartial, VoskText};
 use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::data::TranscriptData;
 use crate::stt::event::{SttError, SttEvent};
@@ -9,9 +12,6 @@ use async_trait::async_trait;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
-use crate::stt::adapters::vosk::ffi::VoskApi;
-use crate::stt::adapters::vosk::model::{Decoding, Model, Recognizer};
-use crate::stt::adapters::vosk::types::{VoskPartial, VoskText};
 
 fn parse<T: serde::de::DeserializeOwned>(json: &str) -> Option<T> {
     match serde_json::from_str(json) {
@@ -102,9 +102,9 @@ impl VoskBackend {
             let api = VoskApi::load(library_path.as_deref())?;
             Model::load(Arc::new(api), &model_path)
         })
-            .await
-            .map_err(|_| SttError::FatalAPIError("Vosk load task panicked".into()))?
-            .map_err(SttError::FatalAPIError)?;
+        .await
+        .map_err(|_| SttError::FatalAPIError("Vosk load task panicked".into()))?
+        .map_err(SttError::FatalAPIError)?;
 
         Ok(Self {
             model: Arc::new(model),

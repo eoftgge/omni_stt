@@ -19,8 +19,8 @@ pub async fn create_stt_backend(
         }
         ProviderType::Vosk => {
             let vosk = &settings_provider.vosk;
-            let library_path = (!vosk.library_path.as_os_str().is_empty())
-                .then(|| vosk.library_path.clone());
+            let library_path =
+                (!vosk.library_path.as_os_str().is_empty()).then(|| vosk.library_path.clone());
 
             Ok(Box::new(
                 VoskBackend::new(vosk.model_path.to_owned(), library_path).await?,

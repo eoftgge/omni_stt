@@ -489,7 +489,7 @@ fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
             ui.end_row();
         });
 
-        ui_preview(ui,  settings_ui);
+        ui_preview(ui, settings_ui);
     });
 }
 

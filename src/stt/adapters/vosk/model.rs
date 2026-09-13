@@ -86,7 +86,9 @@ impl Recognizer {
         if raw.is_null() {
             return String::new();
         }
-        unsafe { CStr::from_ptr(raw) }.to_string_lossy().into_owned()
+        unsafe { CStr::from_ptr(raw) }
+            .to_string_lossy()
+            .into_owned()
     }
 }
 
