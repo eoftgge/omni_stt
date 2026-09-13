@@ -1,5 +1,4 @@
 pub mod app;
-pub mod color;
 pub mod fonts;
 pub mod overlay;
 pub mod settings;
