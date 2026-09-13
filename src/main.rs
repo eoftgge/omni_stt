@@ -11,6 +11,7 @@ use omni_stt::gui::fonts::setup_custom_fonts;
 use omni_stt::settings::SettingsManager;
 use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 
+use omni_stt::gui::theme::apply_theme;
 use omni_stt::gui::tray::AppTray;
 use omni_stt::logger::setup_tracing;
 use omni_stt::settings::logging_settings;
@@ -72,6 +73,7 @@ fn run() -> Result<(), OmniSttErrors> {
         TOOLTIP,
         native_options,
         Box::new(move |cc| {
+            apply_theme(&cc.egui_ctx);
             setup_custom_fonts(&cc.egui_ctx);
             let ctx = cc.egui_ctx.clone();
             let tray = AppTray::spawn(tray_icon, ctx);

@@ -87,11 +87,10 @@ fn flush_buffers(
     interims: &mut Vec<TranscriptData>,
 ) {
     if !final_text.is_empty() {
-        queue
-            .push_back(SttEvent::Transcript(TranscriptData {
-                text: std::mem::take(final_text),
-                speaker: speaker.clone(),
-            }));
+        queue.push_back(SttEvent::Transcript(TranscriptData {
+            text: std::mem::take(final_text),
+            speaker: speaker.clone(),
+        }));
     }
     if !interim_text.is_empty() {
         interims.push(TranscriptData {

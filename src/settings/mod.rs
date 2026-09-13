@@ -24,6 +24,7 @@ pub struct SettingsUI {
     pub(crate) background_color: [u8; 4],
     pub(crate) text_color: [u8; 3],
     pub(crate) enable_high_priority: bool,
+    pub(crate) is_text_outline: bool,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -73,6 +74,7 @@ impl Default for SettingsUI {
             background_color: Self::DEFAULT_BACKGROUND_COLOR,
             text_color: Self::DEFAULT_TEXT_COLOR,
             max_blocks: 3,
+            is_text_outline: false,
         }
     }
 }
