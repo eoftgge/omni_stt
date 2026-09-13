@@ -1,5 +1,5 @@
-use eframe::egui::{Color32, Response, Sense, Ui, Vec2};
 use eframe::egui::text::LayoutJob;
+use eframe::egui::{Color32, Response, Sense, Ui, Vec2};
 
 pub fn add_outlined_text(
     ui: &mut Ui,

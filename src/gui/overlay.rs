@@ -2,7 +2,7 @@ pub(crate) mod color;
 pub(crate) mod outline;
 
 use crate::gui::overlay::color::get_interim_color;
-use crate::gui::overlay::outline::{add_outlined_text, TextOutline};
+use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::replicas::{VisualReplica, prepare_replicas};
 use eframe::egui::text::LayoutJob;
@@ -102,13 +102,16 @@ fn draw_replica_row(
     let wrap_width = ui.available_width() - pad * 2.0;
 
     add_outlined_text(ui, outline, text_color, |override_color| {
-        build_job(replica, font_size, wrap_width, |is_interim| {
-            match override_color {
+        build_job(
+            replica,
+            font_size,
+            wrap_width,
+            |is_interim| match override_color {
                 Some(color) => color,
                 None if is_interim => interim_color,
                 None => text_color,
-            }
-        })
+            },
+        )
     });
 }
 

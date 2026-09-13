@@ -1,4 +1,6 @@
+use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
 use crate::gui::state::{PendingState, StateManager};
+use crate::gui::theme;
 use crate::logger::LEVELS;
 use crate::settings::{
     KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
@@ -6,14 +8,16 @@ use crate::settings::{
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
-use eframe::egui::{self, vec2, Button, Checkbox, CollapsingHeader, Color32, ComboBox, DragValue, Grid, Response, RichText, ScrollArea, Slider, TextEdit, TextFormat, Ui, FontId};
+use eframe::egui::text::LayoutJob;
+use eframe::egui::{
+    self, Button, Checkbox, CollapsingHeader, Color32, ComboBox, DragValue, FontId, Grid, Response,
+    RichText, ScrollArea, Slider, TextEdit, TextFormat, Ui, vec2,
+};
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
-use eframe::egui::text::LayoutJob;
-use crate::gui::theme;
+
 #[cfg(feature = "vosk")]
 use {crate::stt::adapters::types::VoskSettings, std::path::PathBuf};
-use crate::gui::overlay::outline::{add_outlined_text, TextOutline};
 
 pub fn show_settings_window(
     ui: &mut Ui,
