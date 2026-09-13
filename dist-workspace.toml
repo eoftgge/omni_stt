@@ -17,6 +17,8 @@ install-path = "CARGO_HOME"
 install-updater = false
 # Info plist
 info-plist = "Info.plist"
+# Include licenses
+include = ["THIRD-PARTY-NOTICES.md"]
 
 [dist.dependencies.apt]
 libasound2-dev = "*"
