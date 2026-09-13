@@ -6,13 +6,16 @@ use crate::settings::{
 use crate::stt::adapters::types::{ProviderType, SonioxSettings};
 use crate::stt::languages::LanguageHint;
 use crate::transcription::device::MappableAvailableDevices;
-use eframe::egui::{self, vec2, Button, Checkbox, CollapsingHeader, Color32, ComboBox, DragValue, Grid, Response, RichText, ScrollArea, Slider, TextEdit, Ui};
+use eframe::egui::{
+    self, Button, Checkbox, CollapsingHeader, Color32, ComboBox, DragValue, Grid, Response,
+    RichText, ScrollArea, Slider, TextEdit, Ui, vec2,
+};
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
 
+use crate::gui::theme;
 #[cfg(feature = "vosk")]
 use {crate::stt::adapters::types::VoskSettings, std::path::PathBuf};
-use crate::gui::theme;
 
 pub fn show_settings_window(
     ui: &mut Ui,
@@ -136,33 +139,34 @@ fn ui_bottom_panel(
 }
 
 fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
-    CollapsingHeader::new(RichText::new("General").size(15.0).strong().color(theme::TEXT))
-        .default_open(true)
-        .show(ui, |ui| {
-            settings_grid("general_grid").show(ui, |ui| {
-                ui.label("Log Level:");
-                ComboBox::from_id_salt("log_level")
-                    .selected_text(settings_general.level.to_string())
-                    .width(80.0)
-                    .show_ui(ui, |ui| {
-                        for level in LEVELS {
-                            ui.selectable_value(
-                                &mut settings_general.level,
-                                *level,
-                                level.to_string(),
-                            );
-                        }
-                    });
-                ui.end_row();
+    CollapsingHeader::new(
+        RichText::new("General")
+            .size(15.0)
+            .strong()
+            .color(theme::TEXT),
+    )
+    .default_open(true)
+    .show(ui, |ui| {
+        settings_grid("general_grid").show(ui, |ui| {
+            ui.label("Log Level:");
+            ComboBox::from_id_salt("log_level")
+                .selected_text(settings_general.level.to_string())
+                .width(80.0)
+                .show_ui(ui, |ui| {
+                    for level in LEVELS {
+                        ui.selectable_value(&mut settings_general.level, *level, level.to_string());
+                    }
+                });
+            ui.end_row();
 
-                row(
-                    ui,
-                    "Log to file:",
-                    Checkbox::without_text(&mut settings_general.log_to_file),
-                )
-                .on_hover_text("Save logs to a .log file in the app directory");
-            });
+            row(
+                ui,
+                "Log to file:",
+                Checkbox::without_text(&mut settings_general.log_to_file),
+            )
+            .on_hover_text("Save logs to a .log file in the app directory");
         });
+    });
 }
 
 fn ui_section_provider(
@@ -170,7 +174,13 @@ fn ui_section_provider(
     settings_provider: &mut SettingsProvider,
     key_storage: &KeyStorage,
 ) {
-    CollapsingHeader::new(RichText::new("Speech Engine (STT)").size(15.0).strong().color(theme::TEXT)).show(ui, |ui| {
+    CollapsingHeader::new(
+        RichText::new("Speech Engine (STT)")
+            .size(15.0)
+            .strong()
+            .color(theme::TEXT),
+    )
+    .show(ui, |ui| {
         ui.horizontal(|ui| {
             ui.selectable_value(
                 &mut settings_provider.active_type,
@@ -288,8 +298,13 @@ fn ui_section_audio(
     settings_audio: &mut SettingsAudio,
     devices: &mut MappableAvailableDevices,
 ) {
-    CollapsingHeader::new(RichText::new("Audio").size(15.0).strong().color(theme::TEXT))
-        .show(ui, |ui| {
+    CollapsingHeader::new(
+        RichText::new("Audio")
+            .size(15.0)
+            .strong()
+            .color(theme::TEXT),
+    )
+    .show(ui, |ui| {
         settings_grid("audio_grid").show(ui, |ui| {
             row(
                 ui,
@@ -337,8 +352,7 @@ fn ui_section_audio(
 }
 
 fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
-    CollapsingHeader::new(RichText::new("Position").size(15.0).color(theme::TEXT))
-        .show(ui, |ui| {
+    CollapsingHeader::new(RichText::new("Position").size(15.0).color(theme::TEXT)).show(ui, |ui| {
         settings_grid("position_grid").show(ui, |ui| {
             ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
@@ -447,8 +461,13 @@ fn ui_language_searchable_combo(
 }
 
 fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
-    CollapsingHeader::new(RichText::new("Appearance").size(15.0).strong().color(theme::TEXT))
-        .show(ui, |ui| {
+    CollapsingHeader::new(
+        RichText::new("Appearance")
+            .size(15.0)
+            .strong()
+            .color(theme::TEXT),
+    )
+    .show(ui, |ui| {
         settings_grid("appearance_grid").show(ui, |ui| {
             row(
                 ui,
