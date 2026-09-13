@@ -60,5 +60,5 @@ Vosk needs two things. Settings will tell you whether it found each of them.
 Models range from about 50 MB to well over a gigabyte. The small ones load in
 seconds and are usually enough for live subtitles.
 
-### Support
+## Support
 If you encounter any issues or have feature requests, please check the [Issues section](https://github.com/eoftgge/omni_stt/issues) on GitHub.
