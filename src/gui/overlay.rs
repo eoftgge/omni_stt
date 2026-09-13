@@ -102,7 +102,11 @@ fn draw_replica_row(
     let wrap_width = ui.available_width() - pad * 2.0;
 
     let main_job = build_job(replica, font_size, wrap_width, |is_interim| {
-        if is_interim { interim_color } else { text_color }
+        if is_interim {
+            interim_color
+        } else {
+            text_color
+        }
     });
     let main = ui.fonts_mut(|f| f.layout_job(main_job));
 
@@ -113,7 +117,8 @@ fn draw_replica_row(
         let shadow_job = build_job(replica, font_size, wrap_width, |_| outline.color);
         let shadow = ui.fonts_mut(|f| f.layout_job(shadow_job));
         for offset in outline.offsets() {
-            ui.painter().galley(pos + offset, shadow.clone(), outline.color);
+            ui.painter()
+                .galley(pos + offset, shadow.clone(), outline.color);
         }
     }
 
