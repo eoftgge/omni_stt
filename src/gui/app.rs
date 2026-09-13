@@ -3,7 +3,7 @@ use crate::gui::settings::show_settings_window;
 use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
-use crate::settings::{SettingsGeneral, SettingsManager};
+use crate::settings::SettingsManager;
 use crate::stt::adapters::vosk::probe::VoskProbe;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
@@ -74,9 +74,7 @@ pub struct SubtitlesApp {
     frame_counter: u64,
     devices: MappableAvailableDevices,
     tray: AppTray,
-    tray_failed: bool,
     tracing_control: TracingControl,
-    applied_log: SettingsGeneral,
     vosk_probe: VoskProbe,
 }
 
@@ -92,8 +90,6 @@ impl SubtitlesApp {
             state_manager: StateManager::new(),
             frame_counter: 0,
             devices: MappableAvailableDevices::from_default_host(),
-            tray_failed: false,
-            applied_log: settings_manager.settings.general.clone(),
             settings_manager,
             tracing_control,
             tray,
@@ -114,7 +110,7 @@ impl App for SubtitlesApp {
             },
             Some(Err(e)) => {
                 tracing::error!("Tray unavailable: {e}");
-                self.tray_failed = true;
+                self.tray.set_failed();
                 self.toasts.add(Toast {
                     text: "Tray unavailable: there will be no way to exit the overlay".into(),
                     kind: ToastKind::Error,
@@ -164,7 +160,7 @@ impl App for SubtitlesApp {
                 state_manager,
                 &mut self.toasts,
                 &mut self.devices,
-                self.tray_failed,
+                self.tray.is_failed(),
                 &mut self.vosk_probe,
             ),
             AppState::Loading { .. } => {
@@ -219,11 +215,7 @@ impl App for SubtitlesApp {
         }
 
         self.toasts.show(ui);
-        let general = &self.settings_manager.settings.general;
-        if *general != self.applied_log {
-            self.tracing_control.apply(general);
-            self.applied_log = general.clone();
-        }
+        self.tracing_control.sync(&self.settings_manager.settings.general);
     }
 
     fn clear_color(&self, visuals: &Visuals) -> [f32; 4] {

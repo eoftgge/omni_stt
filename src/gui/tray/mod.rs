@@ -26,6 +26,7 @@ pub struct AppTray {
     events: Receiver<Result<TrayAction, OmniSttErrors>>,
     #[cfg(not(target_os = "windows"))]
     _icon: Option<TrayIcon>,
+    tray_failed: bool,
 }
 
 impl AppTray {
@@ -33,7 +34,7 @@ impl AppTray {
     pub fn spawn(icon: IconData, ctx: Context) -> Self {
         let (tx, events) = channel();
         std::thread::spawn(move || tray_main(icon, ctx, tx));
-        Self { events }
+        Self { events, tray_failed: false }
     }
 
     #[cfg(not(target_os = "windows"))]
@@ -59,6 +60,14 @@ impl AppTray {
 
     pub fn poll(&self) -> Option<Result<TrayAction, OmniSttErrors>> {
         self.events.try_recv().ok()
+    }
+
+    pub fn set_failed(&mut self) {
+        self.tray_failed = true;
+    }
+
+    pub fn is_failed(&self) -> bool {
+        self.tray_failed
     }
 }
 
