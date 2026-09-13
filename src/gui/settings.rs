@@ -590,7 +590,7 @@ fn ui_model_hint(ui: &mut Ui, path: &Path) {
 fn ui_library_hint(ui: &mut Ui, status: &Result<(), String>) {
     match status {
         Ok(()) => {
-            ui.label(RichText::new("✔ libvosk loaded").small().weak());
+            ui.label(RichText::new("✔ libvosk found").small().weak());
         }
         Err(reason) => {
             ui.label(
