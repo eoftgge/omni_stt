@@ -27,6 +27,7 @@ pub trait Notify {
 }
 
 impl Notify for Toasts {
+    /// escape hatch for the rare toast that needs its own timing
     fn notify(&mut self, kind: ToastKind, seconds: f64, text: impl Into<WidgetText>) {
         self.add(Toast {
             text: text.into(),
