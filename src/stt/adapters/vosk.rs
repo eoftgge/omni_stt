@@ -1,3 +1,7 @@
+pub mod ffi;
+pub mod model;
+pub mod types;
+
 use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::data::TranscriptData;
 use crate::stt::event::{SttError, SttEvent};
