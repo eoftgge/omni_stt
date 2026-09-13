@@ -58,6 +58,7 @@ impl AppTray {
         Self {
             events,
             _icon: icon,
+            tray_failed: false,
         }
     }
 
