@@ -1,3 +1,4 @@
+use std::time::Duration;
 use crate::stt::event::{SttError, SttEvent};
 use async_trait::async_trait;
 
@@ -12,5 +13,9 @@ pub trait SttSession: Send {
     async fn recv_event(&mut self) -> Result<SttEvent, SttError>;
     async fn keepalive(&mut self) -> Result<(), SttError> {
         Ok(())
+    }
+
+    fn idle_timeout(&self) -> Option<Duration> {
+        None
     }
 }

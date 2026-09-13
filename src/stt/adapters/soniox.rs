@@ -21,6 +21,7 @@ const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
 const MODEL: &str = "stt-rt-v4";
 const READ_TIMEOUT: std::time::Duration = std::time::Duration::from_mins(1);
+const IDLE_CLOSE: std::time::Duration = std::time::Duration::from_secs(15);
 
 fn classify_connect_error(err: OmniSttErrors) -> SttError {
     match err {
@@ -216,5 +217,9 @@ impl SttSession for SonioxSession {
             .send_ping()
             .await
             .map_err(|_| SttError::ConnectionLost)
+    }
+
+    fn idle_timeout(&self) -> Option<std::time::Duration> {
+        Some(IDLE_CLOSE)
     }
 }

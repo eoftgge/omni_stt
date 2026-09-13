@@ -84,6 +84,10 @@ impl GenericSttWorker {
 
             match self.run_session_loop(&mut session).await {
                 StreamAction::Stop => return Ok(()),
+                StreamAction::Idle => {
+                    retry_count = 0;
+                    continue;
+                }
                 StreamAction::Reconnect { transcribed } => {
                     if transcribed {
                         retry_count = 0;
@@ -98,6 +102,8 @@ impl GenericSttWorker {
         let mut hangover_counter = 0;
         let mut transcribed = false;
         let mut next_ping = tokio::time::Instant::now() + PING_INTERVAL;
+        let idle_timeout = session.idle_timeout();
+        let mut idle_deadline = tokio::time::Instant::now() + idle_timeout.unwrap_or(PING_INTERVAL);
 
         loop {
             tokio::select! {
@@ -121,6 +127,10 @@ impl GenericSttWorker {
 
                     if res.is_err() {
                         return StreamAction::Reconnect { transcribed };
+                    }
+
+                    if let Some(timeout) = idle_timeout {
+                        idle_deadline = tokio::time::Instant::now() + timeout;
                     }
                 }
 
@@ -164,6 +174,10 @@ impl GenericSttWorker {
                         return StreamAction::Reconnect { transcribed };
                     }
                     next_ping = tokio::time::Instant::now() + PING_INTERVAL;
+                },
+                _ = tokio::time::sleep_until(idle_deadline), if idle_timeout.is_some() => {
+                    tracing::debug!("No audio for {idle_timeout:?}, closing the session before the server does");
+                    return StreamAction::Idle;
                 }
             }
         }
