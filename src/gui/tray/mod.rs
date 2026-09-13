@@ -34,7 +34,10 @@ impl AppTray {
     pub fn spawn(icon: IconData, ctx: Context) -> Self {
         let (tx, events) = channel();
         std::thread::spawn(move || tray_main(icon, ctx, tx));
-        Self { events, tray_failed: false }
+        Self {
+            events,
+            tray_failed: false,
+        }
     }
 
     #[cfg(not(target_os = "windows"))]

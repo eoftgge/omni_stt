@@ -1,6 +1,6 @@
 use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
 use crate::gui::state::{PendingState, StateManager};
-use crate::gui::{theme, Notify};
+use crate::gui::{Notify, theme};
 use crate::logger::LEVELS;
 use crate::settings::{
     KeyStorage, SettingsAudio, SettingsGeneral, SettingsManager, SettingsProvider, SettingsUI,
@@ -54,7 +54,12 @@ pub fn show_settings_window(
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_general(ui, &mut settings.general);
                 ui_section_audio(ui, &mut settings.audio, &mut screen.devices);
-                ui_section_provider(ui, &mut settings.provider, key_storage, &mut screen.vosk_probe);
+                ui_section_provider(
+                    ui,
+                    &mut settings.provider,
+                    key_storage,
+                    &mut screen.vosk_probe,
+                );
                 ui_section_position(ui, &mut settings.ui);
                 ui_section_appearance(ui, &mut settings.ui);
                 ui.allocate_space(vec2(0.0, 60.0));

@@ -1,5 +1,6 @@
+use crate::gui::Notify;
 use crate::gui::overlay::draw_subtitles;
-use crate::gui::settings::{show_settings_window, SettingsScreen};
+use crate::gui::settings::{SettingsScreen, show_settings_window};
 use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
@@ -13,7 +14,6 @@ use eframe::egui::{
 };
 use egui_toast::{ToastKind, Toasts};
 use std::time::Duration;
-use crate::gui::Notify;
 
 fn process_events(
     service: &mut TranscriptionService,
@@ -93,9 +93,12 @@ impl App for SubtitlesApp {
         }
 
         let settings = &self.settings_manager.settings;
-        if let Err(err) =
-            state_manager.resolve(ui.ctx(), &mut self.store, settings, &mut self.screen.devices)
-        {
+        if let Err(err) = state_manager.resolve(
+            ui.ctx(),
+            &mut self.store,
+            settings,
+            &mut self.screen.devices,
+        ) {
             self.toasts.error(format!("{err:?}"));
         }
 
@@ -166,7 +169,8 @@ impl App for SubtitlesApp {
         }
 
         self.toasts.show(ui);
-        self.tracing_control.sync(&self.settings_manager.settings.general);
+        self.tracing_control
+            .sync(&self.settings_manager.settings.general);
     }
 
     fn clear_color(&self, visuals: &Visuals) -> [f32; 4] {

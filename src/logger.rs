@@ -29,7 +29,7 @@ pub struct TracingControl {
     level_handle: reload::Handle<LevelFilter, Registry>,
     sink: Arc<RwLock<Sink>>,
     guard: Option<WorkerGuard>,
-    applied: SettingsGeneral
+    applied: SettingsGeneral,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
