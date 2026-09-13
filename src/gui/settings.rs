@@ -18,14 +18,27 @@ use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 
+pub struct SettingsScreen {
+    pub devices: MappableAvailableDevices,
+    pub vosk_probe: VoskProbe,
+}
+
+impl SettingsScreen {
+    pub fn new() -> Self {
+        Self {
+            devices: MappableAvailableDevices::from_default_host(),
+            vosk_probe: VoskProbe::default(),
+        }
+    }
+}
+
 pub fn show_settings_window(
     ui: &mut Ui,
     settings_manager: &mut SettingsManager,
     manager: &mut StateManager,
     toasts: &mut Toasts,
-    devices: &mut MappableAvailableDevices,
     tray_failed: bool,
-    vosk_probe: &mut VoskProbe,
+    screen: &mut SettingsScreen,
 ) {
     ui_bottom_panel(ui, settings_manager, manager, toasts, tray_failed);
 
@@ -40,8 +53,8 @@ pub fn show_settings_window(
             let key_storage = &settings_manager.key_storage;
             ScrollArea::vertical().show(ui, |ui| {
                 ui_section_general(ui, &mut settings.general);
-                ui_section_audio(ui, &mut settings.audio, devices);
-                ui_section_provider(ui, &mut settings.provider, key_storage, vosk_probe);
+                ui_section_audio(ui, &mut settings.audio, &mut screen.devices);
+                ui_section_provider(ui, &mut settings.provider, key_storage, &mut screen.vosk_probe);
                 ui_section_position(ui, &mut settings.ui);
                 ui_section_appearance(ui, &mut settings.ui);
                 ui.allocate_space(vec2(0.0, 60.0));

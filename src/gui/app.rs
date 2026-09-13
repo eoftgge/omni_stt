@@ -1,13 +1,11 @@
 use crate::gui::overlay::draw_subtitles;
-use crate::gui::settings::show_settings_window;
+use crate::gui::settings::{show_settings_window, SettingsScreen};
 use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
 use crate::settings::SettingsManager;
-use crate::stt::adapters::vosk::probe::VoskProbe;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
-use crate::transcription::device::MappableAvailableDevices;
 use crate::transcription::service::TranscriptionService;
 use eframe::App;
 use eframe::egui::{
@@ -72,10 +70,9 @@ pub struct SubtitlesApp {
     toasts: Toasts,
     state_manager: StateManager,
     frame_counter: u64,
-    devices: MappableAvailableDevices,
     tray: AppTray,
     tracing_control: TracingControl,
-    vosk_probe: VoskProbe,
+    screen: SettingsScreen,
 }
 
 impl SubtitlesApp {
@@ -89,11 +86,10 @@ impl SubtitlesApp {
             toasts: Toasts::default(),
             state_manager: StateManager::new(),
             frame_counter: 0,
-            devices: MappableAvailableDevices::from_default_host(),
+            screen: SettingsScreen::new(),
             settings_manager,
             tracing_control,
             tray,
-            vosk_probe: VoskProbe::default(),
         }
     }
 }
@@ -123,7 +119,7 @@ impl App for SubtitlesApp {
 
         let settings = &self.settings_manager.settings;
         if let Err(err) =
-            state_manager.resolve(ui.ctx(), &mut self.store, settings, &mut self.devices)
+            state_manager.resolve(ui.ctx(), &mut self.store, settings, &mut self.screen.devices)
         {
             self.toasts.add(Toast {
                 text: format!("{:?}", err).into(),
@@ -159,9 +155,8 @@ impl App for SubtitlesApp {
                 &mut self.settings_manager,
                 state_manager,
                 &mut self.toasts,
-                &mut self.devices,
                 self.tray.is_failed(),
-                &mut self.vosk_probe,
+                &mut self.screen,
             ),
             AppState::Loading { .. } => {
                 let t = ui.ctx().input(|i| i.time);
