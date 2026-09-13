@@ -153,7 +153,7 @@ fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
                 "Log to file:",
                 Checkbox::without_text(&mut settings_general.log_to_file),
             )
-                .on_hover_text("Save logs to a .log file in the app directory");
+            .on_hover_text("Save logs to a .log file in the app directory");
         });
     });
 }
@@ -531,12 +531,7 @@ fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
 }
 
 fn section(ui: &mut Ui, title: &str, default_open: bool, add_contents: impl FnOnce(&mut Ui)) {
-    CollapsingHeader::new(
-        RichText::new(title)
-            .size(15.0)
-            .strong()
-            .color(theme::TEXT),
-    )
+    CollapsingHeader::new(RichText::new(title).size(15.0).strong().color(theme::TEXT))
         .default_open(default_open)
         .show(ui, add_contents);
     ui.add_space(6.0);
