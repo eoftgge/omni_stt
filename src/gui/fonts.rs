@@ -23,7 +23,7 @@ pub fn setup_custom_fonts(ctx: &Context) {
             .families
             .entry(FontFamily::Proportional)
             .or_default()
-            .push(n.to_string());
+            .insert(n, n.to_string());
     }
 
     ctx.set_fonts(fonts);
