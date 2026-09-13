@@ -25,9 +25,9 @@ embed_plist = "1.2.2"
 async-trait = "0.1.92"
 tokio-util = "0.7.19"
 rfd = "0.17.2"
-vosk = { version = "0.3.1", optional = true }
 tray-icon = "0.25.0"
 keyring = "4.2.0"
+libloading = "0.8.9"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
@@ -35,10 +35,6 @@ windows-sys = { version = "0.61.2", features = ["Win32_UI_WindowsAndMessaging", 
 [build-dependencies]
 winres = "0.1.12"
 image = "0.25.10"
-
-[features]
-default = []
-vosk = ["dep:vosk"]
 
 [profile.release]
 lto = true
