@@ -76,7 +76,14 @@ fn audio_error_callback(tx_event: Sender<SttEvent>) -> impl FnMut(Error) + Send 
     let mut reported = false;
 
     move |err| {
-        tracing::error!("Error in audio callback: {}", err);
+        // Must return before the latch: a hiccup that armed it would silence
+        // a real device loss later in the same session.
+        if is_transient(&err) {
+            tracing::warn!("Audio glitch, continuing: {}", err);
+            return;
+        }
+
+        tracing::error!("Audio capture stopped: {}", err);
         if reported {
             return;
         }
@@ -87,8 +94,13 @@ fn audio_error_callback(tx_event: Sender<SttEvent>) -> impl FnMut(Error) + Send 
             _ => format!("Audio capture failed: {err}"),
         };
 
-        // try_send, never send: blocking the audio thread would stall capture,
-        // and the log line above has already recorded the error regardless.
         let _ = tx_event.try_send(SttEvent::AudioLost(text));
     }
+}
+
+/// A dropped or doubled buffer is a hiccup, not a broken stream: the backend
+/// keeps delivering audio afterwards, only a few milliseconds are lost. Listed
+/// explicitly, so anything we have not seen before is still treated as fatal.
+fn is_transient(err: &Error) -> bool {
+    matches!(err.kind(), ErrorKind::Xrun)
 }
