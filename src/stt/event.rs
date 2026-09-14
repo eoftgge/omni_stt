@@ -8,7 +8,6 @@ pub enum SttEvent {
     Interim(Vec<TranscriptData>),
     Warning(String),
     Error(SttError),
-    
     /// The capture stream died mid-session. cpal does not restart it, so this
     /// ends the session: no audio will ever reach the worker again.
     AudioLost(String),
