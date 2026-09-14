@@ -82,9 +82,9 @@ fn audio_error_callback(tx_event: Sender<SttEvent>) -> impl FnMut(Error) + Send 
         }
         reported = true;
 
-        let text = match &err.kind() {
+        let text = match err.kind() {
             ErrorKind::DeviceNotAvailable => "Audio device disconnected".to_string(),
-            other => format!("Audio capture failed: {other}"),
+            _ => format!("Audio capture failed: {err}"),
         };
 
         // try_send, never send: blocking the audio thread would stall capture,
