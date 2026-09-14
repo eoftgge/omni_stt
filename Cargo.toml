@@ -1,6 +1,6 @@
 [package]
 name = "omni_stt"
-version = "5.2.1"
+version = "5.2.2"
 edition = "2024"
 repository = "https://github.com/eoftgge/omni_stt"
 rust-version = "1.96.0"
