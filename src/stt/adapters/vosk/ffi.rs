@@ -1,5 +1,8 @@
 //! Source: https://github.com/alphacep/vosk-api/blob/master/src/vosk_api.h
 
+#[cfg(test)]
+mod tests;
+
 use libloading::{Library, Symbol};
 use std::ffi::{c_char, c_int};
 use std::path::{Path, PathBuf};
@@ -31,21 +34,29 @@ pub struct VoskApi {
 
 impl VoskApi {
     pub fn load(explicit: Option<&Path>) -> Result<Self, String> {
-        let candidates = candidates(explicit);
-        let mut last = String::new();
+        Self::load_from(&candidates(explicit))
+    }
 
-        for path in &candidates {
+    /// Tries every candidate in order, and on failure reports all of them.
+    ///
+    /// Split out of `load` so tests can drive it with paths that are certain to
+    /// be absent: the real candidate list ends with a bare library name, which
+    /// resolves through the system loader and therefore depends on the machine.
+    fn load_from(candidates: &[PathBuf]) -> Result<Self, String> {
+        let mut failures = Vec::with_capacity(candidates.len());
+
+        for path in candidates {
             match unsafe { Library::new(path) } {
                 Ok(lib) => {
                     let api = unsafe { Self::from_library(lib) }?;
                     unsafe { (api.set_log_level)(-1) };
                     return Ok(api);
                 }
-                Err(e) => last = format!("{}: {e}", path.display()),
+                Err(e) => failures.push(format!("{}: {e}", path.display())),
             }
         }
 
-        Err(format!("libvosk not found, last attempt — {last}"))
+        Err(format!("libvosk not found — {}", failures.join("; ")))
     }
 
     unsafe fn from_library(lib: Library) -> Result<Self, String> {
