@@ -4,6 +4,33 @@ fn sine(frames: usize) -> Vec<f32> {
     (0..frames).map(|i| (i as f32 * 0.05).sin() * 0.5).collect()
 }
 
+/// Two summed sines at the input rate, scaled so the pair peaks at 0.9 and the
+/// AGC never has to clip — clipping would smear energy across the spectrum and
+/// pollute the very bins these tests read.
+fn two_tones(rate: u32, low: f64, high: f64, frames: usize) -> Vec<f32> {
+    (0..frames)
+        .map(|i| {
+            let t = std::f64::consts::TAU * i as f64 / rate as f64;
+            (((low * t).sin() + (high * t).sin()) * 0.45) as f32
+        })
+        .collect()
+}
+
+/// Amplitude of `freq` in `signal`, by a single-bin DFT.
+fn amplitude_at(signal: &[i16], freq: f64, rate: f64) -> f64 {
+    let (mut re, mut im) = (0.0, 0.0);
+    for (i, &sample) in signal.iter().enumerate() {
+        let phase = std::f64::consts::TAU * freq * i as f64 / rate;
+        re += sample as f64 * phase.cos();
+        im += sample as f64 * phase.sin();
+    }
+    2.0 * re.hypot(im) / signal.len() as f64
+}
+
+fn db(value: f64, reference: f64) -> f64 {
+    20.0 * (value / reference).log10()
+}
+
 fn convert(input: &[f32], chunk: usize) -> Vec<i16> {
     let mut c = AudioConverter::new(48_000, 1);
     let mut out = Vec::new();
@@ -20,6 +47,41 @@ fn convert_at(rate: u32, input: &[f32], chunk: usize) -> Vec<i16> {
         c.push(part, &mut out);
     }
     out
+}
+
+#[test]
+fn out_of_band_tone_does_not_fold_into_the_speech_band() {
+    // 12 kHz cannot exist at 16 kHz. Undecimated, it mirrors onto 4 kHz at full
+    // strength — right where fricatives live, so the recogniser cannot tell the
+    // difference between it and real speech.
+    let input = two_tones(48_000, 500.0, 12_000.0, 96_000);
+    let out = convert(&input, 480);
+
+    let settled = &out[out.len() / 2..];
+    let reference = amplitude_at(settled, 500.0, 16_000.0);
+    let alias = amplitude_at(settled, 4_000.0, 16_000.0);
+
+    assert!(
+        db(alias, reference) < -20.0,
+        "alias at 4 kHz sits {:.1} dB below the 500 Hz reference, expected under -20",
+        db(alias, reference)
+    );
+}
+
+#[test]
+fn the_speech_band_is_not_tilted() {
+    let input = two_tones(48_000, 500.0, 3_000.0, 96_000);
+    let out = convert(&input, 480);
+
+    let settled = &out[out.len() / 2..];
+    let low = amplitude_at(settled, 500.0, 16_000.0);
+    let high = amplitude_at(settled, 3_000.0, 16_000.0);
+
+    assert!(
+        db(high, low).abs() < 0.5,
+        "3 kHz sits {:.2} dB from 500 Hz; the anti-alias filter must not reach this far down",
+        db(high, low)
+    );
 }
 
 #[test]
