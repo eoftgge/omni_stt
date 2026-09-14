@@ -28,7 +28,7 @@ fn process_events(
             SttEvent::Interim(segments) => store.update_interim(segments),
             SttEvent::Warning(msg) => toasts.warn(msg),
             SttEvent::Error(err) => toasts.error(err.to_string()),
-            SttEvent::AudioLost(msg) => toasts.error(format!("{msg}. Returning to settings.")),
+            SttEvent::AudioLost(msg) => toasts.error(msg),
             SttEvent::Connected(flag_first_connection) => {
                 store.ensure_separator();
                 if flag_first_connection {
