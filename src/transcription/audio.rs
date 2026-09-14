@@ -1,8 +1,8 @@
 use crate::errors::OmniSttErrors;
-use crate::transcription::resample::AudioConverter;
 use crate::stt::event::SttEvent;
+use crate::transcription::resample::AudioConverter;
 use cpal::traits::{DeviceTrait, StreamTrait};
-use cpal::{Device, Stream, Error, ErrorKind};
+use cpal::{Device, Error, ErrorKind, Stream};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 

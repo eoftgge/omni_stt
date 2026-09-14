@@ -32,12 +32,8 @@ impl TranscriptionService {
         let (tx_audio, rx_audio) = channel::<AudioSample>(2048);
         let (tx_recycle, rx_recycle) = channel::<AudioSample>(2048);
 
-        let audio = AudioSession::open(
-            device.into_inner(),
-            tx_audio,
-            rx_recycle,
-            tx_worker.clone(),
-        )?;
+        let audio =
+            AudioSession::open(device.into_inner(), tx_audio, rx_recycle, tx_worker.clone())?;
 
         let backend = create_stt_backend(&settings.provider).await?;
         let tx_worker_2 = tx_worker.clone();
