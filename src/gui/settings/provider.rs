@@ -40,14 +40,18 @@ pub(super) fn ui_section_provider(
 
 fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &KeyStorage) {
     settings_grid("soniox_grid").show(ui, |ui| {
-        label(ui, "API Key:");
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            label(ui, "API Key:");
+        });
         ui.vertical(|ui| {
             ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
             ui_key_storage_hint(ui, key_storage);
         });
         ui.end_row();
 
-        label(ui, "Languages:");
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            label(ui, "Languages:");
+        });
         ui.vertical(|ui| {
             let mut to_remove = None;
             for (i, hint) in soniox.language_hints.iter_mut().enumerate() {
@@ -68,7 +72,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
         });
         ui.end_row();
 
-        ui.add(egui::Label::new("Translation:").extend());
+        label(ui, "Translation:");
         ui.add(Squared(Checkbox::new(
             &mut soniox.enable_translate,
             "Enable",
@@ -99,7 +103,9 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
 
 fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe) {
     settings_grid("vosk_grid").show(ui, |ui| {
-        label(ui, "Model:");
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            label(ui, "Model:");
+        });
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 let mut path = vosk.model_path.display().to_string();
@@ -122,7 +128,9 @@ fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe)
         });
         ui.end_row();
 
-        label(ui, "Library:");
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            label(ui, "Library:");
+        });
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 let mut path = vosk.library_path.display().to_string();
