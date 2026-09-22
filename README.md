@@ -2,7 +2,7 @@
 
 Real-time subtitles over everything, from your speakers or your microphone.
 
-![Omni-STT running over a video](assets/screenshot.png)
+![Omni-STT running over a video](assets/screenshot.jpg)
 
 Omni-STT listens to sound - what your speakers are playing, what your
 microphone hears, or several of those at once - recognizes the speech and draws
@@ -107,9 +107,9 @@ time of day and the speaker where the provider gives one:
 
 ```
 === 2026-09-22 14:03 ===
-14:03:17 [1] hey, can you hear me?
-14:03:24 [2] yes, you're fine
-14:03:31 [1] then let's start
+14:03:17  [1] hey, can you hear me?
+14:03:24  [2] yes, you're fine
+14:03:31  [1] then let's start
 ```
 
 A new file per day, in your local time. Plain text, so grep works.
