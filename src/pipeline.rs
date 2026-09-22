@@ -1,4 +1,3 @@
-
 use crate::audio;
 use crate::audio::device::AvailableDevice;
 use crate::audio::mixer::AudioMixer;
