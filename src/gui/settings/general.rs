@@ -1,4 +1,4 @@
-use super::layout::{row, section, settings_grid, Squared, label};
+use super::layout::{Squared, label, row, section, settings_grid};
 use crate::logger::LEVELS;
 use crate::settings::SettingsGeneral;
 use eframe::egui::{Checkbox, ComboBox, Ui};
@@ -22,14 +22,16 @@ pub(super) fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGen
                 "Log to file:",
                 Squared(Checkbox::without_text(&mut settings_general.log_to_file)),
             )
-                .on_hover_text("Save logs to a .log file in the app directory");
+            .on_hover_text("Save logs to a .log file in the app directory");
 
             row(
                 ui,
                 "Save transcripts:",
-                Squared(Checkbox::without_text(&mut settings_general.save_transcripts)),
+                Squared(Checkbox::without_text(
+                    &mut settings_general.save_transcripts,
+                )),
             )
-                .on_hover_text("Append finished subtitles to transcripts/omni.txt");
+            .on_hover_text("Append finished subtitles to transcripts/omni.txt");
         });
     });
 }

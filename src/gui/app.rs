@@ -8,13 +8,13 @@ use crate::settings::SettingsManager;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::transcription::service::TranscriptionService;
+use crate::transcription::transcript::TranscriptWriter;
 use eframe::App;
 use eframe::egui::{
     Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
 };
 use egui_toast::{ToastKind, Toasts};
 use std::time::Duration;
-use crate::transcription::transcript::TranscriptWriter;
 
 pub struct SubtitlesApp {
     settings_manager: SettingsManager,

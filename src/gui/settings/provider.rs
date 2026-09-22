@@ -1,4 +1,4 @@
-use super::layout::{row, section, settings_grid, Squared, label};
+use super::layout::{Squared, label, row, section, settings_grid};
 use crate::settings::{KeyStorage, SettingsProvider};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::stt::adapters::vosk::probe::VoskProbe;
@@ -69,7 +69,10 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
         ui.end_row();
 
         ui.add(egui::Label::new("Translation:").extend());
-        ui.add(Squared(Checkbox::new(&mut soniox.enable_translate, "Enable")));
+        ui.add(Squared(Checkbox::new(
+            &mut soniox.enable_translate,
+            "Enable",
+        )));
 
         if soniox.enable_translate {
             ui.end_row();
@@ -86,7 +89,10 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
         row(
             ui,
             "Options:",
-            Squared(Checkbox::new(&mut soniox.enable_speakers, "Enable Speakers ID")),
+            Squared(Checkbox::new(
+                &mut soniox.enable_speakers,
+                "Enable Speakers ID",
+            )),
         );
     });
 }

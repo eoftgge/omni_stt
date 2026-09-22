@@ -109,10 +109,16 @@ fn a_block_is_logged_only_once_it_can_no_longer_grow() {
     let mut store = TranscriptionStore::new(8);
 
     store.update(data("Привет.", Some("1")));
-    assert!(taken(&mut store).is_empty(), "открытый блок ещё может дорасти");
+    assert!(
+        taken(&mut store).is_empty(),
+        "открытый блок ещё может дорасти"
+    );
 
     store.update(data("И тебе.", Some("2")));
-    assert_eq!(taken(&mut store), vec![(Some("1".into()), "Привет.".into())]);
+    assert_eq!(
+        taken(&mut store),
+        vec![(Some("1".into()), "Привет.".into())]
+    );
 }
 
 #[test]

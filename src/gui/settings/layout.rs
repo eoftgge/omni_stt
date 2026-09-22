@@ -1,5 +1,5 @@
 use crate::gui::theme;
-use eframe::egui::{self, CornerRadius, CollapsingHeader, Grid, Response, RichText, Ui};
+use eframe::egui::{self, CollapsingHeader, CornerRadius, Grid, Response, RichText, Ui};
 
 /// egui paints a checkbox with the shared widget corner radius, and at the
 /// 14 px icon size the theme's 6 px is all but a circle. Square it off around
@@ -18,7 +18,7 @@ impl<W: egui::Widget> egui::Widget for Squared<W> {
 
             ui.add(self.0)
         })
-            .inner
+        .inner
     }
 }
 

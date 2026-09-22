@@ -15,8 +15,8 @@ use omni_stt::gui::theme::apply_theme;
 use omni_stt::gui::tray::AppTray;
 use omni_stt::logger::setup_tracing;
 use omni_stt::settings::logging_settings;
-use std::sync::Arc;
 use omni_stt::transcription::transcript;
+use std::sync::Arc;
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
 fn select_adapter(
