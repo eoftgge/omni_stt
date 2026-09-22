@@ -48,8 +48,11 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 if ui.color_edit_button_srgba_unmultiplied(color).changed() {
                     settings_ui.background_color = [color[0], color[1], color[2], color[3]];
                 }
-                if ui.button("Clear").clicked() {
+                if ui.button("Reset").clicked() {
                     settings_ui.background_color = SettingsUI::DEFAULT_BACKGROUND_COLOR;
+                }
+                if ui.button("Clear").clicked() {
+                    settings_ui.background_color = [0, 0, 0, 0];
                 }
             });
             ui.end_row();
@@ -61,7 +64,7 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                     settings_ui.text_color = [color[0], color[1], color[2]];
                 }
                 if ui
-                    .button("Clear")
+                    .button("Reset")
                     .on_hover_text("Reset to default")
                     .clicked()
                 {
