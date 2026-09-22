@@ -7,6 +7,14 @@ use crate::subtitles::store::TranscriptionStore;
 use eframe::egui::{Context, ViewportCommand, Visuals, WindowLevel};
 
 fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {
+    // Windows keeps a per-window GDI redirection surface alongside the real
+    // composition, and resizing a layered window from small-and-opaque to
+    // maximized-and-transparent leaves the old bitmap in it forever. The
+    // desktop never shows it, but GDI-path screen capture does — a white
+    // rectangle the size of the settings window. Hiding the window makes the
+    // compositor drop that surface, the same way minimizing does.
+    ctx.send_viewport_cmd(ViewportCommand::Visible(false));
+
     ctx.send_viewport_cmd(ViewportCommand::Decorations(false));
     ctx.send_viewport_cmd(ViewportCommand::Transparent(true));
     ctx.send_viewport_cmd(ViewportCommand::MousePassthrough(true));
@@ -14,6 +22,8 @@ fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {
     if enable_high_priority {
         ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
     }
+
+    ctx.send_viewport_cmd(ViewportCommand::Visible(true));
 }
 
 fn apply_settings_window(ctx: &Context) {
