@@ -1,3 +1,8 @@
+use crate::audio;
+use crate::audio::device::AvailableDevice;
+use crate::audio::mixer::AudioMixer;
+use crate::audio::resample::AudioConverter;
+use crate::audio::{AudioSample, AudioSession};
 use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 use crate::stt::event::SttEvent;
@@ -5,11 +10,6 @@ use crate::stt::factory::create_stt_backend;
 use crate::stt::worker::GenericSttWorker;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
 use tokio_util::sync::CancellationToken;
-use crate::audio;
-use crate::audio::{AudioSample, AudioSession};
-use crate::audio::device::AvailableDevice;
-use crate::audio::mixer::AudioMixer;
-use crate::audio::resample::AudioConverter;
 
 const POOL_CAPACITY: usize = 2048;
 

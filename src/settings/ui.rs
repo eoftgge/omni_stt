@@ -1,6 +1,6 @@
-use eframe::egui::{vec2, Color32, Align2, Vec2};
-use serde::{Deserialize, Serialize};
 use crate::settings::anchor::Anchor;
+use eframe::egui::{Align2, Color32, Vec2, vec2};
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]

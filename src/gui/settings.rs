@@ -11,6 +11,7 @@ use general::ui_section_general;
 use position::ui_section_position;
 use provider::ui_section_provider;
 
+use crate::audio::device::MappableAvailableDevices;
 use crate::gui::state::{PendingState, StateManager};
 use crate::gui::{Notify, theme};
 use crate::settings::SettingsManager;
@@ -18,7 +19,6 @@ use crate::stt::adapters::types::ProviderType;
 use crate::stt::adapters::vosk::probe::VoskProbe;
 use eframe::egui::{self, Button, ScrollArea, Ui, vec2};
 use egui_toast::Toasts;
-use crate::audio::device::MappableAvailableDevices;
 
 pub struct SettingsScreen {
     pub devices: MappableAvailableDevices,

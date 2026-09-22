@@ -1,8 +1,8 @@
 use crate::errors::OmniSttErrors;
+use crate::settings::SettingsApp;
 use crate::settings::general::SettingsGeneral;
 use crate::settings::secret::Secret;
 use crate::settings::{KeyStorage, keystore};
-use crate::settings::SettingsApp;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 

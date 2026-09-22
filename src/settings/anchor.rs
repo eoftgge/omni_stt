@@ -1,6 +1,6 @@
 use eframe::egui::Align2;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq)]
 pub enum Anchor {
@@ -119,18 +119,15 @@ impl<'de> Deserialize<'de> for Anchor {
             // Configs written before this was an enum hold a bare 0..8 index.
             // Accepting them keeps every other setting alive: a hard failure
             // here trips `recover_from_broken` and resets the whole file.
-            Stored::Index(index) => Ok(Self::ALL
-                .get(index as usize)
-                .copied()
-                .unwrap_or_default()),
+            Stored::Index(index) => Ok(Self::ALL.get(index as usize).copied().unwrap_or_default()),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use serde::{Deserialize, Serialize};
     use super::Anchor;
+    use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct Wrapper {

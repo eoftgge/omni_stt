@@ -1,8 +1,8 @@
+use crate::audio::{AudioSample, CHUNK_PERIOD, CHUNK_SAMPLES};
 use std::collections::VecDeque;
 use tokio::sync::mpsc::error::TryRecvError;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::MissedTickBehavior;
-use crate::audio::{AudioSample, CHUNK_PERIOD, CHUNK_SAMPLES};
 
 /// How far a source may run ahead before its oldest samples are dropped.
 ///

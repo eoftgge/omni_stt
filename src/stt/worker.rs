@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests;
 
+use crate::audio::AudioSample;
 use crate::stt::action::StreamAction;
 use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::event::{SttError, SttEvent};
+use crate::stt::utils::{is_silent, rms};
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::sleep;
-use crate::audio::AudioSample;
-use crate::stt::utils::{is_silent, rms};
 
 const MAX_RETRIES: u32 = 5;
 const RECONNECT_DELAY: u64 = 1000;

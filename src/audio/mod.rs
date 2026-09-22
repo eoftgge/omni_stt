@@ -9,8 +9,8 @@ use cpal::{Device, Error, ErrorKind, Stream, StreamConfig};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use std::time::Duration;
 use crate::audio::resample::AudioConverter;
+use std::time::Duration;
 
 /// Samples per chunk handed downstream.
 pub const CHUNK_SAMPLES: usize = 3200;

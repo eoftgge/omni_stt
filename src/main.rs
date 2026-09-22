@@ -14,8 +14,8 @@ use omni_stt::settings::SettingsManager;
 use omni_stt::settings::logging_settings;
 use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 
-use std::sync::Arc;
 use omni_stt::stt::transcript;
+use std::sync::Arc;
 
 /// Picks an adapter whose surface can actually composite transparency.
 ///

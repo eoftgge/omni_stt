@@ -4,11 +4,11 @@ pub(super) mod replicas;
 
 use crate::gui::overlay::color::get_interim_color;
 use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
+use crate::gui::overlay::replicas::{VisualReplica, prepare_replicas};
 use crate::stt::store::TranscriptionStore;
 use eframe::egui::text::LayoutJob;
 use eframe::egui::{Color32, FontId, Frame, LayerId, Order, Rect, Stroke, TextFormat, Ui, Vec2};
 use eframe::epaint::StrokeKind;
-use crate::gui::overlay::replicas::{prepare_replicas, VisualReplica};
 
 const ANIM_TIME: f32 = 0.08;
 

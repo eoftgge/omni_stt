@@ -1,7 +1,7 @@
 use super::layout::{label, section, settings_grid};
-use crate::settings::ui::SettingsUI;
-use eframe::egui::{self, vec2, Button, DragValue, Grid, Response, RichText, Ui};
 use crate::settings::anchor::Anchor;
+use crate::settings::ui::SettingsUI;
+use eframe::egui::{self, Button, DragValue, Grid, Response, RichText, Ui, vec2};
 
 pub(super) fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     section(ui, "Position", false, |ui| {
@@ -46,8 +46,7 @@ pub(super) fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
 }
 
 fn ui_snap_button(ui: &mut Ui, anchor: Anchor, selected: bool) -> Response {
-    let button =
-        Button::new(RichText::new(anchor.glyph()).size(16.0)).min_size(vec2(30.0, 30.0));
+    let button = Button::new(RichText::new(anchor.glyph()).size(16.0)).min_size(vec2(30.0, 30.0));
 
     if selected {
         ui.add(button.fill(ui.ctx().global_style().visuals.selection.bg_fill))

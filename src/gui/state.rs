@@ -1,10 +1,10 @@
 use crate::SETTINGS_WINDOW_SIZE;
+use crate::audio::device::MappableAvailableDevices;
 use crate::errors::OmniSttErrors;
+use crate::pipeline::Pipeline;
 use crate::settings::SettingsApp;
 use crate::stt::store::TranscriptionStore;
 use eframe::egui::{Context, ViewportCommand, Visuals, WindowLevel};
-use crate::audio::device::MappableAvailableDevices;
-use crate::pipeline::Pipeline;
 
 fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {
     ctx.send_viewport_cmd(ViewportCommand::Decorations(false));
@@ -101,11 +101,10 @@ impl StateManager {
                 }
 
                 tokio::spawn(async move {
-                    let result =
-                        Pipeline::start(&settings, devices_to_open, move || {
-                            ctx_for_service.request_repaint()
-                        })
-                        .await;
+                    let result = Pipeline::start(&settings, devices_to_open, move || {
+                        ctx_for_service.request_repaint()
+                    })
+                    .await;
                     let _ = tx.send(result);
                 });
 
