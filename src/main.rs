@@ -75,7 +75,6 @@ fn run() -> Result<(), OmniSttErrors> {
     let mut wgpu_configuration = WgpuConfiguration::default();
     if let WgpuSetup::CreateNew(ref mut setup) = wgpu_configuration.wgpu_setup {
         setup.native_adapter_selector = Some(Arc::new(select_adapter));
-        setup.instance_descriptor.backends = Backends::PRIMARY | Backends::DX12 | Backends::GL;
     }
     let icon = from_png_bytes(ICON_BYTES).unwrap_or_else(|_| {
         tracing::warn!("Bytes of icon is incorrect...");
