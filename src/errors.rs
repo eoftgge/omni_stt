@@ -35,6 +35,8 @@ pub enum OmniSttErrors {
     TrayMenu(#[from] tray_icon::menu::Error),
     #[error("Key storage error: {0}")]
     KeyStore(#[from] keyring::Error),
+    #[error("Audio device is not found")]
+    NotFoundAudioDevice,
 }
 
 impl From<&str> for OmniSttErrors {

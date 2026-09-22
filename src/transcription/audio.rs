@@ -2,7 +2,7 @@ use crate::errors::OmniSttErrors;
 use crate::stt::event::SttEvent;
 use crate::transcription::resample::AudioConverter;
 use cpal::traits::{DeviceTrait, StreamTrait};
-use cpal::{Device, Error, ErrorKind, Stream};
+use cpal::{Device, Error, ErrorKind, Stream, StreamConfig};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
@@ -19,11 +19,11 @@ impl AudioSession {
 
     pub fn open(
         device: Device,
+        config: StreamConfig,
         tx_audio: Sender<AudioSample>,
         mut rx_recycle: Receiver<AudioSample>,
         tx_event: Sender<SttEvent>,
     ) -> Result<Self, OmniSttErrors> {
-        let config = device.default_output_config()?.config();
         let target_samples = 3200;
         let mut accumulator = Vec::with_capacity(target_samples);
 

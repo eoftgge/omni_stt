@@ -96,7 +96,7 @@ impl StateManager {
                 let settings = settings.clone();
                 let ctx_for_service = ctx.clone();
                 let device = devices
-                    .to_output_device(settings.audio.device_id.as_ref())
+                    .to_device(settings.audio.device_kind, settings.audio.device_id.as_ref())
                     .ok_or(OmniSttErrors::NotFoundOutputDevice)?;
 
                 tokio::spawn(async move {

@@ -9,7 +9,7 @@ pub use secret::Secret;
 
 use crate::logger::TracingLevel;
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
-use crate::transcription::device::SettingDeviceId;
+use crate::transcription::device::{DeviceKind, SettingDeviceId};
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
 use tracing::Level;
@@ -30,6 +30,7 @@ pub struct SettingsUI {
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct SettingsAudio {
+    pub(crate) device_kind: DeviceKind,
     pub(crate) device_id: Option<SettingDeviceId>,
     pub(crate) hangover_chunks: usize,
     pub(crate) vad_threshold: u32,
@@ -83,6 +84,7 @@ impl Default for SettingsUI {
 impl Default for SettingsAudio {
     fn default() -> Self {
         Self {
+            device_kind: DeviceKind::Output,
             device_id: None,
             hangover_chunks: 15,
             vad_threshold: 500,
