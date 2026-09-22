@@ -82,6 +82,7 @@ impl StateManager {
 
         match resolved {
             PendingState::Settings => {
+                store.finish();
                 devices.refresh();
                 resolved.apply_window_state(ctx, settings.ui.enable_high_priority);
                 self.app_state = AppState::Settings;

@@ -16,6 +16,7 @@ use omni_stt::gui::tray::AppTray;
 use omni_stt::logger::setup_tracing;
 use omni_stt::settings::logging_settings;
 use std::sync::Arc;
+use omni_stt::transcription::transcript;
 
 /// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
 fn select_adapter(
@@ -41,6 +42,9 @@ fn select_adapter(
 fn run() -> Result<(), OmniSttErrors> {
     let general = logging_settings(CONFIG_PATH);
     let tracing_control = setup_tracing(general.level(), general.log_to_file(), general);
+    if !transcript::is_local_offset_known() {
+        tracing::warn!("Local timezone unavailable, transcript timestamps will be in UTC");
+    }
     let settings_manager = SettingsManager::new(CONFIG_PATH);
     let mut wgpu_configuration = WgpuConfiguration::default();
     if let WgpuSetup::CreateNew(ref mut setup) = wgpu_configuration.wgpu_setup {
@@ -92,6 +96,7 @@ fn main() {
     #[cfg(target_os = "macos")]
     embed_plist::embed_info_plist!("../Info.plist");
 
+    transcript::init_local_offset();
     let rt = tokio::runtime::Runtime::new().expect("Should be able to get rt main thread");
     let _e = rt.enter();
 

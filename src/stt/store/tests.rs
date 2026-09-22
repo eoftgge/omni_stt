@@ -103,3 +103,82 @@ fn separator_promotes_every_interim_block() {
         store.blocks[1].text
     );
 }
+
+#[test]
+fn a_block_is_logged_only_once_it_can_no_longer_grow() {
+    let mut store = TranscriptionStore::new(8);
+
+    store.update(data("Привет.", Some("1")));
+    assert!(taken(&mut store).is_empty(), "открытый блок ещё может дорасти");
+
+    store.update(data("И тебе.", Some("2")));
+    assert_eq!(taken(&mut store), vec![(Some("1".into()), "Привет.".into())]);
+}
+
+#[test]
+fn overflow_does_not_swallow_blocks() {
+    let mut store = TranscriptionStore::new(1);
+
+    store.update(data("первый", Some("1")));
+    store.update(data("второй", Some("2")));
+    store.update(data("третий", Some("3")));
+
+    assert_eq!(store.blocks.len(), 1);
+    assert_eq!(
+        taken(&mut store),
+        vec![
+            (Some("1".into()), "первый".into()),
+            (Some("2".into()), "второй".into()),
+        ]
+    );
+}
+
+#[test]
+fn finish_closes_the_last_open_block() {
+    let mut store = TranscriptionStore::new(8);
+    store.update(data("последняя фраза", Some("1")));
+
+    store.finish();
+
+    assert_eq!(
+        taken(&mut store),
+        vec![(Some("1".into()), "последняя фраза".into())]
+    );
+    assert!(store.blocks.is_empty());
+}
+
+#[test]
+fn finishing_twice_does_not_duplicate_anything() {
+    let mut store = TranscriptionStore::new(8);
+    store.update(data("фраза", Some("1")));
+
+    store.finish();
+    store.finish();
+
+    assert_eq!(taken(&mut store).len(), 1);
+}
+
+#[test]
+fn promoted_interim_blocks_reach_the_log() {
+    let mut store = TranscriptionStore::new(8);
+    store.update(data("финал", Some("1")));
+    store.update_interim(vec![data("промежуточный", Some("2"))]);
+
+    store.ensure_separator();
+    store.finish();
+
+    assert_eq!(
+        taken(&mut store),
+        vec![
+            (Some("1".into()), "финал".into()),
+            (Some("2".into()), "промежуточный...".into()),
+        ]
+    );
+}
+
+fn taken(store: &mut TranscriptionStore) -> Vec<(Option<String>, String)> {
+    store
+        .take_completed()
+        .map(|b| (b.speaker, b.text))
+        .collect()
+}

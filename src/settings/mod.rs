@@ -48,6 +48,7 @@ pub struct SettingsProvider {
 pub struct SettingsGeneral {
     pub level: TracingLevel,
     pub log_to_file: bool,
+    pub save_transcripts: bool,
 }
 
 #[derive(Default, Deserialize, Serialize, Clone)]
@@ -94,6 +95,7 @@ impl Default for SettingsGeneral {
         Self {
             level: TracingLevel::Info,
             log_to_file: false,
+            save_transcripts: false,
         }
     }
 }

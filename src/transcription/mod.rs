@@ -5,3 +5,4 @@ pub mod resample;
 pub mod service;
 pub mod subtitles;
 pub mod utils;
+pub mod transcript;

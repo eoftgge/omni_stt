@@ -14,35 +14,7 @@ use eframe::egui::{
 };
 use egui_toast::{ToastKind, Toasts};
 use std::time::Duration;
-
-fn process_events(
-    service: &mut TranscriptionService,
-    store: &mut TranscriptionStore,
-    toasts: &mut Toasts,
-) {
-    while let Ok(event) = service.receiver.try_recv() {
-        match event {
-            SttEvent::Transcript(data) => {
-                store.update(data);
-            }
-            SttEvent::Interim(segments) => store.update_interim(segments),
-            SttEvent::Warning(msg) => toasts.warn(msg),
-            SttEvent::Error(err) => toasts.error(err.to_string()),
-            SttEvent::AudioLost(msg) => toasts.error(msg),
-            SttEvent::Connected(flag_first_connection) => {
-                store.ensure_separator();
-                if flag_first_connection {
-                    toasts.info("Connected to speech server!");
-                }
-            }
-            SttEvent::Disconnected => {
-                // deliberately shorter than the warning default: this fires on
-                // every reconnect and would be obtrusive at five seconds
-                toasts.notify(ToastKind::Warning, 2.0, "Connection lost. Reconnecting...");
-            }
-        };
-    }
-}
+use crate::transcription::transcript::TranscriptWriter;
 
 pub struct SubtitlesApp {
     settings_manager: SettingsManager,
@@ -53,6 +25,7 @@ pub struct SubtitlesApp {
     tray: AppTray,
     tracing_control: TracingControl,
     screen: SettingsScreen,
+    transcript: Option<TranscriptWriter>,
 }
 
 impl SubtitlesApp {
@@ -70,6 +43,7 @@ impl SubtitlesApp {
             settings_manager,
             tracing_control,
             tray,
+            transcript: None,
         }
     }
 }
@@ -169,6 +143,15 @@ impl App for SubtitlesApp {
             }
         }
 
+        let save_transcripts = self.settings_manager.settings.general.save_transcripts;
+        sync_transcript(&mut self.transcript, save_transcripts);
+
+        for block in self.store.take_completed() {
+            if let Some(writer) = &mut self.transcript {
+                writer.write(&block);
+            }
+        }
+
         self.toasts.show(ui);
         self.tracing_control
             .sync(&self.settings_manager.settings.general);
@@ -176,5 +159,53 @@ impl App for SubtitlesApp {
 
     fn clear_color(&self, visuals: &Visuals) -> [f32; 4] {
         self.state_manager.color(visuals)
+    }
+}
+
+impl Drop for SubtitlesApp {
+    fn drop(&mut self) {
+        self.store.finish();
+        for block in self.store.take_completed() {
+            if let Some(writer) = &mut self.transcript {
+                writer.write(&block);
+            }
+        }
+    }
+}
+
+fn sync_transcript(writer: &mut Option<TranscriptWriter>, enabled: bool) {
+    match (enabled, writer.is_some()) {
+        (true, false) => *writer = Some(TranscriptWriter::open()),
+        (false, true) => *writer = None,
+        _ => {}
+    }
+}
+
+fn process_events(
+    service: &mut TranscriptionService,
+    store: &mut TranscriptionStore,
+    toasts: &mut Toasts,
+) {
+    while let Ok(event) = service.receiver.try_recv() {
+        match event {
+            SttEvent::Transcript(data) => {
+                store.update(data);
+            }
+            SttEvent::Interim(segments) => store.update_interim(segments),
+            SttEvent::Warning(msg) => toasts.warn(msg),
+            SttEvent::Error(err) => toasts.error(err.to_string()),
+            SttEvent::AudioLost(msg) => toasts.error(msg),
+            SttEvent::Connected(flag_first_connection) => {
+                store.ensure_separator();
+                if flag_first_connection {
+                    toasts.info("Connected to speech server!");
+                }
+            }
+            SttEvent::Disconnected => {
+                // deliberately shorter than the warning default: this fires on
+                // every reconnect and would be obtrusive at five seconds
+                toasts.notify(ToastKind::Warning, 2.0, "Connection lost. Reconnecting...");
+            }
+        };
     }
 }

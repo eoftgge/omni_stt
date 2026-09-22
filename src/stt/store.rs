@@ -13,6 +13,7 @@ pub struct TranscriptionStore {
     pub interim_blocks: Vec<SubtitleBlock>,
     max_blocks: usize,
     last_activity: Option<Instant>,
+    completed: Vec<SubtitleBlock>,
 }
 
 impl TranscriptionStore {
@@ -22,6 +23,7 @@ impl TranscriptionStore {
             interim_blocks: Vec::with_capacity(max_blocks),
             max_blocks,
             last_activity: None,
+            completed: Vec::new(),
         }
     }
 
@@ -52,8 +54,7 @@ impl TranscriptionStore {
         };
 
         if needs_new {
-            self.blocks.push_back(SubtitleBlock::new(speaker.clone()));
-            self.pop_if_overflow();
+            self.push_block(SubtitleBlock::new(speaker.clone()));
         }
 
         if let Some(block) = self.blocks.back_mut() {
@@ -75,10 +76,8 @@ impl TranscriptionStore {
     }
 
     pub fn ensure_separator(&mut self) {
-        for block in self.interim_blocks.drain(..) {
-            let mut new_block = SubtitleBlock::new(block.speaker);
-            new_block.text = block.text;
-            self.blocks.push_back(new_block);
+        for block in std::mem::take(&mut self.interim_blocks) {
+            self.push_block(block);
         }
 
         self.pop_if_overflow();
@@ -116,10 +115,19 @@ impl TranscriptionStore {
         if let Some(last_activity) = self.last_activity
             && last_activity.elapsed() >= timeout
         {
-            self.blocks.clear();
-            self.interim_blocks.clear();
-            self.last_activity = None;
+            self.finish();
         }
+    }
+
+    pub fn finish(&mut self) {
+        self.finish_last();
+        self.blocks.clear();
+        self.interim_blocks.clear();
+        self.last_activity = None;
+    }
+
+    pub fn take_completed(&mut self) -> impl Iterator<Item = SubtitleBlock> + '_ {
+        self.completed.drain(..)
     }
 
     pub fn schedule(&mut self, ctx: Context, timeout: Duration) {
@@ -129,5 +137,27 @@ impl TranscriptionStore {
                 ctx.request_repaint_after(timeout - elapsed);
             }
         }
+    }
+
+    fn finish_last(&mut self) {
+        let Some(block) = self.blocks.back() else {
+            return;
+        };
+
+        let text = block.text.trim();
+        if text.is_empty() {
+            return;
+        }
+
+        self.completed.push(SubtitleBlock {
+            speaker: block.speaker.clone(),
+            text: text.to_owned(),
+        });
+    }
+
+    fn push_block(&mut self, block: SubtitleBlock) {
+        self.finish_last();
+        self.blocks.push_back(block);
+        self.pop_if_overflow();
     }
 }
