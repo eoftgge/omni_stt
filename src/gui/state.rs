@@ -101,12 +101,11 @@ impl StateManager {
                 }
 
                 tokio::spawn(async move {
-                    let result = TranscriptionService::start(
-                        &settings,
-                        devices_to_open,
-                        move || { ctx_for_service.request_repaint() }
-                    )
-                    .await;
+                    let result =
+                        TranscriptionService::start(&settings, devices_to_open, move || {
+                            ctx_for_service.request_repaint()
+                        })
+                        .await;
                     let _ = tx.send(result);
                 });
 

@@ -1,7 +1,7 @@
-use eframe::egui;
 use super::layout::{Squared, label, row, section, settings_grid};
 use crate::settings::SettingsAudio;
 use crate::transcription::device::{AudioSource, DeviceKind, MappableAvailableDevices};
+use eframe::egui;
 use eframe::egui::{Checkbox, RichText, Slider, Ui};
 
 pub(super) fn ui_section_audio(
@@ -21,7 +21,7 @@ pub(super) fn ui_section_audio(
                 "Threshold:",
                 Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true),
             );
-            
+
             ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                 label(ui, "Sources:");
             });

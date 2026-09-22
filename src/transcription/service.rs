@@ -6,9 +6,9 @@ use crate::stt::worker::GenericSttWorker;
 use crate::transcription::audio::{self, AudioSample, AudioSession};
 use crate::transcription::device::AvailableDevice;
 use crate::transcription::mixer::AudioMixer;
-use tokio::sync::mpsc::{channel, Receiver, Sender};
-use tokio_util::sync::CancellationToken;
 use crate::transcription::resample::AudioConverter;
+use tokio::sync::mpsc::{Receiver, Sender, channel};
+use tokio_util::sync::CancellationToken;
 
 const POOL_CAPACITY: usize = 2048;
 

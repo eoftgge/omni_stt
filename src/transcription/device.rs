@@ -1,9 +1,9 @@
+use crate::errors::OmniSttErrors;
 use cpal::traits::{DeviceTrait, HostTrait};
 use cpal::{Device, DeviceId, StreamConfig};
 use serde::de::Error;
-use serde::{Deserializer, Serializer, Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::str::FromStr;
-use crate::errors::OmniSttErrors;
 
 /// One entry of the user's selection, as it is stored in `omni.toml`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
