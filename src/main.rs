@@ -3,7 +3,6 @@
 use eframe::egui::{IconData, ViewportBuilder};
 use eframe::egui_wgpu::WgpuSetup;
 use eframe::icon_data::from_png_bytes;
-use eframe::wgpu::Backends;
 use eframe::{WgpuConfiguration, wgpu};
 use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
