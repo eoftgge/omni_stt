@@ -32,6 +32,9 @@ pub struct SettingsUI {
 pub struct SettingsAudio {
     pub(crate) device_kind: DeviceKind,
     pub(crate) device_id: Option<SettingDeviceId>,
+    pub(crate) enable_secondary: bool,
+    pub(crate) secondary_kind: DeviceKind,
+    pub(crate) secondary_id: Option<SettingDeviceId>,
     pub(crate) hangover_chunks: usize,
     pub(crate) vad_threshold: u32,
 }
@@ -86,6 +89,9 @@ impl Default for SettingsAudio {
         Self {
             device_kind: DeviceKind::Output,
             device_id: None,
+            enable_secondary: false,
+            secondary_kind: DeviceKind::Input,
+            secondary_id: None,
             hangover_chunks: 15,
             vad_threshold: 500,
         }

@@ -19,6 +19,7 @@ pub struct AudioConverter {
     pos: f64,
     prev: f32,
     gain: f32,
+    target_peak: f32,
     anti_alias: Option<[biquad::Biquad; 2]>,
     mono: Vec<f32>,
 }
@@ -46,9 +47,20 @@ impl AudioConverter {
             pos: 0.0,
             prev: 0.0,
             gain: 1.0,
+            target_peak: Self::TARGET_PEAK,
             anti_alias,
             mono: Vec::new(),
         }
+    }
+
+    /// Lowers the level this converter aims for.
+    ///
+    /// Two captures that will be summed take half of full scale each, so the
+    /// sum still fits instead of clipping on every loud moment. The `MAX_GAIN`
+    /// ceiling keeps a quiet source from being dragged up to match a loud one.
+    pub fn with_target_peak(mut self, target_peak: f32) -> Self {
+        self.target_peak = target_peak;
+        self
     }
 
     pub fn push(&mut self, input: &[f32], output: &mut Vec<i16>) {

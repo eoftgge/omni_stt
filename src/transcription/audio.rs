@@ -6,6 +6,15 @@ use cpal::{Device, Error, ErrorKind, Stream, StreamConfig};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
+/// Samples per chunk handed downstream — 200 ms at the 16 kHz target rate.
+pub const CHUNK_SAMPLES: usize = 3200;
+
+/// What a lone capture aims for.
+pub const FULL_SCALE_PEAK: f32 = 0.9;
+
+/// What each of two captures aims for, so their sum still fits.
+pub const MIXED_PEAK: f32 = FULL_SCALE_PEAK / 2.0;
+
 pub type AudioSample = Vec<i16>;
 
 pub struct AudioSession {
@@ -20,6 +29,7 @@ impl AudioSession {
     pub fn open(
         device: Device,
         config: StreamConfig,
+        mut converter: AudioConverter,
         tx_audio: Sender<AudioSample>,
         mut rx_recycle: Receiver<AudioSample>,
         tx_event: Sender<SttEvent>,
@@ -27,9 +37,6 @@ impl AudioSession {
         let target_samples = 3200;
         let mut accumulator = Vec::with_capacity(target_samples);
 
-        let channels = config.channels;
-        let sample_rate = config.sample_rate;
-        let mut converter = AudioConverter::new(sample_rate, channels);
         let stream = device.build_input_stream(
             config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
