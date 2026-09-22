@@ -20,32 +20,36 @@ use std::sync::Arc;
 ///
 /// The overlay is a transparent, click-through window. `egui-wgpu` configures
 /// the surface with `CompositeAlphaMode::PreMultiplied`, falls back to
-/// `PostMultiplied`, and when neither is offered quietly settles for `Auto` —
-/// which is opaque, so the overlay paints the whole screen black. Some AMD
-/// drivers report no transparent mode on DX12/Vulkan but do report one on GL.
+/// `PostMultiplied`, and when neither is offered quietly settles for `Auto`.
+/// On DX12 and Vulkan that is opaque, and the overlay paints the screen black.
 ///
-/// So ask each adapter's surface for the single property that decides this,
-/// instead of guessing it from the vendor string. The predicate below is
-/// deliberately the same one `egui-wgpu` applies when it configures the
-/// surface — matching it is the whole point.
+/// DX12 and Vulkan report their alpha modes honestly, so an adapter that
+/// offers a transparent one is the first choice. The predicate is deliberately
+/// the same one `egui-wgpu` applies when it configures the surface.
+///
+/// GL is the exception: wgpu hard-codes its report to `Opaque` (a TODO in
+/// `wgpu-hal`), whatever the driver can do. On Windows its transparency comes
+/// from the DWM blur-behind winit sets on the window, not from the swapchain,
+/// and it is what keeps the overlay transparent on AMD, where neither DX12 nor
+/// Vulkan offers a transparent mode. So when nothing reports one, GL goes next.
 fn select_adapter(
     adapters: &[wgpu::Adapter],
     surface: Option<&wgpu::Surface<'_>>,
 ) -> Result<wgpu::Adapter, String> {
     if let Some(surface) = surface
         && let Some(adapter) = adapters.iter().find(|adapter| {
-            surface
-                .get_capabilities(adapter)
-                .alpha_modes
-                .iter()
-                .any(|mode| {
-                    matches!(
+        surface
+            .get_capabilities(adapter)
+            .alpha_modes
+            .iter()
+            .any(|mode| {
+                matches!(
                         mode,
                         wgpu::CompositeAlphaMode::PreMultiplied
                             | wgpu::CompositeAlphaMode::PostMultiplied
                     )
-                })
-        })
+            })
+    })
     {
         let info = adapter.get_info();
         tracing::info!(
@@ -56,12 +60,10 @@ fn select_adapter(
         return Ok(adapter.clone());
     }
 
-    // Nothing offers a transparent surface: the overlay will be opaque whatever
-    // we pick, so fall back to the old preference and say so.
-    tracing::warn!("No adapter offers a transparent surface, the overlay may render opaque");
+    tracing::warn!("No adapter reports a transparent surface, preferring GL");
     adapters
         .iter()
-        .find(|a| a.get_info().backend != wgpu::Backend::Gl)
+        .find(|a| a.get_info().backend == wgpu::Backend::Gl)
         .or_else(|| adapters.first())
         .cloned()
         .ok_or_else(|| "No WGPU adapters found".to_owned())
