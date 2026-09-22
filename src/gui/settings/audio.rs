@@ -1,5 +1,5 @@
 use super::layout::{Squared, label, row, section, settings_grid};
-use crate::settings::SettingsAudio;
+use crate::settings::audio::SettingsAudio;
 use crate::transcription::device::{AudioSource, DeviceKind, MappableAvailableDevices};
 use eframe::egui;
 use eframe::egui::{Checkbox, RichText, Slider, Ui};

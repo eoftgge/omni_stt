@@ -1,4 +1,4 @@
-use crate::settings::SettingsGeneral;
+use crate::settings::general::SettingsGeneral;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::sync::{Arc, RwLock};

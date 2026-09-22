@@ -1,6 +1,6 @@
 use super::layout::{Squared, label, row, section, settings_grid};
 use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
-use crate::settings::SettingsUI;
+use crate::settings::ui::SettingsUI;
 use eframe::egui;
 use eframe::egui::text::LayoutJob;
 use eframe::egui::{Checkbox, FontId, Slider, TextFormat, Ui};

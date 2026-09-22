@@ -1,4 +1,4 @@
-use crate::settings::SettingsProvider;
+use crate::settings::provider::SettingsProvider;
 use crate::stt::adapters::soniox::SonioxBackend;
 use crate::stt::backend::SttBackend;
 use crate::stt::event::SttError;

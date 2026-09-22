@@ -1,6 +1,6 @@
 use super::layout::{Squared, label, row, section, settings_grid};
 use crate::logger::LEVELS;
-use crate::settings::SettingsGeneral;
+use crate::settings::general::SettingsGeneral;
 use eframe::egui::{Checkbox, ComboBox, Ui};
 
 pub(super) fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
