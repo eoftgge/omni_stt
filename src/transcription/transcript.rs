@@ -15,7 +15,10 @@ static LOCAL_OFFSET: OnceLock<Option<UtcOffset>> = OnceLock::new();
 
 pub struct TranscriptWriter {
     sink: NonBlocking,
+    /// Flushes whatever is still buffered when dropped. Without it the tail of
+    /// the file is lost, both on exit and on every day rollover
     _guard: WorkerGuard,
+    /// Local date this file is named after, compared on every write.
     day: Date,
 }
 
@@ -40,6 +43,11 @@ impl TranscriptWriter {
         self.put(&line);
     }
 
+    /// Rotation is done here rather than with `tracing_appender::rolling::daily`
+    /// because that one runs on the UTC clock (`rolling.rs` builds its state
+    /// with `OffsetDateTime::now_utc`). East of Greenwich that cuts the day in
+    /// the middle of the morning, so one conversation would be split across two
+    /// files, both named after a day it did not happen on.
     fn open_for(day: Date) -> Self {
         let appender = tracing_appender::rolling::never(DIRECTORY, file_name(day));
         let (sink, guard) = tracing_appender::non_blocking(appender);

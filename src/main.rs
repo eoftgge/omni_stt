@@ -7,13 +7,13 @@ use eframe::{WgpuConfiguration, wgpu};
 use omni_stt::errors::OmniSttErrors;
 use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
-use omni_stt::settings::SettingsManager;
-use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 use omni_stt::gui::theme::apply_theme;
 use omni_stt::gui::tray::AppTray;
 use omni_stt::logger::setup_tracing;
+use omni_stt::settings::SettingsManager;
 use omni_stt::settings::logging_settings;
 use omni_stt::transcription::transcript;
+use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 
 use std::sync::Arc;
 
@@ -35,21 +35,25 @@ fn select_adapter(
 ) -> Result<wgpu::Adapter, String> {
     if let Some(surface) = surface
         && let Some(adapter) = adapters.iter().find(|adapter| {
-        surface
-            .get_capabilities(adapter)
-            .alpha_modes
-            .iter()
-            .any(|mode| {
-                matches!(
+            surface
+                .get_capabilities(adapter)
+                .alpha_modes
+                .iter()
+                .any(|mode| {
+                    matches!(
                         mode,
                         wgpu::CompositeAlphaMode::PreMultiplied
                             | wgpu::CompositeAlphaMode::PostMultiplied
                     )
-            })
-    })
+                })
+        })
     {
         let info = adapter.get_info();
-        tracing::info!("Adapter {} ({:?}) can composite transparency", info.name, info.backend);
+        tracing::info!(
+            "Adapter {} ({:?}) can composite transparency",
+            info.name,
+            info.backend
+        );
         return Ok(adapter.clone());
     }
 
