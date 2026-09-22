@@ -1,7 +1,8 @@
 /target
 /logs
 /assets/models
-.idea
+/transcripts
+/.idea
 soniox.toml
 soniox.log
 omni.log

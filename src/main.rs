@@ -10,31 +10,57 @@ use omni_stt::gui::app::SubtitlesApp;
 use omni_stt::gui::fonts::setup_custom_fonts;
 use omni_stt::settings::SettingsManager;
 use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
-
 use omni_stt::gui::theme::apply_theme;
 use omni_stt::gui::tray::AppTray;
 use omni_stt::logger::setup_tracing;
 use omni_stt::settings::logging_settings;
 use omni_stt::transcription::transcript;
+
 use std::sync::Arc;
 
-/// WARNING: A CRANK IS IN PLACE DUE TO INCORRECT DISPLAY OF THE TRANSPARENCY OVERLAY ON AMD RADEON INTEGRATED GRAPHICS CARDS.
+/// Picks an adapter whose surface can actually composite transparency.
+///
+/// The overlay is a transparent, click-through window. `egui-wgpu` configures
+/// the surface with `CompositeAlphaMode::PreMultiplied`, falls back to
+/// `PostMultiplied`, and when neither is offered quietly settles for `Auto` —
+/// which is opaque, so the overlay paints the whole screen black. Some AMD
+/// drivers report no transparent mode on DX12/Vulkan but do report one on GL.
+///
+/// So ask each adapter's surface for the single property that decides this,
+/// instead of guessing it from the vendor string. The predicate below is
+/// deliberately the same one `egui-wgpu` applies when it configures the
+/// surface — matching it is the whole point.
 fn select_adapter(
     adapters: &[wgpu::Adapter],
-    _surface: Option<&wgpu::Surface<'_>>,
+    surface: Option<&wgpu::Surface<'_>>,
 ) -> Result<wgpu::Adapter, String> {
-    if let Some(adapter) = adapters.iter().find(|a| {
-        let info = a.get_info();
-        let name = info.name.to_lowercase();
-        // todo: DIRTY HACK!!! ADJUST IF POSSIBLE!!!
-        (name.contains("amd") && name.contains("radeon")) && info.backend == wgpu::Backend::Gl
-    }) {
+    if let Some(surface) = surface
+        && let Some(adapter) = adapters.iter().find(|adapter| {
+        surface
+            .get_capabilities(adapter)
+            .alpha_modes
+            .iter()
+            .any(|mode| {
+                matches!(
+                        mode,
+                        wgpu::CompositeAlphaMode::PreMultiplied
+                            | wgpu::CompositeAlphaMode::PostMultiplied
+                    )
+            })
+    })
+    {
+        let info = adapter.get_info();
+        tracing::info!("Adapter {} ({:?}) can composite transparency", info.name, info.backend);
         return Ok(adapter.clone());
     }
 
+    // Nothing offers a transparent surface: the overlay will be opaque whatever
+    // we pick, so fall back to the old preference and say so.
+    tracing::warn!("No adapter offers a transparent surface, the overlay may render opaque");
     adapters
         .iter()
         .find(|a| a.get_info().backend != wgpu::Backend::Gl)
+        .or_else(|| adapters.first())
         .cloned()
         .ok_or_else(|| "No WGPU adapters found".to_owned())
 }
@@ -96,6 +122,8 @@ fn main() {
     #[cfg(target_os = "macos")]
     embed_plist::embed_info_plist!("../Info.plist");
 
+    // Must precede the runtime: reading the local UTC offset only works while
+    // the process is still single-threaded. See `transcript::init_local_offset`.
     transcript::init_local_offset();
     let rt = tokio::runtime::Runtime::new().expect("Should be able to get rt main thread");
     let _e = rt.enter();
