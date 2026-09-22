@@ -10,9 +10,10 @@ use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tokio_util::sync::CancellationToken;
 use crate::transcription::resample::AudioConverter;
 
+const POOL_CAPACITY: usize = 2048;
+
 pub struct TranscriptionService {
-    pub(crate) _audio_secondary: Option<AudioSession>,
-    pub(crate) _audio: AudioSession,
+    pub(crate) _audio: Vec<AudioSession>,
     pub receiver: Receiver<SttEvent>,
     _worker_handle: tokio::task::JoinHandle<()>,
     cancel_token: CancellationToken,
@@ -22,63 +23,59 @@ pub struct TranscriptionService {
 impl TranscriptionService {
     pub async fn start<F>(
         settings: &SettingsApp,
-        device: AvailableDevice,
-        secondary: Option<AvailableDevice>,
+        devices: Vec<AvailableDevice>,
         on_new_event: F,
     ) -> Result<Self, OmniSttErrors>
     where
         F: Fn() + Send + Sync + 'static,
     {
+        if devices.is_empty() {
+            return Err(OmniSttErrors::NotFoundAudioDevice);
+        }
+
         let cancel_token = CancellationToken::new();
 
         let (tx_worker, mut rx_worker) = channel::<SttEvent>(128);
         let (tx_event, rx_event) = channel::<SttEvent>(128);
-        let (tx_capture, rx_capture) = channel::<AudioSample>(2048);
-        let (tx_recycle, rx_recycle) = channel::<AudioSample>(2048);
+        let (tx_recycle, rx_recycle) = channel::<AudioSample>(POOL_CAPACITY);
+        let (tx_mixed, rx_mixed) = channel::<AudioSample>(POOL_CAPACITY);
 
-        let target_peak = if secondary.is_some() {
-            audio::MIXED_PEAK
-        } else {
-            audio::FULL_SCALE_PEAK
-        };
+        // Independent sources add in power, not amplitude: N of them land
+        // around √N times one, not N times. Dividing by N would quietly rob
+        // every source of level for a collision that mostly does not happen,
+        // and the saturating add in the mixer is there for when it does.
+        let target_peak = audio::FULL_SCALE_PEAK / (devices.len() as f32).sqrt();
 
-        let audio = open_capture(device, target_peak, tx_capture, rx_recycle, tx_worker.clone())?;
-        let (rx_audio, audio_secondary) = match secondary {
-            Some(second) => {
-                let (tx_second, rx_second) = channel::<AudioSample>(2048);
-                let (tx_recycle_second, rx_recycle_second) = channel::<AudioSample>(2048);
-                let (tx_mixed, rx_mixed) = channel::<AudioSample>(2048);
+        let mut sessions = Vec::with_capacity(devices.len());
+        let mut inputs = Vec::with_capacity(devices.len());
 
-                let session = open_capture(
-                    second,
-                    target_peak,
-                    tx_second,
-                    rx_recycle_second,
-                    tx_worker.clone(),
-                )?;
+        for device in devices {
+            let (tx_capture, rx_capture) = channel::<AudioSample>(POOL_CAPACITY);
+            let (tx_recycle_source, rx_recycle_source) = channel::<AudioSample>(POOL_CAPACITY);
 
-                tokio::spawn(
-                    AudioMixer::new(rx_capture, rx_second, tx_mixed, tx_recycle_second).run(),
-                );
+            sessions.push(open_capture(
+                device,
+                target_peak,
+                tx_capture,
+                rx_recycle_source,
+                tx_worker.clone(),
+            )?);
+            inputs.push((rx_capture, tx_recycle_source));
+        }
 
-                (rx_mixed, Some(session))
-            }
-            None => (rx_capture, None),
-        };
+        tokio::spawn(AudioMixer::new(inputs, rx_recycle, tx_mixed).run());
 
         let backend = create_stt_backend(&settings.provider).await?;
-        let tx_worker_2 = tx_worker.clone();
         let worker = GenericSttWorker::new(
-            rx_audio,
+            rx_mixed,
             tx_recycle,
-            tx_worker_2,
+            tx_worker.clone(),
             settings.audio.hangover_chunks,
             settings.audio.vad_threshold,
             backend,
         );
 
-        audio.play()?;
-        if let Some(session) = &audio_secondary {
+        for session in &sessions {
             session.play()?;
         }
 
@@ -117,8 +114,7 @@ impl TranscriptionService {
         });
 
         Ok(Self {
-            _audio: audio,
-            _audio_secondary: audio_secondary,
+            _audio: sessions,
             _worker_handle: worker_handle,
             receiver: rx_event,
             cancel_token,

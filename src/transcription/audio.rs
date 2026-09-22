@@ -6,14 +6,18 @@ use cpal::{Device, Error, ErrorKind, Stream, StreamConfig};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-/// Samples per chunk handed downstream — 200 ms at the 16 kHz target rate.
+use std::time::Duration;
+
+/// Samples per chunk handed downstream.
 pub const CHUNK_SAMPLES: usize = 3200;
 
-/// What a lone capture aims for.
-pub const FULL_SCALE_PEAK: f32 = 0.9;
+/// How long one chunk lasts at the 16 kHz target rate. The mixer ticks on it,
+/// so the two stay in step by construction rather than by a matching pair of
+/// magic numbers.
+pub const CHUNK_PERIOD: Duration = Duration::from_millis(CHUNK_SAMPLES as u64 * 1000 / 16_000);
 
-/// What each of two captures aims for, so their sum still fits.
-pub const MIXED_PEAK: f32 = FULL_SCALE_PEAK / 2.0;
+/// What a lone capture aims for. With several, each takes a share of it.
+pub const FULL_SCALE_PEAK: f32 = 0.9;
 
 pub type AudioSample = Vec<i16>;
 

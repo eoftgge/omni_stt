@@ -9,7 +9,7 @@ pub use secret::Secret;
 
 use crate::logger::TracingLevel;
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
-use crate::transcription::device::{DeviceKind, SettingDeviceId};
+use crate::transcription::device::AudioSource;
 use eframe::egui::{Align2, Color32, Vec2, vec2};
 use serde::{Deserialize, Serialize};
 use tracing::Level;
@@ -30,11 +30,7 @@ pub struct SettingsUI {
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct SettingsAudio {
-    pub(crate) device_kind: DeviceKind,
-    pub(crate) device_id: Option<SettingDeviceId>,
-    pub(crate) enable_secondary: bool,
-    pub(crate) secondary_kind: DeviceKind,
-    pub(crate) secondary_id: Option<SettingDeviceId>,
+    pub(crate) sources: Vec<AudioSource>,
     pub(crate) hangover_chunks: usize,
     pub(crate) vad_threshold: u32,
 }
@@ -87,11 +83,7 @@ impl Default for SettingsUI {
 impl Default for SettingsAudio {
     fn default() -> Self {
         Self {
-            device_kind: DeviceKind::Output,
-            device_id: None,
-            enable_secondary: false,
-            secondary_kind: DeviceKind::Input,
-            secondary_id: None,
+            sources: Vec::new(),
             hangover_chunks: 15,
             vad_threshold: 500,
         }
@@ -133,12 +125,6 @@ impl SettingsUI {
             _ => Align2::CENTER_BOTTOM,
         };
         (align, vec2(self.offset.0, self.offset.1))
-    }
-}
-
-impl SettingsAudio {
-    pub fn device_id(&self) -> Option<SettingDeviceId> {
-        self.device_id.clone()
     }
 }
 

@@ -95,27 +95,15 @@ impl StateManager {
 
                 let settings = settings.clone();
                 let ctx_for_service = ctx.clone();
-                let device = devices
-                    .to_device(settings.audio.device_kind, settings.audio.device_id.as_ref())
-                    .ok_or(OmniSttErrors::NotFoundAudioDevice)?;
-                let secondary = if settings.audio.enable_secondary {
-                    let found = devices.to_device(
-                        settings.audio.secondary_kind,
-                        settings.audio.secondary_id.as_ref(),
-                    );
-                    if found.is_none() {
-                        tracing::warn!("Second source is enabled but its device is gone");
-                    }
-                    found
-                } else {
-                    None
-                };
+                let devices_to_open = devices.resolve(&settings.audio.sources);
+                if devices_to_open.is_empty() {
+                    return Err(OmniSttErrors::NotFoundAudioDevice);
+                }
 
                 tokio::spawn(async move {
                     let result = TranscriptionService::start(
                         &settings,
-                        device,
-                        secondary,
+                        devices_to_open,
                         move || { ctx_for_service.request_repaint() }
                     )
                     .await;

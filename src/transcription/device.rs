@@ -5,6 +5,13 @@ use serde::{Deserializer, Serializer, Deserialize, Serialize};
 use std::str::FromStr;
 use crate::errors::OmniSttErrors;
 
+/// One entry of the user's selection, as it is stored in `omni.toml`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AudioSource {
+    pub kind: DeviceKind,
+    pub id: SettingDeviceId,
+}
+
 /// Which side of a device the audio is taken from.
 ///
 /// Both are opened with `build_input_stream` — an output device is captured
@@ -120,13 +127,32 @@ impl MappableAvailableDevices {
         self.1.iter().find(|d| d.kind() == kind && d.id() == id)
     }
 
-    pub fn to_device(
-        &self,
-        kind: DeviceKind,
-        id: Option<&SettingDeviceId>,
-    ) -> Option<AvailableDevice> {
-        let device = id.and_then(|target| self.get(kind, target).cloned());
-        device.or_else(|| AvailableDevice::from_host(&self.0, kind))
+    /// Turns the saved selection into devices to open.
+    ///
+    /// An empty selection means the default output device: that keeps the
+    /// behaviour of every version before this one, and gives a fresh install
+    /// something to listen to without any setup at all.
+    ///
+    /// An entry whose device has since disappeared is reported and skipped
+    /// rather than failing the start — one unplugged microphone must not take
+    /// the other sources down with it.
+    pub fn resolve(&self, sources: &[AudioSource]) -> Vec<AvailableDevice> {
+        if sources.is_empty() {
+            return AvailableDevice::from_host(&self.0, DeviceKind::Output)
+                .into_iter()
+                .collect();
+        }
+
+        sources
+            .iter()
+            .filter_map(|source| {
+                let found = self.get(source.kind, &source.id).cloned();
+                if found.is_none() {
+                    tracing::warn!("A saved {:?} source is gone, skipping it", source.kind);
+                }
+                found
+            })
+            .collect()
     }
 
     pub fn iter(&self, kind: DeviceKind) -> impl Iterator<Item = &AvailableDevice> {

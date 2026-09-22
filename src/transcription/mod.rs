@@ -6,4 +6,4 @@ pub mod service;
 pub mod subtitles;
 pub mod transcript;
 pub mod utils;
-mod mixer;
+pub mod mixer;
