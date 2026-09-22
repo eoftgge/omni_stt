@@ -139,7 +139,10 @@ impl SttBackend for SonioxBackend {
 }
 
 impl SonioxSession {
-    async fn handle_ws_message(&mut self, msg: Message) -> Result<Option<PipelineEvent>, PipelineError> {
+    async fn handle_ws_message(
+        &mut self,
+        msg: Message,
+    ) -> Result<Option<PipelineEvent>, PipelineError> {
         match msg {
             Message::Text(txt) => self.handle_text_message(&txt),
             Message::Ping(data) => {

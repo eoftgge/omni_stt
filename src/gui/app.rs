@@ -7,8 +7,8 @@ use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
 use crate::pipeline::Pipeline;
 use crate::settings::SettingsManager;
-use crate::stt::store::TranscriptionStore;
-use crate::stt::transcript::TranscriptWriter;
+use crate::subtitles::store::TranscriptionStore;
+use crate::subtitles::transcript::TranscriptWriter;
 use eframe::App;
 use eframe::egui::{
     Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,

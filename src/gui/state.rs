@@ -3,7 +3,7 @@ use crate::audio::device::MappableAvailableDevices;
 use crate::errors::OmniSttErrors;
 use crate::pipeline::Pipeline;
 use crate::settings::SettingsApp;
-use crate::stt::store::TranscriptionStore;
+use crate::subtitles::store::TranscriptionStore;
 use eframe::egui::{Context, ViewportCommand, Visuals, WindowLevel};
 
 fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {

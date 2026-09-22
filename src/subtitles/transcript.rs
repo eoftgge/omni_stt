@@ -1,7 +1,7 @@
 use time::{Date, OffsetDateTime, UtcOffset};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 
-use crate::stt::subtitles::SubtitleBlock;
+use crate::subtitles::block::SubtitleBlock;
 use std::io::Write;
 use std::sync::OnceLock;
 

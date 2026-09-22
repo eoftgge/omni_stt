@@ -1,11 +1,10 @@
 pub(crate) mod color;
 pub(crate) mod outline;
-pub(super) mod replicas;
 
 use crate::gui::overlay::color::get_interim_color;
 use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
-use crate::gui::overlay::replicas::{VisualReplica, prepare_replicas};
-use crate::stt::store::TranscriptionStore;
+use crate::subtitles::store::VisualReplica;
+use crate::subtitles::store::{TranscriptionStore, prepare_replicas};
 use eframe::egui::text::LayoutJob;
 use eframe::egui::{Color32, FontId, Frame, LayerId, Order, Rect, Stroke, TextFormat, Ui, Vec2};
 use eframe::epaint::StrokeKind;

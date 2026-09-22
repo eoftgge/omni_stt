@@ -1,6 +1,7 @@
 pub mod device;
 pub mod mixer;
 pub mod resample;
+pub mod utils;
 
 use crate::errors::OmniSttErrors;
 use crate::event::PipelineEvent;

@@ -2,10 +2,10 @@
 mod tests;
 
 use crate::audio::AudioSample;
+use crate::audio::utils::{is_silent, rms};
 use crate::event::{PipelineError, PipelineEvent};
 use crate::stt::action::StreamAction;
 use crate::stt::backend::{SttBackend, SttSession};
-use crate::stt::utils::{is_silent, rms};
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::sleep;
