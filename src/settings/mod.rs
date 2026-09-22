@@ -2,6 +2,7 @@ pub mod anchor;
 pub mod audio;
 pub mod general;
 pub mod keystore;
+pub mod languages;
 pub mod manager;
 pub mod provider;
 pub mod secret;
