@@ -127,7 +127,9 @@ usually needs a lower value than system audio.
 **Hangover Chunks** is how long the stream stays open after the sound drops
 below the threshold, so a pause mid-sentence does not cut the phrase in half.
 
-**Max Blocks** is how many lines of subtitles are on screen at once.
+**Max Blocks** is how many blocks can the current overlay contain. One block is one speaker.
+
+**Max Lines** is how many lines can a single block consist of.
 
 ## Building from source
 
