@@ -1,12 +1,16 @@
+pub mod device;
+pub mod mixer;
+pub mod resample;
+
 use crate::errors::OmniSttErrors;
 use crate::stt::event::SttEvent;
-use crate::transcription::resample::AudioConverter;
 use cpal::traits::{DeviceTrait, StreamTrait};
 use cpal::{Device, Error, ErrorKind, Stream, StreamConfig};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use std::time::Duration;
+use crate::audio::resample::AudioConverter;
 
 /// Samples per chunk handed downstream.
 pub const CHUNK_SAMPLES: usize = 3200;

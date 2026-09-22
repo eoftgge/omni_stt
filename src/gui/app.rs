@@ -7,14 +7,14 @@ use crate::logger::TracingControl;
 use crate::settings::SettingsManager;
 use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
-use crate::transcription::service::TranscriptionService;
-use crate::transcription::transcript::TranscriptWriter;
 use eframe::App;
 use eframe::egui::{
     Align, Area, Color32, Id, Layout, Order, RichText, Ui, ViewportCommand, Visuals, WindowLevel,
 };
 use egui_toast::{ToastKind, Toasts};
 use std::time::Duration;
+use crate::pipeline::Pipeline;
+use crate::stt::transcript::TranscriptWriter;
 
 pub struct SubtitlesApp {
     settings_manager: SettingsManager,
@@ -182,7 +182,7 @@ fn sync_transcript(writer: &mut Option<TranscriptWriter>, enabled: bool) {
 }
 
 fn process_events(
-    service: &mut TranscriptionService,
+    service: &mut Pipeline,
     store: &mut TranscriptionStore,
     toasts: &mut Toasts,
 ) {

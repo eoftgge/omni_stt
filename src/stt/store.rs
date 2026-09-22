@@ -2,11 +2,11 @@
 mod tests;
 
 use crate::stt::data::TranscriptData;
-use crate::transcription::subtitles::SubtitleBlock;
-use crate::transcription::utils::{is_cjk, is_punctuation_or_symbol};
 use eframe::egui::Context;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
+use crate::stt::subtitles::SubtitleBlock;
+use crate::stt::utils::{is_cjk, is_punctuation_or_symbol};
 
 pub struct TranscriptionStore {
     pub blocks: VecDeque<SubtitleBlock>,

@@ -12,10 +12,10 @@ use omni_stt::gui::tray::AppTray;
 use omni_stt::logger::setup_tracing;
 use omni_stt::settings::SettingsManager;
 use omni_stt::settings::logging_settings;
-use omni_stt::transcription::transcript;
 use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
 
 use std::sync::Arc;
+use omni_stt::stt::transcript;
 
 /// Picks an adapter whose surface can actually composite transparency.
 ///

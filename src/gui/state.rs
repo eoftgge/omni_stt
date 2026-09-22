@@ -2,9 +2,9 @@ use crate::SETTINGS_WINDOW_SIZE;
 use crate::errors::OmniSttErrors;
 use crate::settings::SettingsApp;
 use crate::stt::store::TranscriptionStore;
-use crate::transcription::device::MappableAvailableDevices;
-use crate::transcription::service::TranscriptionService;
 use eframe::egui::{Context, ViewportCommand, Visuals, WindowLevel};
+use crate::audio::device::MappableAvailableDevices;
+use crate::pipeline::Pipeline;
 
 fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {
     ctx.send_viewport_cmd(ViewportCommand::Decorations(false));
@@ -46,9 +46,9 @@ pub enum PendingState {
 pub enum AppState {
     Settings,
     Loading {
-        rx: tokio::sync::oneshot::Receiver<Result<TranscriptionService, OmniSttErrors>>,
+        rx: tokio::sync::oneshot::Receiver<Result<Pipeline, OmniSttErrors>>,
     },
-    Overlay(TranscriptionService),
+    Overlay(Pipeline),
 }
 
 impl Default for StateManager {
@@ -102,7 +102,7 @@ impl StateManager {
 
                 tokio::spawn(async move {
                     let result =
-                        TranscriptionService::start(&settings, devices_to_open, move || {
+                        Pipeline::start(&settings, devices_to_open, move || {
                             ctx_for_service.request_repaint()
                         })
                         .await;

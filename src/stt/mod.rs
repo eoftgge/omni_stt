@@ -8,6 +8,8 @@ pub mod languages;
 pub mod store;
 pub mod utils;
 pub mod worker;
+pub mod subtitles;
+pub mod transcript;
 
 pub mod prelude {
     pub use super::{

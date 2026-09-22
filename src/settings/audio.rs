@@ -1,5 +1,5 @@
-use crate::transcription::device::AudioSource;
 use serde::{Deserialize, Serialize};
+use crate::audio::device::AudioSource;
 
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]

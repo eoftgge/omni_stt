@@ -1,8 +1,8 @@
 use super::layout::{Squared, label, row, section, settings_grid};
 use crate::settings::audio::SettingsAudio;
-use crate::transcription::device::{AudioSource, DeviceKind, MappableAvailableDevices};
 use eframe::egui;
 use eframe::egui::{Checkbox, RichText, Slider, Ui};
+use crate::audio::device::{AudioSource, DeviceKind, MappableAvailableDevices};
 
 pub(super) fn ui_section_audio(
     ui: &mut Ui,

@@ -3,16 +3,17 @@ use crate::settings::SettingsApp;
 use crate::stt::event::SttEvent;
 use crate::stt::factory::create_stt_backend;
 use crate::stt::worker::GenericSttWorker;
-use crate::transcription::audio::{self, AudioSample, AudioSession};
-use crate::transcription::device::AvailableDevice;
-use crate::transcription::mixer::AudioMixer;
-use crate::transcription::resample::AudioConverter;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
 use tokio_util::sync::CancellationToken;
+use crate::audio;
+use crate::audio::{AudioSample, AudioSession};
+use crate::audio::device::AvailableDevice;
+use crate::audio::mixer::AudioMixer;
+use crate::audio::resample::AudioConverter;
 
 const POOL_CAPACITY: usize = 2048;
 
-pub struct TranscriptionService {
+pub struct Pipeline {
     pub(crate) _audio: Vec<AudioSession>,
     pub receiver: Receiver<SttEvent>,
     _worker_handle: tokio::task::JoinHandle<()>,
@@ -20,7 +21,7 @@ pub struct TranscriptionService {
     proxy_handle: tokio::task::JoinHandle<()>,
 }
 
-impl TranscriptionService {
+impl Pipeline {
     pub async fn start<F>(
         settings: &SettingsApp,
         devices: Vec<AvailableDevice>,
@@ -123,7 +124,7 @@ impl TranscriptionService {
     }
 }
 
-impl Drop for TranscriptionService {
+impl Drop for Pipeline {
     fn drop(&mut self) {
         tracing::debug!("Dropping TranscriptionService, cancelling tasks...");
         self.cancel_token.cancel();

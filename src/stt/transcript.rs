@@ -1,9 +1,9 @@
-use crate::transcription::subtitles::SubtitleBlock;
 use time::{Date, OffsetDateTime, UtcOffset};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 
 use std::io::Write;
 use std::sync::OnceLock;
+use crate::stt::subtitles::SubtitleBlock;
 
 const DIRECTORY: &str = "transcripts";
 const FILE_STEM: &str = "omni";

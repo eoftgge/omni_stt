@@ -16,9 +16,9 @@ use crate::gui::{Notify, theme};
 use crate::settings::SettingsManager;
 use crate::stt::adapters::types::ProviderType;
 use crate::stt::adapters::vosk::probe::VoskProbe;
-use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::{self, Button, ScrollArea, Ui, vec2};
 use egui_toast::Toasts;
+use crate::audio::device::MappableAvailableDevices;
 
 pub struct SettingsScreen {
     pub devices: MappableAvailableDevices,
