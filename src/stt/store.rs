@@ -7,9 +7,18 @@ use crate::stt::utils::{is_cjk, is_punctuation_or_symbol};
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
+/// How long a block may grow before the next final is allowed to start a new
+/// one. Counted in characters: `String::len` is bytes, which would make the
+/// limit depend on the language — twice as tight for Cyrillic, three times
+/// for CJK.
+const SOFT_LIMIT_CHARS: usize = 200;
+/// Marks a gap where the connection dropped. The trailing spaces keep the
+/// ellipsis from running into whatever arrives when the stream resumes.
+const GAP_MARKER: &str = "... ";
+
 pub struct TranscriptionStore {
-    pub blocks: VecDeque<SubtitleBlock>,
-    pub interim_blocks: Vec<SubtitleBlock>,
+    blocks: VecDeque<SubtitleBlock>,
+    interim_blocks: Vec<SubtitleBlock>,
     max_blocks: usize,
     last_activity: Option<Instant>,
     completed: Vec<SubtitleBlock>,
@@ -33,22 +42,11 @@ impl TranscriptionStore {
 
         let speaker = data.speaker;
         let needs_new = match self.blocks.back() {
-            Some(last) if last.speaker != speaker => true,
-            Some(last) if last.text.len() > 200 => {
-                let trimmed = data.text.trim();
-                if trimmed.is_empty() || is_punctuation_or_symbol(trimmed) {
-                    false
-                } else {
-                    let last_char = last.text.chars().last().unwrap_or(' ');
-                    let first_char = data.text.chars().next().unwrap_or(' ');
-
-                    let is_space_boundary = last_char.is_whitespace() || first_char.is_whitespace();
-                    let is_cjk_boundary = is_cjk(last_char) || is_cjk(first_char);
-
-                    is_space_boundary || is_cjk_boundary
-                }
-            }
             None => true,
+            Some(last) if last.speaker != speaker => true,
+            Some(last) if last.text.chars().count() > SOFT_LIMIT_CHARS => {
+                can_break_before(last, &data.text)
+            }
             _ => false,
         };
 
@@ -86,7 +84,7 @@ impl TranscriptionStore {
             }
             let trimmed_len = block.text.trim_end().len();
             block.text.truncate(trimmed_len);
-            block.text.push_str("...    ");
+            block.text.push_str(GAP_MARKER);
             self.last_activity = Some(Instant::now());
         }
     }
@@ -108,6 +106,14 @@ impl TranscriptionStore {
 
     pub fn last_activity(&self) -> Option<Instant> {
         self.last_activity
+    }
+
+    pub fn blocks(&self) -> impl Iterator<Item = &SubtitleBlock> {
+        self.blocks.iter()
+    }
+
+    pub fn interim(&self) -> impl Iterator<Item = &SubtitleBlock> {
+        self.interim_blocks.iter()
     }
 
     pub fn clear_if_silent(&mut self, timeout: Duration) {
@@ -150,4 +156,26 @@ impl TranscriptionStore {
         self.blocks.push_back(block);
         self.pop_if_overflow();
     }
+}
+
+/// Whether a new block may start before `incoming`.
+///
+/// Only at a seam: a break in the middle of a word would show up on screen as
+/// one line ending mid-syllable and the next beginning mid-syllable. A space
+/// on either side is a seam; so is a CJK character, where words are not spaced
+/// and any boundary between glyphs will do. Punctuation on its own never
+/// starts a line.
+fn can_break_before(last: &SubtitleBlock, incoming: &str) -> bool {
+    let trimmed = incoming.trim();
+    if trimmed.is_empty() || is_punctuation_or_symbol(trimmed) {
+        return false;
+    }
+
+    let last_char = last.text.chars().last().unwrap_or(' ');
+    let first_char = incoming.chars().next().unwrap_or(' ');
+
+    last_char.is_whitespace()
+        || first_char.is_whitespace()
+        || is_cjk(last_char)
+        || is_cjk(first_char)
 }
