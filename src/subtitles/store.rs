@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 const SOFT_LIMIT_CHARS: usize = 200;
 /// Marks a gap where the connection dropped. The trailing spaces keep the
 /// ellipsis from running into whatever arrives when the stream resumes.
-const GAP_MARKER: &str = "... ";
+const GAP_MARKER: &str = "...  ";
 
 pub struct TranscriptionStore {
     blocks: VecDeque<SubtitleBlock>,
