@@ -5,6 +5,7 @@ pub mod ui;
 pub mod audio;
 pub mod provider;
 pub mod general;
+pub mod anchor;
 
 pub use keystore::KeyStorage;
 pub use manager::SettingsManager;

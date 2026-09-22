@@ -1,6 +1,7 @@
-use super::layout::{section, settings_grid};
+use super::layout::{label, section, settings_grid};
 use crate::settings::ui::SettingsUI;
-use eframe::egui::{self, Button, DragValue, Grid, RichText, Ui, vec2};
+use eframe::egui::{self, vec2, Button, DragValue, Grid, Response, RichText, Ui};
+use crate::settings::anchor::Anchor;
 
 pub(super) fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
     section(ui, "Position", false, |ui| {
@@ -21,53 +22,36 @@ pub(super) fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
             ui.end_row();
 
             ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                ui.add(egui::Label::new("Snap to:").extend());
+                label(ui, "Snap to:");
             });
             ui.vertical(|ui| {
                 Grid::new("snap_buttons")
                     .spacing([5.0, 5.0])
                     .show(ui, |ui| {
-                        let mut btn =
-                            |ui: &mut Ui,
-                             text: &str,
-                             anchor_val: usize,
-                             default_offset: (f32, f32)| {
-                                let is_selected = settings_ui.anchor == anchor_val;
-                                let button = Button::new(RichText::new(text).size(16.0))
-                                    .min_size(vec2(30.0, 30.0));
-
-                                let response =
-                                    if is_selected {
-                                        ui.add(button.fill(
-                                            ui.ctx().global_style().visuals.selection.bg_fill,
-                                        ))
-                                    } else {
-                                        ui.add(button)
-                                    };
-                                if response.clicked() {
-                                    settings_ui.anchor = anchor_val;
-                                    settings_ui.offset = default_offset;
+                        for line in Anchor::ALL.chunks(3) {
+                            for &anchor in line {
+                                let selected = settings_ui.anchor == anchor;
+                                if ui_snap_button(ui, anchor, selected).clicked() {
+                                    settings_ui.anchor = anchor;
+                                    settings_ui.offset = anchor.default_offset();
                                 }
-                            };
-
-                        let pad = 30.0;
-                        btn(ui, "↖", 0, (pad, pad));
-                        btn(ui, "↑", 1, (0.0, pad));
-                        btn(ui, "↗", 2, (-pad, pad));
-                        ui.end_row();
-
-                        btn(ui, "←", 3, (pad, 0.0));
-                        btn(ui, "•", 4, (0.0, 0.0));
-                        btn(ui, "→", 5, (-pad, 0.0));
-                        ui.end_row();
-
-                        btn(ui, "↙", 6, (pad, -pad));
-                        btn(ui, "↓", 7, (0.0, -pad));
-                        btn(ui, "↘", 8, (-pad, -pad));
-                        ui.end_row();
+                            }
+                            ui.end_row();
+                        }
                     });
             });
             ui.end_row();
         });
     });
+}
+
+fn ui_snap_button(ui: &mut Ui, anchor: Anchor, selected: bool) -> Response {
+    let button =
+        Button::new(RichText::new(anchor.glyph()).size(16.0)).min_size(vec2(30.0, 30.0));
+
+    if selected {
+        ui.add(button.fill(ui.ctx().global_style().visuals.selection.bg_fill))
+    } else {
+        ui.add(button)
+    }
 }

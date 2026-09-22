@@ -1,12 +1,13 @@
-use eframe::egui::{Align2, Color32, Vec2, vec2};
+use eframe::egui::{vec2, Color32, Align2, Vec2};
 use serde::{Deserialize, Serialize};
+use crate::settings::anchor::Anchor;
 
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct SettingsUI {
     pub(crate) max_blocks: usize,
     pub(crate) offset: (f32, f32),
-    pub(crate) anchor: usize,
+    pub(crate) anchor: Anchor,
     pub(crate) font_size: usize,
     pub(crate) background_color: [u8; 4],
     pub(crate) text_color: [u8; 3],
@@ -24,7 +25,7 @@ impl Default for SettingsUI {
         Self {
             enable_high_priority: true,
             offset: (0.0, -30.0),
-            anchor: 7,
+            anchor: Anchor::CenterBottom,
             font_size: 21,
             background_color: Self::DEFAULT_BACKGROUND_COLOR,
             text_color: Self::DEFAULT_TEXT_COLOR,
@@ -46,18 +47,6 @@ impl SettingsUI {
     }
 
     pub fn get_anchor(&self) -> (Align2, Vec2) {
-        let align = match self.anchor {
-            0 => Align2::LEFT_TOP,
-            1 => Align2::CENTER_TOP,
-            2 => Align2::RIGHT_TOP,
-            3 => Align2::LEFT_CENTER,
-            4 => Align2::CENTER_CENTER,
-            5 => Align2::RIGHT_CENTER,
-            6 => Align2::LEFT_BOTTOM,
-            7 => Align2::CENTER_BOTTOM,
-            8 => Align2::RIGHT_BOTTOM,
-            _ => Align2::CENTER_BOTTOM,
-        };
-        (align, vec2(self.offset.0, self.offset.1))
+        (self.anchor.align(), vec2(self.offset.0, self.offset.1))
     }
 }

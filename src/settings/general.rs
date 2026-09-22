@@ -5,7 +5,7 @@ use tracing::Level;
 #[derive(Eq, PartialEq, Deserialize, Serialize, Clone)]
 #[serde(default)]
 pub struct SettingsGeneral {
-    pub level: TracingLevel,
+    pub(crate) level: TracingLevel,
     pub log_to_file: bool,
     pub save_transcripts: bool,
 }
@@ -21,10 +21,6 @@ impl Default for SettingsGeneral {
 }
 
 impl SettingsGeneral {
-    pub fn log_to_file(&self) -> bool {
-        self.log_to_file
-    }
-
     pub fn level(&self) -> Level {
         Level::from(self.level)
     }
