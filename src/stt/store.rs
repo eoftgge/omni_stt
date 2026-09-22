@@ -4,7 +4,6 @@ mod tests;
 use crate::stt::data::TranscriptData;
 use crate::stt::subtitles::SubtitleBlock;
 use crate::stt::utils::{is_cjk, is_punctuation_or_symbol};
-use eframe::egui::Context;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
@@ -128,15 +127,6 @@ impl TranscriptionStore {
 
     pub fn take_completed(&mut self) -> impl Iterator<Item = SubtitleBlock> + '_ {
         self.completed.drain(..)
-    }
-
-    pub fn schedule(&mut self, ctx: Context, timeout: Duration) {
-        if let Some(last_activity) = self.last_activity() {
-            let elapsed = last_activity.elapsed();
-            if elapsed < timeout {
-                ctx.request_repaint_after(timeout - elapsed);
-            }
-        }
     }
 
     fn finish_last(&mut self) {

@@ -111,7 +111,12 @@ impl App for SubtitlesApp {
             AppState::Overlay(service) => {
                 let timeout = Duration::from_secs(15);
                 self.store.clear_if_silent(timeout);
-                self.store.schedule(ui.ctx().clone(), timeout);
+                if let Some(last_activity) = self.store.last_activity() {
+                    let elapsed = last_activity.elapsed();
+                    if elapsed < timeout {
+                        ui.ctx().request_repaint_after(timeout - elapsed);
+                    }
+                }
 
                 let ctx = ui.ctx();
                 let settings_ui = &settings.ui;
