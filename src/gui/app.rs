@@ -140,6 +140,7 @@ impl App for SubtitlesApp {
                                 settings_ui.text_color(),
                                 settings_ui.background_color(),
                                 settings_ui.is_text_outline,
+                                settings_ui.max_lines,
                             );
                         });
                     });

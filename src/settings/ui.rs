@@ -13,6 +13,7 @@ pub struct SettingsUI {
     pub(crate) text_color: [u8; 3],
     pub(crate) enable_high_priority: bool,
     pub(crate) is_text_outline: bool,
+    pub(crate) max_lines: usize,
 }
 
 impl SettingsUI {
@@ -31,6 +32,7 @@ impl Default for SettingsUI {
             text_color: Self::DEFAULT_TEXT_COLOR,
             max_blocks: 3,
             is_text_outline: false,
+            max_lines: 3,
         }
     }
 }
