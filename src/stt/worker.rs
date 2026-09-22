@@ -4,7 +4,7 @@ mod tests;
 use crate::stt::action::StreamAction;
 use crate::stt::backend::{SttBackend, SttSession};
 use crate::stt::event::{SttError, SttEvent};
-use crate::stt::utils::is_silent;
+use crate::stt::utils::{is_silent, rms};
 use crate::transcription::audio::AudioSample;
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -201,6 +201,7 @@ impl GenericSttWorker {
 
     async fn wait_first_packet(&mut self) -> Option<AudioSample> {
         tracing::debug!("Waiting for speech to connect...");
+        let mut loudest = 0;
 
         loop {
             match self.rx_audio.recv().await {
@@ -208,6 +209,20 @@ impl GenericSttWorker {
                     return Some(packet);
                 }
                 Some(mut packet) => {
+                    // Nothing has passed the gate yet. Report each new peak, so
+                    // a level that never approaches the threshold says the
+                    // threshold is wrong for this source — not that the room
+                    // is quiet. Logging only on a new maximum keeps it quiet.
+                    let level = rms(&packet);
+                    if level > loudest {
+                        loudest = level;
+                        tracing::debug!(
+                            "Below the VAD threshold {}, loudest so far {}",
+                            self.vad_threshold,
+                            loudest
+                        );
+                    }
+
                     packet.clear();
                     let _ = self.tx_recycle.send(packet).await;
                 }

@@ -143,6 +143,14 @@ fn open_capture(
     tx_event: Sender<SttEvent>,
 ) -> Result<AudioSession, OmniSttErrors> {
     let config = device.stream_config()?;
+
+    tracing::info!(
+        "Capturing {:?} '{}' at {} Hz, {} ch",
+        device.kind(),
+        device.name(),
+        config.sample_rate,
+        config.channels
+    );
     let converter =
         AudioConverter::new(config.sample_rate, config.channels).with_target_peak(target_peak);
 
