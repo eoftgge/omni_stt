@@ -13,13 +13,13 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
                 "Max Lines:",
                 Slider::new(&mut settings_ui.max_lines, 1..=10),
             )
-                .on_hover_text("How many lines of subtitles are shown at once");
+            .on_hover_text("How many lines of subtitles are shown at once");
             row(
                 ui,
                 "History Blocks:",
                 Slider::new(&mut settings_ui.max_blocks, 1..=10),
             )
-                .on_hover_text("How much text is kept; raise it if lines vanish too early");
+            .on_hover_text("How much text is kept; raise it if lines vanish too early");
             row(
                 ui,
                 "Font Size:",

@@ -1,10 +1,10 @@
+pub(super) mod about;
 pub(super) mod appearance;
 pub(super) mod audio;
 pub(super) mod general;
 pub(super) mod layout;
 pub(super) mod position;
 pub(super) mod provider;
-pub(super) mod about;
 
 use about::ui_section_about;
 use appearance::ui_section_appearance;
