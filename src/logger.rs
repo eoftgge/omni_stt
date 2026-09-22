@@ -110,7 +110,7 @@ impl TracingControl {
         {
             tracing::error!("Failed to change log level: {e}");
         }
-        self.set_log_to_file(general.log_to_file());
+        self.set_log_to_file(general.log_to_file);
     }
 
     pub fn sync(&mut self, general: &SettingsGeneral) {

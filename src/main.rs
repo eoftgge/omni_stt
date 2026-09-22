@@ -70,7 +70,7 @@ fn select_adapter(
 
 fn run() -> Result<(), OmniSttErrors> {
     let general = logging_settings(CONFIG_PATH);
-    let tracing_control = setup_tracing(general.level(), general.log_to_file(), general);
+    let tracing_control = setup_tracing(general.level(), general.log_to_file, general);
     if !transcript::is_local_offset_known() {
         tracing::warn!("Local timezone unavailable, transcript timestamps will be in UTC");
     }
