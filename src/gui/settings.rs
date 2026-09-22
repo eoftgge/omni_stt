@@ -4,7 +4,9 @@ pub(super) mod general;
 pub(super) mod layout;
 pub(super) mod position;
 pub(super) mod provider;
+pub(super) mod about;
 
+use about::ui_section_about;
 use appearance::ui_section_appearance;
 use audio::ui_section_audio;
 use general::ui_section_general;
@@ -70,6 +72,7 @@ pub fn show_settings_window(
                 );
                 ui_section_position(ui, &mut settings.ui);
                 ui_section_appearance(ui, &mut settings.ui);
+                ui_section_about(ui);
                 ui.allocate_space(vec2(0.0, 60.0));
             });
         });

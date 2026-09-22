@@ -31,7 +31,7 @@ pub(super) fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGen
                     &mut settings_general.save_transcripts,
                 )),
             )
-            .on_hover_text("Append finished subtitles to transcripts/omni.txt");
+            .on_hover_text("Append finished subtitles to transcripts/omni-YYYY-MM-DD.txt");
         });
     });
 }
