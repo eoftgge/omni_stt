@@ -1,15 +1,73 @@
 use crate::transcription::subtitles::SubtitleBlock;
-use std::io::Write;
-use std::sync::OnceLock;
-use time::{OffsetDateTime, UtcOffset};
+use time::{Date, OffsetDateTime, UtcOffset};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 
+use std::io::Write;
+use std::sync::OnceLock;
+
 const DIRECTORY: &str = "transcripts";
-const FILE_NAME: &str = "omni.txt";
+const FILE_STEM: &str = "omni";
+const FILE_EXT: &str = "txt";
 
 /// `Some(None)` means the offset could not be determined and everything falls
 /// back to UTC; still empty means `init_local_offset` was never called.
 static LOCAL_OFFSET: OnceLock<Option<UtcOffset>> = OnceLock::new();
+
+pub struct TranscriptWriter {
+    sink: NonBlocking,
+    _guard: WorkerGuard,
+    day: Date,
+}
+
+impl TranscriptWriter {
+    pub fn open() -> Self {
+        Self::open_for(now().date())
+    }
+
+    pub fn write(&mut self, block: &SubtitleBlock) {
+        let at = now();
+        if at.date() != self.day {
+            *self = Self::open_for(at.date());
+        }
+
+        let stamp = format!("{:02}:{:02}:{:02}", at.hour(), at.minute(), at.second());
+
+        let line = match &block.speaker {
+            Some(speaker) => format!("{stamp}  [{speaker}] {}\n", block.text),
+            None => format!("{stamp}  {}\n", block.text),
+        };
+
+        self.put(&line);
+    }
+
+    fn open_for(day: Date) -> Self {
+        let appender = tracing_appender::rolling::never(DIRECTORY, file_name(day));
+        let (sink, guard) = tracing_appender::non_blocking(appender);
+        let mut writer = Self {
+            sink,
+            _guard: guard,
+            day,
+        };
+
+        let at = now();
+        writer.put(&format!(
+            "\n=== {:04}-{:02}-{:02} {:02}:{:02} ===\n",
+            at.year(),
+            u8::from(at.month()),
+            at.day(),
+            at.hour(),
+            at.minute(),
+        ));
+
+        writer
+    }
+
+    fn put(&mut self, line: &str) {
+        if let Err(e) = self.sink.write_all(line.as_bytes()) {
+            tracing::error!("Failed to write transcript: {e}");
+        }
+    }
+}
 
 /// Reads the machine's UTC offset once, and has to be called from `main`
 /// before a single thread is spawned.
@@ -42,48 +100,16 @@ fn now() -> OffsetDateTime {
     OffsetDateTime::now_utc().to_offset(offset)
 }
 
-pub struct TranscriptWriter {
-    sink: NonBlocking,
-    _guard: WorkerGuard,
-}
-
-impl TranscriptWriter {
-    pub fn open() -> Self {
-        let appender = tracing_appender::rolling::never(DIRECTORY, FILE_NAME);
-        let (sink, guard) = tracing_appender::non_blocking(appender);
-        let mut writer = Self {
-            sink,
-            _guard: guard,
-        };
-
-        let at = now();
-        writer.put(&format!(
-            "\n=== {:04}-{:02}-{:02} {:02}:{:02} ===\n",
-            at.year(),
-            u8::from(at.month()),
-            at.day(),
-            at.hour(),
-            at.minute(),
-        ));
-
-        writer
-    }
-
-    pub fn write(&mut self, block: &SubtitleBlock) {
-        let at = now();
-        let stamp = format!("{:02}:{:02}:{:02}", at.hour(), at.minute(), at.second());
-
-        let line = match &block.speaker {
-            Some(speaker) => format!("{stamp}  [{speaker}] {}\n", block.text),
-            None => format!("{stamp}  {}\n", block.text),
-        };
-
-        self.put(&line);
-    }
-
-    fn put(&mut self, line: &str) {
-        if let Err(e) = self.sink.write_all(line.as_bytes()) {
-            tracing::error!("Failed to write transcript: {e}");
-        }
-    }
+/// `omni-2026-09-22.txt`.
+///
+/// The date goes before the extension on purpose: a name still ending in
+/// `.txt` opens in a text editor on a double click, which is the entire point
+/// of putting the date there in the first place.
+fn file_name(day: Date) -> String {
+    format!(
+        "{FILE_STEM}-{:04}-{:02}-{:02}.{FILE_EXT}",
+        day.year(),
+        u8::from(day.month()),
+        day.day(),
+    )
 }
