@@ -1,4 +1,4 @@
-use super::layout::{row, section, settings_grid, Squared};
+use super::layout::{row, section, settings_grid, Squared, label};
 use crate::settings::{KeyStorage, SettingsProvider};
 use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
 use crate::stt::adapters::vosk::probe::VoskProbe;
@@ -40,23 +40,19 @@ pub(super) fn ui_section_provider(
 
 fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &KeyStorage) {
     settings_grid("soniox_grid").show(ui, |ui| {
-        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-            ui.label("API Key:");
-        });
+        label(ui, "API Key:");
         ui.vertical(|ui| {
             ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
             ui_key_storage_hint(ui, key_storage);
         });
         ui.end_row();
 
-        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-            ui.label("Languages:");
-        });
+        label(ui, "Languages:");
         ui.vertical(|ui| {
             let mut to_remove = None;
             for (i, hint) in soniox.language_hints.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
-                    ui.label(format!("{}.", i + 1));
+                    label(ui, &format!("{}.", i + 1));
                     ui_language_searchable_combo(ui, format!("hint_{}", i), hint);
                     if ui.button("🗑").clicked() {
                         to_remove = Some(i);
@@ -97,9 +93,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
 
 fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe) {
     settings_grid("vosk_grid").show(ui, |ui| {
-        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-            ui.label("Model:");
-        });
+        label(ui, "Model:");
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 let mut path = vosk.model_path.display().to_string();
@@ -122,9 +116,7 @@ fn ui_vosk_settings(ui: &mut Ui, vosk: &mut VoskSettings, probe: &mut VoskProbe)
         });
         ui.end_row();
 
-        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-            ui.label("Library:");
-        });
+        label(ui, "Library:");
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 let mut path = vosk.library_path.display().to_string();

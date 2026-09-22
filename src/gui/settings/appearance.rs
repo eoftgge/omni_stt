@@ -1,4 +1,4 @@
-use super::layout::{row, section, settings_grid, Squared};
+use super::layout::{row, section, settings_grid, Squared, label};
 use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
 use crate::settings::SettingsUI;
 use eframe::egui;
@@ -33,7 +33,7 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
         ui.separator();
 
         settings_grid("color_grid").show(ui, |ui| {
-            ui.label("Background Color:");
+            label(ui, "Background Color:");
             ui.horizontal(|ui| {
                 let color = &mut settings_ui.background_color;
                 if ui.color_edit_button_srgba_unmultiplied(color).changed() {
@@ -45,7 +45,7 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
             });
             ui.end_row();
 
-            ui.label("Text Color:");
+            label(ui, "Text Color:");
             ui.horizontal(|ui| {
                 let color = &mut settings_ui.text_color;
                 if ui.color_edit_button_srgb(color).changed() {

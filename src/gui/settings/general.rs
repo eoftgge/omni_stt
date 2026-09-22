@@ -1,4 +1,4 @@
-use super::layout::{row, section, settings_grid, Squared};
+use super::layout::{row, section, settings_grid, Squared, label};
 use crate::logger::LEVELS;
 use crate::settings::SettingsGeneral;
 use eframe::egui::{Checkbox, ComboBox, Ui};
@@ -6,7 +6,7 @@ use eframe::egui::{Checkbox, ComboBox, Ui};
 pub(super) fn ui_section_general(ui: &mut Ui, settings_general: &mut SettingsGeneral) {
     section(ui, "General", false, |ui| {
         settings_grid("general_grid").show(ui, |ui| {
-            ui.label("Log Level:");
+            label(ui, "Log Level:");
             ComboBox::from_id_salt("log_level")
                 .selected_text(settings_general.level.to_string())
                 .width(80.0)

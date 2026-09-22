@@ -1,4 +1,4 @@
-use super::layout::{row, section, settings_grid};
+use super::layout::{label, row, section, settings_grid};
 use crate::settings::SettingsAudio;
 use crate::transcription::device::MappableAvailableDevices;
 use eframe::egui::{ComboBox, Slider, Ui};
@@ -21,7 +21,7 @@ pub(super) fn ui_section_audio(
                 Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true),
             );
 
-            ui.label("Output Device:");
+            label(ui, "Output Device:");
             let default_label = "System Default";
             let current = settings_audio
                 .device_id()

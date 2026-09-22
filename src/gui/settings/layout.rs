@@ -34,8 +34,8 @@ pub(super) fn section(
     ui.add_space(6.0);
 }
 
-pub(super) fn row(ui: &mut Ui, label: &str, widget: impl egui::Widget) -> Response {
-    let label_response = ui.add(egui::Label::new(label).extend());
+pub(super) fn row(ui: &mut Ui, text: &str, widget: impl egui::Widget) -> Response {
+    let label_response = label(ui, text);
     let widget_response = ui.add(widget);
     ui.end_row();
     label_response | widget_response
@@ -43,4 +43,8 @@ pub(super) fn row(ui: &mut Ui, label: &str, widget: impl egui::Widget) -> Respon
 
 pub(super) fn settings_grid(id: &str) -> Grid {
     Grid::new(id).num_columns(2).spacing([12.0, 10.0])
+}
+
+pub(super) fn label(ui: &mut Ui, text: &str) -> Response {
+    ui.add(egui::Label::new(text).extend())
 }
