@@ -6,14 +6,20 @@ use crate::settings::SettingsApp;
 use crate::subtitles::store::TranscriptionStore;
 use eframe::egui::{Context, ViewportCommand, Visuals, WindowLevel};
 
-fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {
-    // Windows keeps a per-window GDI redirection surface alongside the real
-    // composition, and resizing a layered window from small-and-opaque to
-    // maximized-and-transparent leaves the old bitmap in it forever. The
-    // desktop never shows it, but GDI-path screen capture does — a white
-    // rectangle the size of the settings window. Hiding the window makes the
-    // compositor drop that surface, the same way minimizing does.
-    ctx.send_viewport_cmd(ViewportCommand::Visible(false));
+/// Windows keeps a per-window GDI redirection surface alongside the real
+/// composition, and resizing a layered window from small-and-opaque to
+/// maximized-and-transparent leaves the old bitmap in it forever. The
+/// desktop never shows it, but GDI-path screen capture does — a white
+/// rectangle the size of the settings window. Hiding the window makes the
+/// compositor drop that surface, the same way minimizing does.
+///
+/// Only with DX12 or Vulkan. A GL window (the fallback on AMD, see
+/// `select_adapter`) never becomes visible again after being hidden, and GL
+/// presents through the redirection surface itself, so it has nothing stale.
+fn apply_overlay_window(ctx: &Context, enable_high_priority: bool, hide_during_restyle: bool) {
+    if hide_during_restyle {
+        ctx.send_viewport_cmd(ViewportCommand::Visible(false));
+    }
 
     ctx.send_viewport_cmd(ViewportCommand::Decorations(false));
     ctx.send_viewport_cmd(ViewportCommand::Transparent(true));
@@ -22,8 +28,9 @@ fn apply_overlay_window(ctx: &Context, enable_high_priority: bool) {
     if enable_high_priority {
         ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
     }
-
-    ctx.send_viewport_cmd(ViewportCommand::Visible(true));
+    if hide_during_restyle {
+        ctx.send_viewport_cmd(ViewportCommand::Visible(true));
+    }
 }
 
 fn apply_settings_window(ctx: &Context) {
@@ -39,6 +46,7 @@ fn apply_settings_window(ctx: &Context) {
 pub struct StateManager {
     app_state: AppState,
     pending_state: Option<PendingState>,
+    hide_during_restyle: bool,
 }
 
 pub enum LoadingOutcome {
@@ -61,15 +69,10 @@ pub enum AppState {
     Overlay(Pipeline),
 }
 
-impl Default for StateManager {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl StateManager {
-    pub fn new() -> Self {
+    pub fn new(hide_during_restyle: bool) -> Self {
         Self {
+            hide_during_restyle,
             app_state: AppState::Settings,
             pending_state: Some(PendingState::Settings),
         }
@@ -94,7 +97,7 @@ impl StateManager {
             PendingState::Settings => {
                 store.finish();
                 devices.refresh();
-                resolved.apply_window_state(ctx, settings.ui.enable_high_priority);
+                apply_settings_window(ctx);
                 self.app_state = AppState::Settings;
             }
             PendingState::Overlay => {
@@ -114,7 +117,7 @@ impl StateManager {
                     let result = Pipeline::start(&settings, devices_to_open, move || {
                         ctx_for_service.request_repaint()
                     })
-                    .await;
+                        .await;
                     let _ = tx.send(result);
                 });
 
@@ -136,7 +139,7 @@ impl StateManager {
 
         match rx.try_recv() {
             Ok(Ok(service)) => {
-                apply_overlay_window(ctx, enable_high_priority);
+                apply_overlay_window(ctx, enable_high_priority, self.hide_during_restyle);
                 self.app_state = AppState::Overlay(service);
                 Ok(LoadingOutcome::Ready)
             }
@@ -167,15 +170,6 @@ impl StateManager {
         match self.app_state() {
             AppState::Overlay(_) => [0.0, 0.0, 0.0, 0.0],
             _ => visuals.window_fill().to_normalized_gamma_f32(),
-        }
-    }
-}
-
-impl PendingState {
-    pub fn apply_window_state(&self, ctx: &Context, enable_high_priority: bool) {
-        match self {
-            Self::Settings => apply_settings_window(ctx),
-            Self::Overlay => apply_overlay_window(ctx, enable_high_priority),
         }
     }
 }

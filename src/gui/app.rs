@@ -33,11 +33,12 @@ impl SubtitlesApp {
         settings_manager: SettingsManager,
         tracing_control: TracingControl,
         tray: AppTray,
+        hide_during_restyle: bool,
     ) -> Self {
         Self {
             store: TranscriptionStore::new(settings_manager.settings.ui.max_blocks),
             toasts: Toasts::default(),
-            state_manager: StateManager::new(),
+            state_manager: StateManager::new(hide_during_restyle),
             frame_counter: 0,
             screen: SettingsScreen::new(),
             settings_manager,

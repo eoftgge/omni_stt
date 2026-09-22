@@ -108,9 +108,20 @@ fn run() -> Result<(), OmniSttErrors> {
         Box::new(move |cc| {
             apply_theme(&cc.egui_ctx);
             setup_custom_fonts(&cc.egui_ctx);
+            // See `apply_overlay_window`: hiding clears a screenshot artifact of
+            // flip-model presentation, and a GL window never comes back from it.
+            let hide_during_restyle = cc
+                .wgpu_render_state
+                .as_ref()
+                .is_some_and(|rs| rs.adapter.get_info().backend != wgpu::Backend::Gl);
             let ctx = cc.egui_ctx.clone();
             let tray = AppTray::spawn(tray_icon, ctx);
-            let app = SubtitlesApp::new(settings_manager, tracing_control, tray);
+            let app = SubtitlesApp::new(
+                settings_manager,
+                tracing_control,
+                tray,
+                hide_during_restyle,
+            );
             Ok(Box::new(app))
         }),
     );
