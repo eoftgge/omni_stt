@@ -1,3 +1,4 @@
+
 use crate::audio;
 use crate::audio::device::AvailableDevice;
 use crate::audio::mixer::AudioMixer;
@@ -9,16 +10,29 @@ use crate::stt::event::SttEvent;
 use crate::stt::factory::create_stt_backend;
 use crate::stt::worker::GenericSttWorker;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::{CancellationToken, DropGuard};
 
 const POOL_CAPACITY: usize = 2048;
 
+/// A running capture-to-subtitles pipeline. Read events from it, drop it to
+/// stop everything.
+///
+/// Shutdown rides on the field order below, which is why the fields are
+/// arranged this way rather than by importance.
 pub struct Pipeline {
-    pub(crate) _audio: Vec<AudioSession>,
+    /// Dropped first. Stopping the capture streams closes the channels feeding
+    /// the mixer, and that is the only way the mixer learns to stop — it
+    /// watches no token of its own and ends on its next tick.
+    _captures: Vec<AudioSession>,
+
     pub receiver: Receiver<SttEvent>,
-    _worker_handle: tokio::task::JoinHandle<()>,
-    cancel_token: CancellationToken,
-    proxy_handle: tokio::task::JoinHandle<()>,
+
+    /// Dropped last, cancelling the worker and the event proxy. Both already
+    /// select on this token, so there is nothing left to abort by hand. The
+    /// worker's future dies mid-await, which closes the provider socket
+    /// abruptly rather than with a close frame — deliberate; the server sees
+    /// the dropped connection immediately either way.
+    _shutdown: DropGuard,
 }
 
 impl Pipeline {
@@ -34,7 +48,9 @@ impl Pipeline {
             return Err(OmniSttErrors::NotFoundAudioDevice);
         }
 
-        let cancel_token = CancellationToken::new();
+        let cancel = CancellationToken::new();
+        let worker_cancel = cancel.clone();
+        let proxy_cancel = cancel.clone();
 
         let (tx_worker, mut rx_worker) = channel::<SttEvent>(128);
         let (tx_event, rx_event) = channel::<SttEvent>(128);
@@ -80,8 +96,7 @@ impl Pipeline {
             session.play()?;
         }
 
-        let worker_cancel = cancel_token.clone();
-        let worker_handle = tokio::spawn(async move {
+        tokio::spawn(async move {
             tokio::select! {
                 res = worker.run() => {
                     if let Err(e) = res {
@@ -94,12 +109,13 @@ impl Pipeline {
                 }
             }
         });
-
-        let proxy_cancel = cancel_token.clone();
-        let proxy_handle = tokio::spawn(async move {
+        tokio::spawn(async move {
             loop {
                 tokio::select! {
-                    Some(event) = rx_worker.recv() => {
+                    event = rx_worker.recv() => {
+                        let Some(event) = event else {
+                            break;
+                        };
                         if tx_event.send(event).await.is_err() {
                             break;
                         }
@@ -109,26 +125,14 @@ impl Pipeline {
                         tracing::info!("Proxy task cancelled gracefully");
                         break;
                     }
-                    else => break,
                 }
             }
         });
-
         Ok(Self {
-            _audio: sessions,
-            _worker_handle: worker_handle,
+            _captures: sessions,
             receiver: rx_event,
-            cancel_token,
-            proxy_handle,
+            _shutdown: cancel.drop_guard(),
         })
-    }
-}
-
-impl Drop for Pipeline {
-    fn drop(&mut self) {
-        tracing::debug!("Dropping TranscriptionService, cancelling tasks...");
-        self.cancel_token.cancel();
-        self.proxy_handle.abort();
     }
 }
 
