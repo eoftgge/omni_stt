@@ -93,12 +93,6 @@ impl TranscriptionStore {
         self.max_blocks
     }
 
-    pub fn pop_if_overflow(&mut self) {
-        while self.blocks.len() > self.max_blocks {
-            self.blocks.pop_front();
-        }
-    }
-
     pub fn resize(&mut self, new_max_blocks: usize) {
         self.max_blocks = new_max_blocks;
         self.pop_if_overflow();
@@ -133,6 +127,12 @@ impl TranscriptionStore {
 
     pub fn take_completed(&mut self) -> impl Iterator<Item = SubtitleBlock> + '_ {
         self.completed.drain(..)
+    }
+
+    fn pop_if_overflow(&mut self) {
+        while self.blocks.len() > self.max_blocks {
+            self.blocks.pop_front();
+        }
     }
 
     fn finish_last(&mut self) {
