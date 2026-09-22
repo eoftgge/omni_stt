@@ -1,5 +1,4 @@
-use crate::settings::general::SettingsGeneral;
-use serde::{Deserialize, Serialize};
+use crate::settings::general::{SettingsGeneral, TracingLevel};
 use std::io::Write;
 use std::sync::{Arc, RwLock};
 use tracing::Level;
@@ -30,16 +29,6 @@ pub struct TracingControl {
     sink: Arc<RwLock<Sink>>,
     guard: Option<WorkerGuard>,
     applied: SettingsGeneral,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum TracingLevel {
-    Error,
-    Warn,
-    Info,
-    Debug,
-    Trace,
 }
 
 fn make_sink(log_to_file: bool) -> (Sink, Option<WorkerGuard>) {
@@ -86,19 +75,6 @@ impl From<TracingLevel> for Level {
             TracingLevel::Debug => Self::DEBUG,
             TracingLevel::Trace => Self::TRACE,
         }
-    }
-}
-
-impl std::fmt::Display for TracingLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let level = match self {
-            TracingLevel::Error => "ERROR",
-            TracingLevel::Warn => "WARN",
-            TracingLevel::Info => "INFO",
-            TracingLevel::Debug => "DEBUG",
-            TracingLevel::Trace => "TRACE",
-        };
-        write!(f, "{}", level)
     }
 }
 

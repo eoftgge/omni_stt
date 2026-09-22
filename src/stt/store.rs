@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests;
 
-use crate::stt::data::TranscriptData;
+use crate::event::TranscriptData;
 use crate::stt::subtitles::SubtitleBlock;
 use crate::stt::utils::{is_cjk, is_punctuation_or_symbol};
 use std::collections::VecDeque;

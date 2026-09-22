@@ -1,17 +1,17 @@
-use crate::stt::event::{SttError, SttEvent};
+use crate::event::{PipelineError, PipelineEvent};
 use async_trait::async_trait;
 use std::time::Duration;
 
 #[async_trait]
 pub trait SttBackend: Send + Sync {
-    async fn connect(&self) -> Result<Box<dyn SttSession>, SttError>;
+    async fn connect(&self) -> Result<Box<dyn SttSession>, PipelineError>;
 }
 
 #[async_trait]
 pub trait SttSession: Send {
-    async fn send(&mut self, audio: &[u8]) -> Result<(), SttError>;
-    async fn recv_event(&mut self) -> Result<SttEvent, SttError>;
-    async fn keepalive(&mut self) -> Result<(), SttError> {
+    async fn send(&mut self, audio: &[u8]) -> Result<(), PipelineError>;
+    async fn recv_event(&mut self) -> Result<PipelineEvent, PipelineError>;
+    async fn keepalive(&mut self) -> Result<(), PipelineError> {
         Ok(())
     }
 

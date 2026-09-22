@@ -6,11 +6,11 @@ struct IdleSession;
 
 #[async_trait]
 impl SttSession for IdleSession {
-    async fn send(&mut self, _audio: &[u8]) -> Result<(), SttError> {
+    async fn send(&mut self, _audio: &[u8]) -> Result<(), PipelineError> {
         Ok(())
     }
 
-    async fn recv_event(&mut self) -> Result<SttEvent, SttError> {
+    async fn recv_event(&mut self) -> Result<PipelineEvent, PipelineError> {
         std::future::pending().await
     }
 
@@ -23,8 +23,8 @@ struct UnusedBackend;
 
 #[async_trait]
 impl SttBackend for UnusedBackend {
-    async fn connect(&self) -> Result<Box<dyn SttSession>, SttError> {
-        Err(SttError::ConnectionLost)
+    async fn connect(&self) -> Result<Box<dyn SttSession>, PipelineError> {
+        Err(PipelineError::ConnectionLost)
     }
 }
 

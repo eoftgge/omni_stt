@@ -15,7 +15,7 @@ use crate::audio::device::MappableAvailableDevices;
 use crate::gui::state::{PendingState, StateManager};
 use crate::gui::{Notify, theme};
 use crate::settings::SettingsManager;
-use crate::stt::adapters::types::ProviderType;
+use crate::settings::provider::ProviderType;
 use crate::stt::adapters::vosk::probe::VoskProbe;
 use eframe::egui::{self, Button, ScrollArea, Ui, vec2};
 use egui_toast::Toasts;

@@ -1,19 +1,19 @@
+use crate::event::PipelineError;
 use crate::settings::provider::SettingsProvider;
 use crate::stt::adapters::soniox::SonioxBackend;
 use crate::stt::backend::SttBackend;
-use crate::stt::event::SttError;
 
+use crate::settings::provider::ProviderType;
 use crate::stt::adapters::soniox::request::create_request;
-use crate::stt::adapters::types::ProviderType;
 use crate::stt::adapters::vosk::VoskBackend;
 
 pub async fn create_stt_backend(
     settings_provider: &SettingsProvider,
-) -> Result<Box<dyn SttBackend>, SttError> {
+) -> Result<Box<dyn SttBackend>, PipelineError> {
     match settings_provider.active_type {
         ProviderType::Soniox => {
             let request = create_request(settings_provider.soniox.to_owned()).map_err(|e| {
-                SttError::FatalAPIError(format!("Failed to build Soniox request: {}", e))
+                PipelineError::FatalAPIError(format!("Failed to build Soniox request: {}", e))
             })?;
             Ok(Box::new(SonioxBackend::new(request)))
         }

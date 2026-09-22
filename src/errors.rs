@@ -1,4 +1,4 @@
-use crate::stt::event::SttError;
+use crate::event::PipelineError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -26,7 +26,7 @@ pub enum OmniSttErrors {
     #[error("API error {0}: {1}\nStopping audio...")]
     API(usize, String),
     #[error("Provider error: {0}\nStopping audio...")]
-    App(#[from] SttError),
+    App(#[from] PipelineError),
     #[error("Tray icon error: {0}")]
     Tray(#[from] tray_icon::Error),
     #[error("Invalid tray icon image: {0}")]

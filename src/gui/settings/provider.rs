@@ -1,7 +1,6 @@
 use super::layout::{Squared, label, row, section, settings_grid};
 use crate::settings::KeyStorage;
-use crate::settings::provider::SettingsProvider;
-use crate::stt::adapters::types::{ProviderType, SonioxSettings, VoskSettings};
+use crate::settings::provider::{ProviderType, SettingsProvider, SonioxSettings, VoskSettings};
 use crate::stt::adapters::vosk::probe::VoskProbe;
 use crate::stt::languages::LanguageHint;
 use eframe::egui::{self, Checkbox, Color32, ComboBox, RichText, TextEdit, Ui};

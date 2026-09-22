@@ -3,7 +3,7 @@ pub mod mixer;
 pub mod resample;
 
 use crate::errors::OmniSttErrors;
-use crate::stt::event::SttEvent;
+use crate::event::PipelineEvent;
 use cpal::traits::{DeviceTrait, StreamTrait};
 use cpal::{Device, Error, ErrorKind, Stream, StreamConfig};
 use tokio::sync::mpsc::error::TrySendError;
@@ -40,7 +40,7 @@ impl AudioSession {
         mut converter: AudioConverter,
         tx_audio: Sender<AudioSample>,
         mut rx_recycle: Receiver<AudioSample>,
-        tx_event: Sender<SttEvent>,
+        tx_event: Sender<PipelineEvent>,
     ) -> Result<Self, OmniSttErrors> {
         let target_samples = 3200;
         let mut accumulator = Vec::with_capacity(target_samples);
@@ -87,7 +87,7 @@ impl AudioSession {
 /// cpal calls this from the audio thread and never restarts the stream
 /// afterwards, so a single error ends the session. The latch keeps a backend
 /// that reports repeatedly from stacking toasts on the user.
-fn audio_error_callback(tx_event: Sender<SttEvent>) -> impl FnMut(Error) + Send + 'static {
+fn audio_error_callback(tx_event: Sender<PipelineEvent>) -> impl FnMut(Error) + Send + 'static {
     let mut reported = false;
 
     move |err| {
@@ -109,7 +109,7 @@ fn audio_error_callback(tx_event: Sender<SttEvent>) -> impl FnMut(Error) + Send 
             _ => format!("Audio capture failed: {err}"),
         };
 
-        let _ = tx_event.try_send(SttEvent::AudioLost(text));
+        let _ = tx_event.try_send(PipelineEvent::AudioLost(text));
     }
 }
 

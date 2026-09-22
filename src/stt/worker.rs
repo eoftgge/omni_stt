@@ -2,9 +2,9 @@
 mod tests;
 
 use crate::audio::AudioSample;
+use crate::event::{PipelineError, PipelineEvent};
 use crate::stt::action::StreamAction;
 use crate::stt::backend::{SttBackend, SttSession};
-use crate::stt::event::{SttError, SttEvent};
 use crate::stt::utils::{is_silent, rms};
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -17,7 +17,7 @@ const PING_INTERVAL: Duration = Duration::from_secs(10);
 pub struct GenericSttWorker {
     rx_audio: Receiver<AudioSample>,
     tx_recycle: Sender<AudioSample>,
-    tx_event: Sender<SttEvent>,
+    tx_event: Sender<PipelineEvent>,
     hangover_chunks_limit: usize,
     vad_threshold: u32,
     backend: Box<dyn SttBackend>,
@@ -27,7 +27,7 @@ impl GenericSttWorker {
     pub fn new(
         rx_audio: Receiver<AudioSample>,
         tx_recycle: Sender<AudioSample>,
-        tx_event: Sender<SttEvent>,
+        tx_event: Sender<PipelineEvent>,
         hangover_chunks_limit: usize,
         vad_threshold: u32,
         backend: Box<dyn SttBackend>,
@@ -42,7 +42,7 @@ impl GenericSttWorker {
         }
     }
 
-    pub(crate) async fn run(mut self) -> Result<(), SttError> {
+    pub(crate) async fn run(mut self) -> Result<(), PipelineError> {
         let mut retry_count = 0;
         let mut flag_first_connection = true;
 
@@ -64,7 +64,7 @@ impl GenericSttWorker {
                 }
                 Err(e) => {
                     tracing::error!("Fatal connect error: {:?}", e);
-                    let _ = self.tx_event.send(SttEvent::Error(e)).await;
+                    let _ = self.tx_event.send(PipelineEvent::Error(e)).await;
                     return Ok(());
                 }
             };
@@ -81,7 +81,7 @@ impl GenericSttWorker {
 
             let _ = self
                 .tx_event
-                .send(SttEvent::Connected(flag_first_connection))
+                .send(PipelineEvent::Connected(flag_first_connection))
                 .await;
             flag_first_connection = false;
 
@@ -139,38 +139,38 @@ impl GenericSttWorker {
 
                 event_result = session.recv_event() => {
                     match event_result {
-                        Ok(SttEvent::Transcript(data)) => {
+                        Ok(PipelineEvent::Transcript(data)) => {
                             transcribed = true;
-                            let _ = self.tx_event.send(SttEvent::Transcript(data)).await;
+                            let _ = self.tx_event.send(PipelineEvent::Transcript(data)).await;
                         },
-                        Ok(SttEvent::Interim(segments)) => {
+                        Ok(PipelineEvent::Interim(segments)) => {
                             if !segments.is_empty() { transcribed = true; }
-                            let _ = self.tx_event.send(SttEvent::Interim(segments)).await;
+                            let _ = self.tx_event.send(PipelineEvent::Interim(segments)).await;
                         },
-                        Ok(SttEvent::Warning(msg)) => {
+                        Ok(PipelineEvent::Warning(msg)) => {
                             tracing::warn!("Provider warning: {}", msg);
-                            let _ = self.tx_event.send(SttEvent::Warning(msg)).await;
+                            let _ = self.tx_event.send(PipelineEvent::Warning(msg)).await;
                         },
-                        Ok(SttEvent::Error(e)) => {
+                        Ok(PipelineEvent::Error(e)) => {
                             tracing::error!("Provider error event: {:?}", e);
-                            let _ = self.tx_event.send(SttEvent::Error(e)).await;
+                            let _ = self.tx_event.send(PipelineEvent::Error(e)).await;
                             return StreamAction::Stop;
                         }
-                        Ok(SttEvent::Connected(_)) => {},
-                        Ok(SttEvent::Disconnected) => {
-                            let _ = self.tx_event.send(SttEvent::Disconnected).await;
+                        Ok(PipelineEvent::Connected(_)) => {},
+                        Ok(PipelineEvent::Disconnected) => {
+                            let _ = self.tx_event.send(PipelineEvent::Disconnected).await;
                             return StreamAction::Reconnect { transcribed } ;
                         },
                         // a backend never emits this: AudioSession reports
                         // device loss straight to the GUI, bypassing the worker
-                        Ok(SttEvent::AudioLost(_)) => {}
+                        Ok(PipelineEvent::AudioLost(_)) => {}
                         Err(e) if e.is_reconnect() => {
                             tracing::warn!("Recoverable error: {}", e);
                             return StreamAction::Reconnect { transcribed } ;
                         }
                         Err(e) => {
                             tracing::error!("Fatal API Error: {:?}", e);
-                            let _ = self.tx_event.send(SttEvent::Error(e)).await;
+                            let _ = self.tx_event.send(PipelineEvent::Error(e)).await;
                             return StreamAction::Stop;
                         }
                     }
@@ -189,12 +189,12 @@ impl GenericSttWorker {
         }
     }
 
-    async fn handle_reconnect(&self, retry_count: &mut u32) -> Result<(), SttError> {
+    async fn handle_reconnect(&self, retry_count: &mut u32) -> Result<(), PipelineError> {
         sleep(Duration::from_millis(RECONNECT_DELAY)).await;
         *retry_count += 1;
 
         if *retry_count > MAX_RETRIES {
-            return Err(SttError::ConnectionLost);
+            return Err(PipelineError::ConnectionLost);
         }
         Ok(())
     }

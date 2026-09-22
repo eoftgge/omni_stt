@@ -1,3 +1,4 @@
+use crate::event::PipelineEvent;
 use crate::gui::Notify;
 use crate::gui::overlay::draw_subtitles;
 use crate::gui::settings::{SettingsScreen, show_settings_window};
@@ -6,7 +7,6 @@ use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
 use crate::pipeline::Pipeline;
 use crate::settings::SettingsManager;
-use crate::stt::event::SttEvent;
 use crate::stt::store::TranscriptionStore;
 use crate::stt::transcript::TranscriptWriter;
 use eframe::App;
@@ -189,20 +189,20 @@ fn sync_transcript(writer: &mut Option<TranscriptWriter>, enabled: bool) {
 fn process_events(service: &mut Pipeline, store: &mut TranscriptionStore, toasts: &mut Toasts) {
     while let Ok(event) = service.receiver.try_recv() {
         match event {
-            SttEvent::Transcript(data) => {
+            PipelineEvent::Transcript(data) => {
                 store.update(data);
             }
-            SttEvent::Interim(segments) => store.update_interim(segments),
-            SttEvent::Warning(msg) => toasts.warn(msg),
-            SttEvent::Error(err) => toasts.error(err.to_string()),
-            SttEvent::AudioLost(msg) => toasts.error(msg),
-            SttEvent::Connected(flag_first_connection) => {
+            PipelineEvent::Interim(segments) => store.update_interim(segments),
+            PipelineEvent::Warning(msg) => toasts.warn(msg),
+            PipelineEvent::Error(err) => toasts.error(err.to_string()),
+            PipelineEvent::AudioLost(msg) => toasts.error(msg),
+            PipelineEvent::Connected(flag_first_connection) => {
                 store.ensure_separator();
                 if flag_first_connection {
                     toasts.info("Connected to speech server!");
                 }
             }
-            SttEvent::Disconnected => {
+            PipelineEvent::Disconnected => {
                 // deliberately shorter than the warning default: this fires on
                 // every reconnect and would be obtrusive at five seconds
                 toasts.notify(ToastKind::Warning, 2.0, "Connection lost. Reconnecting...");

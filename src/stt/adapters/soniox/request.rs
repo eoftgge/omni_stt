@@ -1,8 +1,8 @@
 use super::types::{SonioxTranscriptionRequest, SonioxTranslationObject};
 use crate::errors::OmniSttErrors;
+use crate::settings::provider::SonioxSettings;
 use crate::settings::secret::Secret;
 use crate::stt::adapters::soniox::MODEL;
-use crate::stt::adapters::types::SonioxSettings;
 use std::sync::Arc;
 
 pub(crate) fn create_request(

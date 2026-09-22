@@ -1,4 +1,3 @@
-use crate::logger::TracingLevel;
 use serde::{Deserialize, Serialize};
 use tracing::Level;
 
@@ -23,5 +22,28 @@ impl Default for SettingsGeneral {
 impl SettingsGeneral {
     pub fn level(&self) -> Level {
         Level::from(self.level)
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TracingLevel {
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
+}
+
+impl std::fmt::Display for TracingLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let level = match self {
+            TracingLevel::Error => "ERROR",
+            TracingLevel::Warn => "WARN",
+            TracingLevel::Info => "INFO",
+            TracingLevel::Debug => "DEBUG",
+            TracingLevel::Trace => "TRACE",
+        };
+        write!(f, "{}", level)
     }
 }

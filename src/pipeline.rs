@@ -4,8 +4,8 @@ use crate::audio::mixer::AudioMixer;
 use crate::audio::resample::AudioConverter;
 use crate::audio::{AudioSample, AudioSession};
 use crate::errors::OmniSttErrors;
+use crate::event::PipelineEvent;
 use crate::settings::SettingsApp;
-use crate::stt::event::SttEvent;
 use crate::stt::factory::create_stt_backend;
 use crate::stt::worker::GenericSttWorker;
 use tokio::sync::mpsc::{Receiver, Sender, channel};
@@ -24,7 +24,7 @@ pub struct Pipeline {
     /// watches no token of its own and ends on its next tick.
     _captures: Vec<AudioSession>,
 
-    pub receiver: Receiver<SttEvent>,
+    pub receiver: Receiver<PipelineEvent>,
 
     /// Dropped last, cancelling the worker and the event proxy. Both already
     /// select on this token, so there is nothing left to abort by hand. The
@@ -51,8 +51,8 @@ impl Pipeline {
         let worker_cancel = cancel.clone();
         let proxy_cancel = cancel.clone();
 
-        let (tx_worker, mut rx_worker) = channel::<SttEvent>(128);
-        let (tx_event, rx_event) = channel::<SttEvent>(128);
+        let (tx_worker, mut rx_worker) = channel::<PipelineEvent>(128);
+        let (tx_event, rx_event) = channel::<PipelineEvent>(128);
         let (tx_recycle, rx_recycle) = channel::<AudioSample>(POOL_CAPACITY);
         let (tx_mixed, rx_mixed) = channel::<AudioSample>(POOL_CAPACITY);
 
@@ -100,7 +100,7 @@ impl Pipeline {
                 res = worker.run() => {
                     if let Err(e) = res {
                         tracing::error!("Worker error: {:?}", e);
-                        let _ = tx_worker.send(SttEvent::Error(e)).await;
+                        let _ = tx_worker.send(PipelineEvent::Error(e)).await;
                     }
                 }
                 _ = worker_cancel.cancelled() => {
@@ -140,7 +140,7 @@ fn open_capture(
     target_peak: f32,
     tx_audio: Sender<AudioSample>,
     rx_recycle: Receiver<AudioSample>,
-    tx_event: Sender<SttEvent>,
+    tx_event: Sender<PipelineEvent>,
 ) -> Result<AudioSession, OmniSttErrors> {
     let config = device.stream_config()?;
 

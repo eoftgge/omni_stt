@@ -15,12 +15,12 @@ enum Seen {
     Interim(Vec<(Option<String>, String)>),
 }
 
-fn seen_events(queue: &mut VecDeque<SttEvent>) -> Vec<Seen> {
+fn seen_events(queue: &mut VecDeque<PipelineEvent>) -> Vec<Seen> {
     queue
         .drain(..)
         .filter_map(|e| match e {
-            SttEvent::Transcript(d) => Some(Seen::Final(d.speaker, d.text)),
-            SttEvent::Interim(v) => Some(Seen::Interim(
+            PipelineEvent::Transcript(d) => Some(Seen::Final(d.speaker, d.text)),
+            PipelineEvent::Interim(v) => Some(Seen::Interim(
                 v.into_iter().map(|d| (d.speaker, d.text)).collect(),
             )),
             _ => None,

@@ -5,6 +5,7 @@ pub mod logger;
 pub mod pipeline;
 pub mod settings;
 pub mod stt;
+pub mod event;
 
 pub const SETTINGS_WINDOW_SIZE: eframe::egui::Vec2 = eframe::egui::Vec2::new(400.0, 600.0);
 pub const TOOLTIP: &str = "OmniSTT";

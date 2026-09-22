@@ -11,8 +11,9 @@ use std::collections::VecDeque;
 use tungstenite::{Bytes, Message};
 
 use crate::errors::OmniSttErrors;
+use crate::event::{PipelineError, PipelineEvent, TranscriptData};
 use crate::stt::adapters::soniox::types::SonioxTranscriptionToken;
-use crate::stt::prelude::{SttBackend, SttError, SttEvent, SttSession, TranscriptData};
+use crate::stt::prelude::{SttBackend, SttSession};
 use connection::SonioxConnection;
 use session::{SonioxSessionReader, SonioxSessionWriter};
 use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
@@ -23,18 +24,18 @@ const MODEL: &str = "stt-rt-v4";
 const READ_TIMEOUT: std::time::Duration = std::time::Duration::from_mins(1);
 const IDLE_CLOSE: std::time::Duration = std::time::Duration::from_secs(15);
 
-fn classify_connect_error(err: OmniSttErrors) -> SttError {
+fn classify_connect_error(err: OmniSttErrors) -> PipelineError {
     match err {
         OmniSttErrors::WebSocket(tungstenite::Error::Http(resp))
             if matches!(resp.status().as_u16(), 400 | 401 | 403) =>
         {
-            SttError::FatalAPIError(format!("Handshake rejected: {}", resp.status()))
+            PipelineError::FatalAPIError(format!("Handshake rejected: {}", resp.status()))
         }
-        other => SttError::RecoverableAPIError(other.to_string()),
+        other => PipelineError::RecoverableAPIError(other.to_string()),
     }
 }
 
-fn push_token_events(tokens: Vec<SonioxTranscriptionToken>, queue: &mut VecDeque<SttEvent>) {
+fn push_token_events(tokens: Vec<SonioxTranscriptionToken>, queue: &mut VecDeque<PipelineEvent>) {
     let had_tokens = !tokens.is_empty();
     let mut final_text = String::new();
     let mut interim_text = String::new();
@@ -75,7 +76,7 @@ fn push_token_events(tokens: Vec<SonioxTranscriptionToken>, queue: &mut VecDeque
     );
 
     if had_tokens {
-        queue.push_back(SttEvent::Interim(interims));
+        queue.push_back(PipelineEvent::Interim(interims));
     }
 }
 
@@ -83,11 +84,11 @@ fn flush_buffers(
     final_text: &mut String,
     interim_text: &mut String,
     speaker: &Option<String>,
-    queue: &mut VecDeque<SttEvent>,
+    queue: &mut VecDeque<PipelineEvent>,
     interims: &mut Vec<TranscriptData>,
 ) {
     if !final_text.is_empty() {
-        queue.push_back(SttEvent::Transcript(TranscriptData {
+        queue.push_back(PipelineEvent::Transcript(TranscriptData {
             text: std::mem::take(final_text),
             speaker: speaker.clone(),
         }));
@@ -107,7 +108,7 @@ pub struct SonioxBackend {
 pub struct SonioxSession {
     pub(super) writer: SonioxSessionWriter,
     pub(super) reader: SonioxSessionReader,
-    pub(super) event_queue: VecDeque<SttEvent>,
+    pub(super) event_queue: VecDeque<PipelineEvent>,
     pub(super) deadline: tokio::time::Instant,
 }
 
@@ -119,7 +120,7 @@ impl SonioxBackend {
 
 #[async_trait]
 impl SttBackend for SonioxBackend {
-    async fn connect(&self) -> Result<Box<dyn SttSession>, SttError> {
+    async fn connect(&self) -> Result<Box<dyn SttSession>, PipelineError> {
         let conn = SonioxConnection::connect(URL)
             .await
             .map_err(classify_connect_error)?;
@@ -138,7 +139,7 @@ impl SttBackend for SonioxBackend {
 }
 
 impl SonioxSession {
-    async fn handle_ws_message(&mut self, msg: Message) -> Result<Option<SttEvent>, SttError> {
+    async fn handle_ws_message(&mut self, msg: Message) -> Result<Option<PipelineEvent>, PipelineError> {
         match msg {
             Message::Text(txt) => self.handle_text_message(&txt),
             Message::Ping(data) => {
@@ -151,16 +152,16 @@ impl SonioxSession {
             }
             Message::Close(_) => {
                 tracing::warn!("Server sent Close frame");
-                Ok(Some(SttEvent::Disconnected))
+                Ok(Some(PipelineEvent::Disconnected))
             }
             _ => Ok(None),
         }
     }
 
-    fn handle_text_message(&mut self, txt: &str) -> Result<Option<SttEvent>, SttError> {
+    fn handle_text_message(&mut self, txt: &str) -> Result<Option<PipelineEvent>, PipelineError> {
         tracing::debug!("soniox raw: {txt}");
         let parsed_msg: SonioxTranscriptionMessage = serde_json::from_str(txt)
-            .map_err(|e| SttError::FatalAPIError(format!("JSON parse error: {}", e)))?;
+            .map_err(|e| PipelineError::FatalAPIError(format!("JSON parse error: {}", e)))?;
 
         match parsed_msg {
             SonioxTranscriptionMessage::Response(r) => {
@@ -169,9 +170,9 @@ impl SonioxSession {
             }
             SonioxTranscriptionMessage::Error(e) => {
                 if ERROR_CODES_RECONNECT.contains(&e.error_code) {
-                    Err(SttError::RecoverableAPIError(e.error_message))
+                    Err(PipelineError::RecoverableAPIError(e.error_message))
                 } else {
-                    Err(SttError::FatalAPIError(e.error_message))
+                    Err(PipelineError::FatalAPIError(e.error_message))
                 }
             }
         }
@@ -180,14 +181,14 @@ impl SonioxSession {
 
 #[async_trait]
 impl SttSession for SonioxSession {
-    async fn send(&mut self, audio: &[u8]) -> Result<(), SttError> {
+    async fn send(&mut self, audio: &[u8]) -> Result<(), PipelineError> {
         self.writer
             .send_bytes(Bytes::copy_from_slice(audio))
             .await
-            .map_err(|_| SttError::ConnectionLost)
+            .map_err(|_| PipelineError::ConnectionLost)
     }
 
-    async fn recv_event(&mut self) -> Result<SttEvent, SttError> {
+    async fn recv_event(&mut self) -> Result<PipelineEvent, PipelineError> {
         if let Some(event) = self.event_queue.pop_front() {
             return Ok(event);
         }
@@ -196,11 +197,11 @@ impl SttSession for SonioxSession {
             let msg = tokio::select! {
                 res = self.reader.recv_message() => res.map_err(|e| {
                     tracing::error!("WS Error/EOF: {e}");
-                    SttError::ConnectionLost
+                    PipelineError::ConnectionLost
                 })?,
                 _ = tokio::time::sleep_until(self.deadline) => {
                     tracing::warn!("No frames from Soniox for {READ_TIMEOUT:?}");
-                    return Err(SttError::ConnectionLost);
+                    return Err(PipelineError::ConnectionLost);
                 }
             };
 
@@ -211,11 +212,11 @@ impl SttSession for SonioxSession {
         }
     }
 
-    async fn keepalive(&mut self) -> Result<(), SttError> {
+    async fn keepalive(&mut self) -> Result<(), PipelineError> {
         self.writer
             .send_ping()
             .await
-            .map_err(|_| SttError::ConnectionLost)
+            .map_err(|_| PipelineError::ConnectionLost)
     }
 
     fn idle_timeout(&self) -> Option<std::time::Duration> {

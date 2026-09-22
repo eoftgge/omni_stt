@@ -3,12 +3,12 @@ pub mod model;
 pub mod probe;
 pub mod types;
 
+use crate::event::TranscriptData;
+use crate::event::{PipelineError, PipelineEvent};
 use crate::stt::adapters::vosk::ffi::VoskApi;
 use crate::stt::adapters::vosk::model::{Decoding, Model, Recognizer};
 use crate::stt::adapters::vosk::types::{VoskPartial, VoskText};
 use crate::stt::backend::{SttBackend, SttSession};
-use crate::stt::data::TranscriptData;
-use crate::stt::event::{SttError, SttEvent};
 use async_trait::async_trait;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -27,12 +27,12 @@ fn parse<T: serde::de::DeserializeOwned>(json: &str) -> Option<T> {
 fn run_recognition_loop(
     model: Arc<Model>,
     mut audio_rx: Receiver<Vec<i16>>,
-    event_tx: Sender<SttEvent>,
+    event_tx: Sender<PipelineEvent>,
 ) {
     let mut recognizer = match Recognizer::new(model, 16000.0) {
         Ok(r) => r,
         Err(e) => {
-            let _ = event_tx.blocking_send(SttEvent::Error(SttError::FatalAPIError(e)));
+            let _ = event_tx.blocking_send(PipelineEvent::Error(PipelineError::FatalAPIError(e)));
             return;
         }
     };
@@ -49,7 +49,7 @@ fn run_recognition_loop(
     if let Some(parsed) = parse::<VoskText>(&recognizer.final_result()) {
         let text = parsed.text.trim();
         if !text.is_empty() {
-            let _ = event_tx.blocking_send(SttEvent::Transcript(TranscriptData {
+            let _ = event_tx.blocking_send(PipelineEvent::Transcript(TranscriptData {
                 text: format!("{text} "),
                 speaker: None,
             }));
@@ -57,7 +57,7 @@ fn run_recognition_loop(
     }
 }
 
-fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent> {
+fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<PipelineEvent> {
     match recognizer.accept(chunk) {
         Decoding::Final => {
             let parsed: VoskText = parse(&recognizer.result())?;
@@ -65,7 +65,7 @@ fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent>
             if text.is_empty() {
                 return None;
             }
-            Some(SttEvent::Transcript(TranscriptData {
+            Some(PipelineEvent::Transcript(TranscriptData {
                 text: format!("{text} "),
                 speaker: None,
             }))
@@ -76,7 +76,7 @@ fn process_chunk(recognizer: &mut Recognizer, chunk: &[i16]) -> Option<SttEvent>
             if text.is_empty() {
                 return None;
             }
-            Some(SttEvent::Interim(vec![TranscriptData {
+            Some(PipelineEvent::Interim(vec![TranscriptData {
                 text: text.into(),
                 speaker: None,
             }]))
@@ -96,7 +96,7 @@ impl VoskBackend {
     pub async fn new(
         model_path: impl Into<PathBuf>,
         library_path: Option<PathBuf>,
-    ) -> Result<Self, SttError> {
+    ) -> Result<Self, PipelineError> {
         let model_path = model_path.into();
 
         let model = tokio::task::spawn_blocking(move || {
@@ -104,8 +104,8 @@ impl VoskBackend {
             Model::load(Arc::new(api), &model_path)
         })
         .await
-        .map_err(|_| SttError::FatalAPIError("Vosk load task panicked".into()))?
-        .map_err(SttError::FatalAPIError)?;
+        .map_err(|_| PipelineError::FatalAPIError("Vosk load task panicked".into()))?
+        .map_err(PipelineError::FatalAPIError)?;
 
         Ok(Self {
             model: Arc::new(model),
@@ -115,11 +115,11 @@ impl VoskBackend {
 
 #[async_trait]
 impl SttBackend for VoskBackend {
-    async fn connect(&self) -> Result<Box<dyn SttSession>, SttError> {
+    async fn connect(&self) -> Result<Box<dyn SttSession>, PipelineError> {
         let model = Arc::clone(&self.model);
 
         let (audio_tx, audio_rx) = channel::<Vec<i16>>(100);
-        let (event_tx, event_rx) = channel::<SttEvent>(100);
+        let (event_tx, event_rx) = channel::<PipelineEvent>(100);
 
         tokio::task::spawn_blocking(move || run_recognition_loop(model, audio_rx, event_tx));
         Ok(Box::new(VoskSession { audio_tx, event_rx }))
@@ -128,23 +128,23 @@ impl SttBackend for VoskBackend {
 
 pub struct VoskSession {
     pub(super) audio_tx: Sender<Vec<i16>>,
-    pub(super) event_rx: Receiver<SttEvent>,
+    pub(super) event_rx: Receiver<PipelineEvent>,
 }
 
 #[async_trait]
 impl SttSession for VoskSession {
-    async fn send(&mut self, audio: &[u8]) -> Result<(), SttError> {
+    async fn send(&mut self, audio: &[u8]) -> Result<(), PipelineError> {
         let audio_i16: &[i16] = bytemuck::cast_slice(audio);
         self.audio_tx
             .send(audio_i16.to_vec())
             .await
-            .map_err(|_| SttError::FatalAPIError("Vosk audio channel closed".into()))
+            .map_err(|_| PipelineError::FatalAPIError("Vosk audio channel closed".into()))
     }
 
-    async fn recv_event(&mut self) -> Result<SttEvent, SttError> {
+    async fn recv_event(&mut self) -> Result<PipelineEvent, PipelineError> {
         self.event_rx
             .recv()
             .await
-            .ok_or_else(|| SttError::FatalAPIError("Vosk event channel closed".into()))
+            .ok_or_else(|| PipelineError::FatalAPIError("Vosk event channel closed".into()))
     }
 }
