@@ -39,8 +39,8 @@ fn apply_settings_window(ctx: &Context) {
     ctx.send_viewport_cmd(ViewportCommand::MousePassthrough(false));
     ctx.send_viewport_cmd(ViewportCommand::Resizable(false));
     ctx.send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::Normal));
-    ctx.send_viewport_cmd(ViewportCommand::Maximized(false)); // + новое
-    ctx.send_viewport_cmd(ViewportCommand::InnerSize(SETTINGS_WINDOW_SIZE)); // + новое
+    ctx.send_viewport_cmd(ViewportCommand::Maximized(false));
+    ctx.send_viewport_cmd(ViewportCommand::InnerSize(SETTINGS_WINDOW_SIZE));
 }
 
 pub struct StateManager {
@@ -117,7 +117,7 @@ impl StateManager {
                     let result = Pipeline::start(&settings, devices_to_open, move || {
                         ctx_for_service.request_repaint()
                     })
-                        .await;
+                    .await;
                     let _ = tx.send(result);
                 });
 

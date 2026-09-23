@@ -38,18 +38,18 @@ fn select_adapter(
 ) -> Result<wgpu::Adapter, String> {
     if let Some(surface) = surface
         && let Some(adapter) = adapters.iter().find(|adapter| {
-        surface
-            .get_capabilities(adapter)
-            .alpha_modes
-            .iter()
-            .any(|mode| {
-                matches!(
+            surface
+                .get_capabilities(adapter)
+                .alpha_modes
+                .iter()
+                .any(|mode| {
+                    matches!(
                         mode,
                         wgpu::CompositeAlphaMode::PreMultiplied
                             | wgpu::CompositeAlphaMode::PostMultiplied
                     )
-            })
-    })
+                })
+        })
     {
         let info = adapter.get_info();
         tracing::info!(
@@ -116,12 +116,8 @@ fn run() -> Result<(), OmniSttErrors> {
                 .is_some_and(|rs| rs.adapter.get_info().backend != wgpu::Backend::Gl);
             let ctx = cc.egui_ctx.clone();
             let tray = AppTray::spawn(tray_icon, ctx);
-            let app = SubtitlesApp::new(
-                settings_manager,
-                tracing_control,
-                tray,
-                hide_during_restyle,
-            );
+            let app =
+                SubtitlesApp::new(settings_manager, tracing_control, tray, hide_during_restyle);
             Ok(Box::new(app))
         }),
     );
