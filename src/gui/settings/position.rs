@@ -1,7 +1,7 @@
 use super::layout::{label, section, settings_grid};
+use crate::gui::monitor::Monitor;
 use crate::settings::anchor::Anchor;
 use crate::settings::ui::SettingsUI;
-use crate::gui::monitor::Monitor;
 use eframe::egui::{self, Button, ComboBox, DragValue, Grid, Response, RichText, Ui, vec2};
 
 const SAME_AS_SETTINGS: &str = "Same as settings window";
@@ -34,7 +34,7 @@ pub(super) fn ui_section_position(
                         );
                     }
                 });
-            
+
             // Re-list on every open: the projector is usually plugged in after
             // the app has started.
             if combo.response.clicked() {

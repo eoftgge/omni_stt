@@ -1,11 +1,11 @@
 use crate::SETTINGS_WINDOW_SIZE;
 use crate::audio::device::MappableAvailableDevices;
 use crate::errors::OmniSttErrors;
+use crate::gui::monitor;
 use crate::pipeline::Pipeline;
 use crate::settings::SettingsApp;
 use crate::settings::ui::SettingsUI;
 use crate::subtitles::store::TranscriptionStore;
-use crate::gui::monitor;
 use eframe::egui::{Context, Pos2, ViewportCommand, Visuals, WindowLevel};
 
 /// Windows keeps a per-window GDI redirection surface alongside the real
@@ -152,7 +152,7 @@ impl StateManager {
         &mut self,
         ctx: &Context,
         settings: &SettingsUI,
-    ) -> Result<LoadingOutcome, OmniSttErrors> { 
+    ) -> Result<LoadingOutcome, OmniSttErrors> {
         let AppState::Loading { rx } = &mut self.app_state else {
             return Ok(LoadingOutcome::Idle);
         };

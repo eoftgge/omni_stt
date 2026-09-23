@@ -14,9 +14,9 @@ use position::ui_section_position;
 use provider::ui_section_provider;
 
 use crate::audio::device::MappableAvailableDevices;
+use crate::gui::monitor::Monitor;
 use crate::gui::state::{PendingState, StateManager};
 use crate::gui::{Notify, theme};
-use crate::gui::monitor::Monitor;
 use crate::settings::SettingsManager;
 use crate::settings::provider::ProviderType;
 use crate::stt::adapters::vosk::probe::VoskProbe;
