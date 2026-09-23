@@ -228,7 +228,7 @@ DEALINGS IN THE FONT SOFTWARE.
 (Apache-2.0 OR MIT) AND OFL-1.1 AND Ubuntu-font-1.0 (1): epaint_default_fonts
 (Apache-2.0 OR MIT) AND Unicode-3.0 (1): unicode-ident
 0BSD OR Apache-2.0 OR MIT (1): adler2
-Apache-2.0 (15): ab_glyph, ab_glyph_rasterizer, accesskit_winit, codespan-reporting, cpal, gethostname, glutin, glutin_egl_sys, glutin_glx_sys, glutin_wgl_sys, openssl, owned_ttf_parser, spirv, unicode-general-category, winit
+Apache-2.0 (15): ab_glyph, ab_glyph_rasterizer, accesskit_winit, codespan-reporting, cpal, gethostname, glutin, glutin_egl_sys, glutin_glx_sys, glutin_wgl_sys, openssl, owned_ttf_parser, spirv, unicode-general-category, winit, display-info
 Apache-2.0 AND MIT (1): dpi
 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT (7): linux-raw-sys, linux-raw-sys, rustix, rustix, wasi, wasip2, wit-bindgen
 Apache-2.0 OR BSD-2-Clause OR MIT (3): mach2, zerocopy, zerocopy-derive
