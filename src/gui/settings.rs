@@ -16,6 +16,7 @@ use provider::ui_section_provider;
 use crate::audio::device::MappableAvailableDevices;
 use crate::gui::state::{PendingState, StateManager};
 use crate::gui::{Notify, theme};
+use crate::gui::monitor::Monitor;
 use crate::settings::SettingsManager;
 use crate::settings::provider::ProviderType;
 use crate::stt::adapters::vosk::probe::VoskProbe;
@@ -25,6 +26,7 @@ use egui_toast::Toasts;
 pub struct SettingsScreen {
     pub devices: MappableAvailableDevices,
     pub vosk_probe: VoskProbe,
+    pub monitors: Vec<Monitor>,
 }
 
 impl SettingsScreen {
@@ -32,6 +34,7 @@ impl SettingsScreen {
         Self {
             devices: MappableAvailableDevices::from_default_host(),
             vosk_probe: VoskProbe::default(),
+            monitors: Monitor::list(),
         }
     }
 }
@@ -70,7 +73,7 @@ pub fn show_settings_window(
                     key_storage,
                     &mut screen.vosk_probe,
                 );
-                ui_section_position(ui, &mut settings.ui);
+                ui_section_position(ui, &mut settings.ui, &mut screen.monitors);
                 ui_section_appearance(ui, &mut settings.ui);
                 ui_section_about(ui);
                 ui.allocate_space(vec2(0.0, 60.0));

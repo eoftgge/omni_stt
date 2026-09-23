@@ -6,5 +6,6 @@ pub mod state;
 pub mod theme;
 pub mod toast;
 pub mod tray;
+pub mod monitor;
 
 pub use crate::gui::toast::Notify;

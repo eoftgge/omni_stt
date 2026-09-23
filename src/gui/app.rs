@@ -78,7 +78,7 @@ impl App for SubtitlesApp {
             self.toasts.error(format!("{err:?}"));
         }
 
-        match state_manager.poll_loading(ui.ctx(), settings.ui.enable_high_priority) {
+        match state_manager.poll_loading(ui.ctx(), &settings.ui) {
             Ok(LoadingOutcome::Ready) => self.toasts.info("Starting subtitles overlay..."),
             Ok(_) => {}
             Err(e) => self.toasts.error(e.to_string()),

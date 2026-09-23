@@ -1,11 +1,51 @@
 use super::layout::{label, section, settings_grid};
 use crate::settings::anchor::Anchor;
 use crate::settings::ui::SettingsUI;
-use eframe::egui::{self, Button, DragValue, Grid, Response, RichText, Ui, vec2};
+use crate::gui::monitor::Monitor;
+use eframe::egui::{self, Button, ComboBox, DragValue, Grid, Response, RichText, Ui, vec2};
 
-pub(super) fn ui_section_position(ui: &mut Ui, settings_ui: &mut SettingsUI) {
+const SAME_AS_SETTINGS: &str = "Same as settings window";
+
+pub(super) fn ui_section_position(
+    ui: &mut Ui,
+    settings_ui: &mut SettingsUI,
+    monitors: &mut Vec<Monitor>,
+) {
     section(ui, "Position", false, |ui| {
         settings_grid("position_grid").show(ui, |ui| {
+            label(ui, "Monitor:");
+            let selected = match &settings_ui.monitor {
+                None => SAME_AS_SETTINGS.to_owned(),
+                Some(name) => monitors
+                    .iter()
+                    .find(|monitor| &monitor.name == name)
+                    .map_or_else(|| "Not connected".to_owned(), |m| m.label.clone()),
+            };
+            let combo = ComboBox::from_id_salt("overlay_monitor")
+                .selected_text(selected)
+                .width(220.0)
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut settings_ui.monitor, None, SAME_AS_SETTINGS);
+                    for monitor in monitors.iter() {
+                        ui.selectable_value(
+                            &mut settings_ui.monitor,
+                            Some(monitor.name.clone()),
+                            &monitor.label,
+                        );
+                    }
+                });
+            
+            // Re-list on every open: the projector is usually plugged in after
+            // the app has started.
+            if combo.response.clicked() {
+                *monitors = Monitor::list();
+            }
+            combo.response.on_hover_text(
+                "Screen the overlay opens on. If it is unplugged, the overlay \
+                 opens where the settings window is.",
+            );
+            ui.end_row();
+
             ui.add(egui::Label::new("Offset:").extend());
             ui.horizontal(|ui| {
                 ui.add(

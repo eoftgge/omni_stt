@@ -30,6 +30,7 @@ tray-icon = "0.25.0"
 keyring = "4.2.0"
 libloading = "0.8.9"
 time = { version = "0.3.55", features = ["local-offset"] }
+display-info = "0.5.9"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }

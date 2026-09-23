@@ -14,6 +14,7 @@ pub struct SettingsUI {
     pub(crate) enable_high_priority: bool,
     pub(crate) is_text_outline: bool,
     pub(crate) max_lines: usize,
+    pub(crate) monitor: Option<String>,
 }
 
 impl SettingsUI {
@@ -33,6 +34,7 @@ impl Default for SettingsUI {
             max_blocks: 3,
             is_text_outline: false,
             max_lines: 3,
+            monitor: None,
         }
     }
 }
