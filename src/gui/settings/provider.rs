@@ -45,7 +45,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
         });
         ui.vertical(|ui| {
             ui.add(TextEdit::singleline(&mut soniox.api_key.0).password(true));
-            ui_key_storage_hint(ui, key_storage);
+            ui_key_storage(ui, &mut soniox.store_key_in_file, key_storage);
         });
         ui.end_row();
 
@@ -195,24 +195,42 @@ fn ui_language_searchable_combo(
     ui.data_mut(|d| d.insert_temp(id, search_term));
 }
 
-fn ui_key_storage_hint(ui: &mut Ui, key_storage: &KeyStorage) {
+fn ui_key_storage(ui: &mut Ui, store_key_in_file: &mut bool, key_storage: &KeyStorage) {
     match key_storage {
         KeyStorage::Keyring => {
-            ui.label(
-                RichText::new("🔒 Stored in the system keychain")
-                    .small()
-                    .weak(),
-            );
+            ui.add(Squared(Checkbox::new(
+                store_key_in_file,
+                "Keep in omni.toml (portable)",
+            )))
+                .on_hover_text(
+                    "For a copy of the app carried between computers, e.g. on a USB stick. \
+                 The system keychain belongs to one computer, so the key would not \
+                 travel with the folder.",
+                );
+
+            if *store_key_in_file {
+                ui.label(
+                    RichText::new("⚠ Stored in omni.toml as plain text")
+                        .small()
+                        .color(Color32::from_rgb(220, 160, 60)),
+                );
+            } else {
+                ui.label(
+                    RichText::new("🔒 Stored in the system keychain")
+                        .small()
+                        .weak(),
+                );
+            }
         }
         KeyStorage::PlainFile { reason } => {
             ui.label(
                 RichText::new(
                     "⚠ System keychain unavailable — the key is stored in omni.toml as plain text",
                 )
-                .small()
-                .color(Color32::from_rgb(220, 160, 60)),
+                    .small()
+                    .color(Color32::from_rgb(220, 160, 60)),
             )
-            .on_hover_text(reason);
+                .on_hover_text(reason);
         }
     }
 }

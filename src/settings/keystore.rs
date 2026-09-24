@@ -24,7 +24,6 @@ pub fn store(key: &str) -> Result<(), Error> {
     entry()?.set_password(key)
 }
 
-#[allow(dead_code)] // возможно понадобится
 pub fn delete() -> Result<(), Error> {
     match entry()?.delete_credential() {
         Ok(()) | Err(Error::NoEntry) => Ok(()),

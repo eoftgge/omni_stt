@@ -60,33 +60,25 @@ impl SettingsManager {
         };
 
         let file_key = std::mem::take(&mut settings.provider.soniox.api_key);
-        let mut migrated = false;
-
-        let key_storage = match keystore::load() {
-            Ok(Some(key)) => {
-                settings.provider.soniox.api_key = Secret(key);
-                KeyStorage::Keyring
-            }
-            Ok(None) => {
-                if !file_key.is_empty() {
-                    match keystore::store(&file_key) {
-                        Ok(()) => {
-                            migrated = true;
-                            tracing::info!("API key moved to the system keychain");
-                        }
-                        Err(e) => tracing::error!("Failed to migrate API key: {e}"),
-                    }
-                }
-                settings.provider.soniox.api_key = file_key;
-                KeyStorage::Keyring
-            }
+        let stored = keystore::load();
+        let key_storage = match &stored {
+            Ok(_) => KeyStorage::Keyring,
             Err(e) => {
                 tracing::warn!("System key storage unavailable: {e}");
-                settings.provider.soniox.api_key = file_key;
                 KeyStorage::PlainFile {
                     reason: e.to_string(),
                 }
             }
+        };
+
+        let keyring_in_use = matches!(key_storage, KeyStorage::Keyring)
+            && !settings.provider.soniox.store_key_in_file;
+        // In keyring mode every save blanks the key in the file, so a key found
+        // there was written by hand and is newer than the keychain's.
+        let migrate = keyring_in_use && !file_key.is_empty();
+        settings.provider.soniox.api_key = match stored {
+            Ok(Some(key)) if keyring_in_use && !migrate => Secret(key),
+            _ => file_key,
         };
 
         let manager = Self {
@@ -95,11 +87,14 @@ impl SettingsManager {
             key_storage,
         };
 
-        if migrated {
-            if let Err(e) = manager.save() {
-                tracing::error!("Failed to scrub plaintext key from config: {e}");
+        if migrate {
+            match manager.save() {
+                Ok(()) => {
+                    tracing::info!("API key moved to the system keychain");
+                    manager.remove_backup();
+                }
+                Err(e) => tracing::error!("Failed to move API key to the system keychain: {e}"),
             }
-            manager.remove_backup();
         }
 
         manager
@@ -112,14 +107,22 @@ impl SettingsManager {
     pub fn save(&self) -> Result<(), OmniSttErrors> {
         let mut to_write = self.settings.clone();
 
-        if matches!(self.key_storage, KeyStorage::Keyring) {
-            let key = &self.settings.provider.soniox.api_key;
-            if key.is_empty() {
-                let _ = keystore::delete();
-            } else {
-                keystore::store(key)?;
+        match self.key_storage {
+            KeyStorage::Keyring if !self.settings.provider.soniox.store_key_in_file => {
+                let key = &self.settings.provider.soniox.api_key;
+                if key.is_empty() {
+                    let _ = keystore::delete();
+                } else {
+                    keystore::store(key)?;
+                }
+                to_write.provider.soniox.api_key = Default::default();
             }
-            to_write.provider.soniox.api_key = Default::default();
+            // Kept in the file by choice: don't leave a stale second copy
+            // behind in the keychain.
+            KeyStorage::Keyring => {
+                let _ = keystore::delete();
+            }
+            KeyStorage::PlainFile { .. } => {}
         }
 
         write_atomic(&self.path, &toml::to_string_pretty(&to_write)?)?;

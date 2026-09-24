@@ -26,6 +26,9 @@ pub struct SonioxSettings {
     pub(crate) target_language: LanguageHint,
     pub(crate) enable_translate: bool,
     pub(crate) enable_speakers: bool,
+    /// Keep the API key in omni.toml instead of the system keychain, so the
+    /// config works on any computer the folder is copied to.
+    pub(crate) store_key_in_file: bool,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -44,6 +47,7 @@ impl Default for SonioxSettings {
             target_language: LanguageHint::default(),
             enable_translate: false,
             enable_speakers: true,
+            store_key_in_file: false,
         }
     }
 }
