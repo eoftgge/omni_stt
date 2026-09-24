@@ -127,3 +127,18 @@ fn one_second_of_48k_yields_about_16000_samples() {
         out.len()
     );
 }
+
+#[test]
+fn target_peak_sets_the_output_level() {
+    let mut converter = super::AudioConverter::new(16_000, 1).with_target_peak(0.45);
+    let input: Vec<f32> = (0..16_000).map(|i| (i as f32 * 0.05).sin()).collect();
+    let mut output = Vec::new();
+    for block in input.chunks(160) {
+        converter.push(block, &mut output);
+    }
+
+    // Second half only: the gain needs a few blocks to settle.
+    let peak = output[8_000..].iter().map(|s| s.unsigned_abs()).max().unwrap();
+    let level = peak as f32 / SCALE;
+    assert!((level - 0.45).abs() < 0.05, "peak at {level}, expected 0.45");
+}

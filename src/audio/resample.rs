@@ -93,7 +93,7 @@ impl AudioConverter {
             peak = peak.max(sample.abs());
         }
         let target = if peak > 0.001 {
-            (Self::TARGET_PEAK / peak).min(Self::MAX_GAIN)
+            (self.target_peak / peak).min(Self::MAX_GAIN)
         } else {
             self.gain
         };
