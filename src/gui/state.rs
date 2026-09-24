@@ -15,8 +15,7 @@ use eframe::egui::{Context, Pos2, ViewportCommand, Visuals, WindowLevel};
 /// rectangle the size of the settings window. Hiding the window makes the
 /// compositor drop that surface, the same way minimizing does.
 ///
-/// Only with DX12 or Vulkan. A GL window (the fallback on AMD, see
-/// `select_adapter`) never becomes visible again after being hidden, and GL
+/// Only with DX12 or Vulkan. A GL window never becomes visible again after being hidden, and GL
 /// presents through the redirection surface itself, so it has nothing stale.
 fn apply_overlay_window(
     ctx: &Context,
