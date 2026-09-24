@@ -1,3 +1,5 @@
+use crate::audio::FULL_SCALE_PEAK;
+
 #[cfg(test)]
 mod tests;
 
@@ -26,7 +28,6 @@ pub struct AudioConverter {
 
 impl AudioConverter {
     const MAX_GAIN: f32 = 5.0;
-    const TARGET_PEAK: f32 = 0.9;
     const ATTACK: f32 = 0.3;
     const RELEASE: f32 = 0.05;
 
@@ -47,7 +48,7 @@ impl AudioConverter {
             pos: 0.0,
             prev: 0.0,
             gain: 1.0,
-            target_peak: Self::TARGET_PEAK,
+            target_peak: FULL_SCALE_PEAK,
             anti_alias,
             // 200 ms of input: more than any callback delivers, so `push`
             // never grows it on the audio thread.
