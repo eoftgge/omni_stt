@@ -66,10 +66,10 @@ impl AudioSession {
                     return;
                 }
 
-                // Never allocate here: this is the audio thread, and a heap
-                // call that waits on a lock is an audible dropout. A dry pool
-                // means the mixer has stopped taking chunks, so this one would
-                // have been refused anyway.
+                // No recycled buffer is available. The mixer is already behind far enough
+                // for the bounded pending queues to discard old audio, so retaining this
+                // partial chunk would not preserve useful continuity. Keep the converter
+                // state advancing and drop the accumulated output without allocating here.
                 let Some(mut next) = spare.take().or_else(|| rx_recycle.try_recv().ok()) else {
                     accumulator.clear();
                     return;
