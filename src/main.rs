@@ -52,7 +52,8 @@ fn select_adapter(
                 })
         })
     };
-    let software = |adapter: &&wgpu::Adapter| adapter.get_info().device_type == wgpu::DeviceType::Cpu;
+    let software =
+        |adapter: &&wgpu::Adapter| adapter.get_info().device_type == wgpu::DeviceType::Cpu;
 
     if let Some(adapter) = adapters
         .iter()
@@ -90,7 +91,11 @@ fn run() -> Result<(), OmniSttErrors> {
         // A DXGI swapchain made from the HWND is always opaque; one made from a
         // DirectComposition visual is not, on any GPU. The environment variable
         // `WGPU_DX12_PRESENTATION_SYSTEM=Hwnd` still switches back.
-        setup.instance_descriptor.backend_options.dx12.presentation_system =
+        setup
+            .instance_descriptor
+            .backend_options
+            .dx12
+            .presentation_system =
             wgpu::Dx12SwapchainKind::from_env().unwrap_or(wgpu::Dx12SwapchainKind::DxgiFromVisual);
         setup.native_adapter_selector = Some(Arc::new(select_adapter));
     }

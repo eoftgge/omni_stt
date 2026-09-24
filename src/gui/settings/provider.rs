@@ -202,11 +202,11 @@ fn ui_key_storage(ui: &mut Ui, store_key_in_file: &mut bool, key_storage: &KeySt
                 store_key_in_file,
                 "Keep in omni.toml (portable)",
             )))
-                .on_hover_text(
-                    "For a copy of the app carried between computers, e.g. on a USB stick. \
+            .on_hover_text(
+                "For a copy of the app carried between computers, e.g. on a USB stick. \
                  The system keychain belongs to one computer, so the key would not \
                  travel with the folder.",
-                );
+            );
 
             if *store_key_in_file {
                 ui.label(
@@ -227,10 +227,10 @@ fn ui_key_storage(ui: &mut Ui, store_key_in_file: &mut bool, key_storage: &KeySt
                 RichText::new(
                     "⚠ System keychain unavailable — the key is stored in omni.toml as plain text",
                 )
-                    .small()
-                    .color(Color32::from_rgb(220, 160, 60)),
+                .small()
+                .color(Color32::from_rgb(220, 160, 60)),
             )
-                .on_hover_text(reason);
+            .on_hover_text(reason);
         }
     }
 }
