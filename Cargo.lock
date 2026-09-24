@@ -3544,7 +3544,7 @@ dependencies = [
 
 [[package]]
 name = "omni_stt"
-version = "5.5.0"
+version = "5.6.0"
 dependencies = [
  "async-trait",
  "bytemuck",
