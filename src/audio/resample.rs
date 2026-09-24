@@ -49,7 +49,9 @@ impl AudioConverter {
             gain: 1.0,
             target_peak: Self::TARGET_PEAK,
             anti_alias,
-            mono: Vec::new(),
+            // 200 ms of input: more than any callback delivers, so `push`
+            // never grows it on the audio thread.
+            mono: Vec::with_capacity(sample_rate as usize / 5),
         }
     }
 

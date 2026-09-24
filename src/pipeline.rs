@@ -69,6 +69,12 @@ impl Pipeline {
             let (tx_capture, rx_capture) = channel::<AudioSample>(POOL_CAPACITY);
             let (tx_recycle_source, rx_recycle_source) = channel::<AudioSample>(POOL_CAPACITY);
 
+            // The audio thread never allocates (see `AudioSession::open`), so
+            // every buffer it will fill has to exist before the stream starts.
+            for _ in 0..audio::POOL_BUFFERS {
+                let _ = tx_recycle_source.try_send(Vec::with_capacity(audio::CHUNK_CAPACITY));
+            }
+
             sessions.push(open_capture(
                 device,
                 target_peak,
