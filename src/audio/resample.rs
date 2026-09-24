@@ -24,6 +24,8 @@ pub struct AudioConverter {
     target_peak: f32,
     anti_alias: Option<[biquad::Biquad; 2]>,
     mono: Vec<f32>,
+    /// Frames `push` takes without growing `mono`; see `max_block_len`.
+    max_frames: usize,
 }
 
 impl AudioConverter {
@@ -41,6 +43,7 @@ impl AudioConverter {
             let fs = sample_rate as f32;
             BUTTERWORTH_Q.map(|q| biquad::Biquad::low_pass(fs, CUTOFF, q))
         });
+        let max_frames = (sample_rate as usize / 10).max(1);
 
         Self {
             ratio,
@@ -50,9 +53,8 @@ impl AudioConverter {
             gain: 1.0,
             target_peak: FULL_SCALE_PEAK,
             anti_alias,
-            // 200 ms of input: more than any callback delivers, so `push`
-            // never grows it on the audio thread.
-            mono: Vec::with_capacity(sample_rate as usize / 5),
+            max_frames,
+            mono: Vec::with_capacity(max_frames),
         }
     }
 
@@ -64,6 +66,13 @@ impl AudioConverter {
     pub fn with_target_peak(mut self, target_peak: f32) -> Self {
         self.target_peak = target_peak;
         self
+    }
+
+    /// Longest input slice, in samples, that `push` handles without growing
+    /// its scratch buffer: 100 ms. A push that long adds at most 1602 samples
+    /// at 16 kHz, which is what keeps a chunk within `CHUNK_CAPACITY`.
+    pub fn max_block_len(&self) -> usize {
+        self.max_frames * self.channels
     }
 
     pub fn push(&mut self, input: &[f32], output: &mut Vec<i16>) {

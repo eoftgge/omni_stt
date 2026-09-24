@@ -142,3 +142,18 @@ fn target_peak_sets_the_output_level() {
     let level = peak as f32 / SCALE;
     assert!((level - 0.45).abs() < 0.05, "peak at {level}, expected 0.45");
 }
+
+#[test]
+fn a_max_length_block_fits_the_preallocated_buffers() {
+    let mut converter = AudioConverter::new(48_000, 2);
+    let scratch = converter.mono.capacity();
+    let block = vec![0.5; converter.max_block_len()];
+
+    // Worst case: one sample short of a full chunk before the push.
+    let mut output = Vec::with_capacity(crate::audio::CHUNK_CAPACITY);
+    output.resize(crate::audio::CHUNK_SAMPLES - 1, 0);
+    converter.push(&block, &mut output);
+
+    assert_eq!(converter.mono.capacity(), scratch);
+    assert_eq!(output.capacity(), crate::audio::CHUNK_CAPACITY);
+}

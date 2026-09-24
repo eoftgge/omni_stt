@@ -22,8 +22,9 @@ pub const CHUNK_SAMPLES: usize = 3200;
 pub const CHUNK_PERIOD: Duration = Duration::from_millis(CHUNK_SAMPLES as u64 * 1000 / 16_000);
 
 /// Capacity of a chunk buffer. A chunk is handed on once it has reached
-/// `CHUNK_SAMPLES`, so the last push overshoots by up to one callback's worth;
-/// without the headroom that push would reallocate on the audio thread.
+/// `CHUNK_SAMPLES`, and the capture callback feeds the converter in blocks of
+/// at most 100 ms (`AudioConverter::max_block_len`), so one push overshoots by
+/// under 1602 samples and never reallocates.
 pub const CHUNK_CAPACITY: usize = CHUNK_SAMPLES * 2;
 
 /// Buffers seeded into each capture's pool before its stream starts. A chunk
@@ -53,6 +54,7 @@ impl AudioSession {
         mut rx_recycle: Receiver<AudioSample>,
         tx_event: Sender<PipelineEvent>,
     ) -> Result<Self, OmniSttErrors> {
+        let block_len = converter.max_block_len();
         let mut accumulator = Vec::with_capacity(CHUNK_CAPACITY);
         // A chunk the channel refused, kept for reuse: freeing it here would
         // cost the audio thread as much as allocating.
@@ -61,31 +63,36 @@ impl AudioSession {
         let stream = device.build_input_stream(
             config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                converter.push(data, &mut accumulator);
-                if accumulator.len() < CHUNK_SAMPLES {
-                    return;
-                }
-
-                // No recycled buffer is available. The mixer is already behind far enough
-                // for the bounded pending queues to discard old audio, so retaining this
-                // partial chunk would not preserve useful continuity. Keep the converter
-                // state advancing and drop the accumulated output without allocating here.
-                let Some(mut next) = spare.take().or_else(|| rx_recycle.try_recv().ok()) else {
-                    accumulator.clear();
-                    return;
-                };
-                next.clear();
-                std::mem::swap(&mut accumulator, &mut next);
-
-                match tx_audio.try_send(next) {
-                    Ok(()) => {}
-                    Err(TrySendError::Full(chunk)) => {
-                        tracing::debug!("Audio buffer is full");
-                        spare = Some(chunk);
+                // Fed in bounded blocks, so neither the converter's scratch
+                // buffer nor the accumulator outgrows what was allocated up
+                // front, however much the backend hands over at once.
+                for block in data.chunks(block_len) {
+                    converter.push(block, &mut accumulator);
+                    if accumulator.len() < CHUNK_SAMPLES {
+                        continue;
                     }
-                    Err(TrySendError::Closed(chunk)) => {
-                        tracing::debug!("Capture channel closed");
-                        spare = Some(chunk);
+
+                    // A dry pool means all POOL_BUFFERS are waiting downstream:
+                    // the mixer has not drained for over a second, and its own
+                    // MAX_PENDING cap would drop this audio anyway.
+                    let Some(mut next) = spare.take().or_else(|| rx_recycle.try_recv().ok())
+                    else {
+                        accumulator.clear();
+                        continue;
+                    };
+                    next.clear();
+                    std::mem::swap(&mut accumulator, &mut next);
+
+                    match tx_audio.try_send(next) {
+                        Ok(()) => {}
+                        Err(TrySendError::Full(chunk)) => {
+                            tracing::debug!("Audio buffer is full");
+                            spare = Some(chunk);
+                        }
+                        Err(TrySendError::Closed(chunk)) => {
+                            tracing::debug!("Capture channel closed");
+                            spare = Some(chunk);
+                        }
                     }
                 }
             },
