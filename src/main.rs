@@ -23,21 +23,22 @@ use std::sync::Arc;
 /// `PostMultiplied`, and when neither is offered quietly settles for `Auto`.
 /// On DX12 and Vulkan that is opaque, and the overlay paints the screen black.
 ///
-/// DX12 and Vulkan report their alpha modes honestly, so an adapter that
-/// offers a transparent one is the first choice. The predicate is deliberately
-/// the same one `egui-wgpu` applies when it configures the surface.
+/// On Windows DX12 presents through DirectComposition (see `run`), which
+/// offers `PreMultiplied` on any GPU; Vulkan reports whatever its driver
+/// supports. The first adapter offering a transparent mode wins, judged by the
+/// same predicate `egui-wgpu` applies when it configures the surface.
+/// Software rasterizers (WARP, llvmpipe) offer it too, but render on the CPU,
+/// so they only win when no real GPU does.
 ///
-/// GL is the exception: wgpu hard-codes its report to `Opaque` (a TODO in
-/// `wgpu-hal`), whatever the driver can do. On Windows its transparency comes
-/// from the DWM blur-behind winit sets on the window, not from the swapchain,
-/// and it is what keeps the overlay transparent on AMD, where neither DX12 nor
-/// Vulkan offers a transparent mode. So when nothing reports one, GL goes next.
+/// GL is the last resort. wgpu hard-codes its report to `Opaque` (a TODO in
+/// `wgpu-hal`), and whether it is transparent in practice depends on the
+/// driver: it was on an AMD Radeon, it was not on a GeForce GT 710.
 fn select_adapter(
     adapters: &[wgpu::Adapter],
     surface: Option<&wgpu::Surface<'_>>,
 ) -> Result<wgpu::Adapter, String> {
-    if let Some(surface) = surface
-        && let Some(adapter) = adapters.iter().find(|adapter| {
+    let transparent = |adapter: &&wgpu::Adapter| {
+        surface.is_some_and(|surface| {
             surface
                 .get_capabilities(adapter)
                 .alpha_modes
@@ -50,6 +51,14 @@ fn select_adapter(
                     )
                 })
         })
+    };
+    let software = |adapter: &&wgpu::Adapter| adapter.get_info().device_type == wgpu::DeviceType::Cpu;
+
+    if let Some(adapter) = adapters
+        .iter()
+        .filter(transparent)
+        .find(|adapter| !software(adapter))
+        .or_else(|| adapters.iter().find(transparent))
     {
         let info = adapter.get_info();
         tracing::info!(
@@ -78,6 +87,11 @@ fn run() -> Result<(), OmniSttErrors> {
     let settings_manager = SettingsManager::new(CONFIG_PATH);
     let mut wgpu_configuration = WgpuConfiguration::default();
     if let WgpuSetup::CreateNew(ref mut setup) = wgpu_configuration.wgpu_setup {
+        // A DXGI swapchain made from the HWND is always opaque; one made from a
+        // DirectComposition visual is not, on any GPU. The environment variable
+        // `WGPU_DX12_PRESENTATION_SYSTEM=Hwnd` still switches back.
+        setup.instance_descriptor.backend_options.dx12.presentation_system =
+            wgpu::Dx12SwapchainKind::from_env().unwrap_or(wgpu::Dx12SwapchainKind::DxgiFromVisual);
         setup.native_adapter_selector = Some(Arc::new(select_adapter));
     }
     let icon = from_png_bytes(ICON_BYTES).unwrap_or_else(|_| {
