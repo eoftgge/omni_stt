@@ -19,6 +19,7 @@ pub enum ProviderType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct SonioxSettings {
     pub(crate) language_hints: Vec<LanguageHint>,
     pub(crate) context: String,
