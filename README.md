@@ -155,3 +155,16 @@ terms, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 Open an [issue](https://github.com/eoftgge/omni_stt/issues). Attaching
 `logs/omni.log` (turn on **Settings → General → Log to file** first) saves a
 round of questions.
+
+## Support
+
+If Omni-STT is useful to you and you'd like to support its development:
+
+| Coin | Network | Address |
+|---|---|---|
+| USDC, USDT or SOL | Solana | `9yjnQRWAEifMnZHSNQKcr1Drwzw8H9on3cZXien4duQ` |
+| BTC | Bitcoin | `bc1qzdq6pdxzwu9tyqepkgdx0k0tndape9ww3rynr2` |
+
+Please double-check the network before sending: coins sent on the wrong
+network are lost. Copy the address from this page, not from your transaction
+history.
