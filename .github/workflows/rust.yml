@@ -7,6 +7,7 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "rust-toolchain.toml"
+      - "Info.plist"
       - ".github/workflows/**"
   pull_request:
 
@@ -42,6 +43,17 @@ jobs:
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             libxdo-dev
+
+      # The release bump has to touch Info.plist by hand, and the macOS build
+      # embeds whatever version it holds.
+      - name: Info.plist matches Cargo.toml
+        if: runner.os == 'Linux'
+        run: |
+          version=$(grep -m1 '^version = ' Cargo.toml | cut -d '"' -f2)
+          if [ "$(grep -c "<string>$version</string>" Info.plist)" -ne 2 ]; then
+            echo "::error file=Info.plist::Version is not $version, as in Cargo.toml"
+            exit 1
+          fi
 
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
