@@ -7,6 +7,7 @@ use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
 use crate::pipeline::Pipeline;
 use crate::settings::SettingsManager;
+use crate::settings::general::SettingsGeneral;
 use crate::subtitles::store::TranscriptionStore;
 use crate::subtitles::transcript::TranscriptWriter;
 use eframe::App;
@@ -150,8 +151,8 @@ impl App for SubtitlesApp {
             }
         }
 
-        let save_transcripts = self.settings_manager.settings.general.save_transcripts;
-        sync_transcript(&mut self.transcript, save_transcripts);
+        let general = &mut self.settings_manager.settings.general;
+        sync_transcript(&mut self.transcript, general, &mut self.toasts);
 
         for block in self.store.take_completed() {
             if let Some(writer) = &mut self.transcript {
@@ -184,9 +185,19 @@ impl Drop for SubtitlesApp {
     }
 }
 
-fn sync_transcript(writer: &mut Option<TranscriptWriter>, enabled: bool) {
-    match (enabled, writer.is_some()) {
-        (true, false) => *writer = Some(TranscriptWriter::open()),
+fn sync_transcript(
+    writer: &mut Option<TranscriptWriter>,
+    general: &mut SettingsGeneral,
+    toasts: &mut Toasts,
+) {
+    match (general.save_transcripts, writer.is_some()) {
+        (true, false) => match TranscriptWriter::open() {
+            Ok(opened) => *writer = Some(opened),
+            Err(e) => {
+                toasts.error(format!("Cannot save transcripts: {e}"));
+                general.save_transcripts = false;
+            }
+        },
         (false, true) => *writer = None,
         _ => {}
     }

@@ -153,8 +153,9 @@ terms, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 ## Problems
 
 Open an [issue](https://github.com/eoftgge/omni_stt/issues). Attaching
-`logs/omni.log` (turn on **Settings → General → Log to file** first) saves a
-round of questions.
+`logs/omni.log` (turn on **Settings → App → Log to file** first) saves a
+round of questions. At the Trace level the log contains everything that was
+recognized, so read it before posting.
 
 ## Support
 
