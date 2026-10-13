@@ -15,18 +15,24 @@ env:
 
 jobs:
   build:
-    name: Check & Test
-    runs-on: ubuntu-latest, windows-latest
+    name: Check & Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
 
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.96"
+          components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
 
       - name: Install system dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -37,7 +43,6 @@ jobs:
             libayatana-appindicator3-dev \
             libxdo-dev
 
-      - run: cargo check
-      - run: cargo test
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
