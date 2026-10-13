@@ -162,8 +162,13 @@ impl SonioxSession {
     }
 
     fn handle_text_message(&mut self, txt: &str) -> Result<Option<PipelineEvent>, PipelineError> {
-        let parsed_msg: SonioxTranscriptionMessage = serde_json::from_str(txt)
-            .map_err(|e| PipelineError::FatalAPIError(format!("JSON parse error: {}", e)))?;
+        let parsed_msg: SonioxTranscriptionMessage = match serde_json::from_str(txt) {
+            Ok(msg) => msg,
+            Err(e) => {
+                tracing::warn!("Skipping a Soniox message that did not parse: {e}");
+                return Ok(None);
+            }
+        };
 
         match parsed_msg {
             SonioxTranscriptionMessage::Response(r) => {

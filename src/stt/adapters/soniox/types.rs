@@ -56,6 +56,7 @@ pub struct SonioxTranscriptionToken {
 }
 
 #[derive(Debug, Deserialize, Default)]
+#[serde(default)]
 pub struct SonioxTranscriptionResponse {
     pub tokens: Vec<SonioxTranscriptionToken>,
     pub final_audio_proc_ms: f64,
@@ -66,6 +67,10 @@ pub struct SonioxTranscriptionResponse {
 #[derive(Debug, Deserialize, Default)]
 pub struct SonioxTranscriptionError {
     pub error_code: usize,
+    /// Optional so that anything carrying an `error_code` stays an error: with
+    /// `Response` now accepting any object, an error missing its message would
+    /// otherwise be read as an empty response and vanish.
+    #[serde(default)]
     pub error_message: String,
 }
 

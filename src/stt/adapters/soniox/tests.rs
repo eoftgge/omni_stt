@@ -118,3 +118,15 @@ fn original_translation_tokens_are_skipped() {
         vec![Seen::Interim(vec![(Some("1".into()), "перевод".into())])]
     );
 }
+
+#[test]
+fn a_response_without_timings_still_parses() {
+    let msg: SonioxTranscriptionMessage = serde_json::from_str(r#"{"tokens":[]}"#).unwrap();
+    assert!(matches!(msg, SonioxTranscriptionMessage::Response(_)));
+}
+
+#[test]
+fn an_error_without_a_message_is_still_an_error() {
+    let msg: SonioxTranscriptionMessage = serde_json::from_str(r#"{"error_code":503}"#).unwrap();
+    assert!(matches!(msg, SonioxTranscriptionMessage::Error(_)));
+}
