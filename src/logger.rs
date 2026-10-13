@@ -3,6 +3,7 @@ use std::io::Write;
 use std::sync::{Arc, RwLock};
 use tracing::Level;
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
+use tracing_appender::rolling::{InitError, RollingFileAppender, Rotation};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::prelude::*;
@@ -31,18 +32,27 @@ pub struct TracingControl {
     applied: SettingsGeneral,
 }
 
-fn make_sink(log_to_file: bool) -> (Sink, Option<WorkerGuard>) {
-    if log_to_file {
-        let appender = tracing_appender::rolling::daily("logs", "omni.log");
-        let (non_blocking, guard) = tracing_appender::non_blocking(appender);
-        (Sink::File(non_blocking), Some(guard))
-    } else {
-        (Sink::Stdout, None)
+fn file_sink() -> Result<(Sink, WorkerGuard), InitError> {
+    let appender = RollingFileAppender::builder()
+        .rotation(Rotation::DAILY)
+        .filename_prefix("omni.log")
+        .build("logs")?;
+    let (non_blocking, guard) = tracing_appender::non_blocking(appender);
+    Ok((Sink::File(non_blocking), guard))
+}
+
+fn make_sink(log_to_file: bool) -> (Sink, Option<WorkerGuard>, Option<InitError>) {
+    if !log_to_file {
+        return (Sink::Stdout, None, None);
+    }
+    match file_sink() {
+        Ok((sink, guard)) => (sink, Some(guard), None),
+        Err(e) => (Sink::Stdout, None, Some(e)),
     }
 }
 
 pub fn setup_tracing(level: Level, log_to_file: bool, applied: SettingsGeneral) -> TracingControl {
-    let (sink, guard) = make_sink(log_to_file);
+    let (sink, guard, error) = make_sink(log_to_file);
     let sink = Arc::new(RwLock::new(sink));
     let (level_layer, level_handle) = reload::Layer::new(LevelFilter::from_level(level));
 
@@ -57,6 +67,10 @@ pub fn setup_tracing(level: Level, log_to_file: bool, applied: SettingsGeneral) 
                 .with_line_number(true),
         )
         .init();
+
+    if let Some(e) = error {
+        tracing::error!("Cannot write logs to a file, using stdout: {e}");
+    }
 
     TracingControl {
         level_handle,
@@ -106,9 +120,12 @@ impl TracingControl {
             return;
         }
 
-        let (new_sink, new_guard) = make_sink(enabled);
+        let (new_sink, new_guard, error) = make_sink(enabled);
         *self.sink.write().expect("sink lock poisoned") = new_sink;
         self.guard = new_guard;
+        if let Some(e) = error {
+            tracing::error!("Cannot write logs to a file, using stdout: {e}");
+        }
     }
 }
 

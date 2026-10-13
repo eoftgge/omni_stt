@@ -1,5 +1,6 @@
 use time::{Date, OffsetDateTime, UtcOffset};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
+use tracing_appender::rolling::{InitError, RollingFileAppender, Rotation};
 
 use crate::subtitles::block::SubtitleBlock;
 use std::io::Write;
@@ -23,18 +24,23 @@ pub struct TranscriptWriter {
 }
 
 impl TranscriptWriter {
-    pub fn open() -> Self {
+    pub fn open() -> Result<Self, InitError> {
         Self::open_for(now().date())
     }
 
     pub fn write(&mut self, block: &SubtitleBlock) {
         let at = now();
         if at.date() != self.day {
-            *self = Self::open_for(at.date());
+            match Self::open_for(at.date()) {
+                Ok(next) => *self = next,
+                Err(e) => {
+                    tracing::error!("Cannot open a new transcript file, keeping the old one: {e}");
+                    self.day = at.date();
+                }
+            }
         }
 
         let stamp = format!("{:02}:{:02}:{:02}", at.hour(), at.minute(), at.second());
-
         let line = match &block.speaker {
             Some(speaker) => format!("{stamp}  [{speaker}] {}\n", block.text),
             None => format!("{stamp}  {}\n", block.text),
@@ -48,8 +54,11 @@ impl TranscriptWriter {
     /// with `OffsetDateTime::now_utc`). East of Greenwich that cuts the day in
     /// the middle of the morning, so one conversation would be split across two
     /// files, both named after a day it did not happen on.
-    fn open_for(day: Date) -> Self {
-        let appender = tracing_appender::rolling::never(DIRECTORY, file_name(day));
+    fn open_for(day: Date) -> Result<Self, InitError> {
+        let appender = RollingFileAppender::builder()
+            .rotation(Rotation::NEVER)
+            .filename_prefix(file_name(day))
+            .build(DIRECTORY)?;
         let (sink, guard) = tracing_appender::non_blocking(appender);
         let mut writer = Self {
             sink,
@@ -67,7 +76,7 @@ impl TranscriptWriter {
             at.minute(),
         ));
 
-        writer
+        Ok(writer)
     }
 
     fn put(&mut self, line: &str) {
