@@ -16,7 +16,7 @@ env:
 jobs:
   build:
     name: Check & Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest, windows-latest
     steps:
       - uses: actions/checkout@v5
 
@@ -39,3 +39,5 @@ jobs:
 
       - run: cargo check
       - run: cargo test
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
