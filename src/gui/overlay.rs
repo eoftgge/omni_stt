@@ -11,6 +11,16 @@ use eframe::epaint::StrokeKind;
 
 const ANIM_TIME: f32 = 0.08;
 
+/// Everything a row is painted with, the same for every row in a frame.
+#[derive(Clone, Copy)]
+struct RowStyle {
+    font_size: f32,
+    wrap_width: f32,
+    text_color: Color32,
+    interim_color: Color32,
+    outline: Option<TextOutline>,
+}
+
 pub fn draw_subtitles(
     ui: &mut Ui,
     store: &TranscriptionStore,
@@ -41,18 +51,15 @@ pub fn draw_subtitles(
                 let pad = text_outline.map_or(0.0, |o| o.width);
                 let wrap_width = ui.available_width() - pad * 2.0;
                 let plan = plan_visible_lines(ui, &replicas, font_size, wrap_width, max_lines);
-
+                let style = RowStyle {
+                    font_size,
+                    wrap_width,
+                    text_color,
+                    interim_color,
+                    outline: text_outline,
+                };
                 for (replica, skip) in plan {
-                    draw_replica_row(
-                        ui,
-                        replica,
-                        font_size,
-                        wrap_width,
-                        text_color,
-                        interim_color,
-                        text_outline,
-                        skip,
-                    );
+                    draw_replica_row(ui, replica, style, skip);
                     ui.add_space(4.0);
                 }
             });
@@ -90,26 +97,17 @@ pub fn draw_subtitles(
     }
 }
 
-fn draw_replica_row(
-    ui: &mut Ui,
-    replica: &VisualReplica,
-    font_size: f32,
-    wrap_width: f32,
-    text_color: Color32,
-    interim_color: Color32,
-    outline: Option<TextOutline>,
-    skip: usize,
-) {
-    add_outlined_text(ui, outline, text_color, |override_color| {
+fn draw_replica_row(ui: &mut Ui, replica: &VisualReplica, style: RowStyle, skip: usize) {
+    add_outlined_text(ui, style.outline, style.text_color, |override_color| {
         build_job(
             replica,
-            font_size,
-            wrap_width,
+            style.font_size,
+            style.wrap_width,
             skip,
             |is_interim| match override_color {
                 Some(color) => color,
-                None if is_interim => interim_color,
-                None => text_color,
+                None if is_interim => style.interim_color,
+                None => style.text_color,
             },
         )
     });
