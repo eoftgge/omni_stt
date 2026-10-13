@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::path::Path;
 use eframe::egui::{IconData, ViewportBuilder};
 use eframe::egui_wgpu::WgpuSetup;
 use eframe::icon_data::from_png_bytes;
@@ -14,6 +13,7 @@ use omni_stt::logger::setup_tracing;
 use omni_stt::settings::{SettingsManager, logging_settings};
 use omni_stt::subtitles::transcript;
 use omni_stt::{APP_ID, CONFIG_PATH, ICON_BYTES, SETTINGS_WINDOW_SIZE, TOOLTIP};
+use std::path::Path;
 
 use std::sync::Arc;
 
