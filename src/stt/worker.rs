@@ -1,18 +1,37 @@
 #[cfg(test)]
 mod tests;
 
-use crate::audio::AudioSample;
 use crate::audio::utils::{is_silent, rms};
+use crate::audio::{AudioSample, CHUNK_PERIOD};
 use crate::event::{PipelineError, PipelineEvent};
 use crate::stt::action::StreamAction;
 use crate::stt::backend::{SttBackend, SttSession};
+use std::collections::VecDeque;
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
-use tokio::time::sleep;
+use tokio::time::timeout;
 
-const MAX_RETRIES: u32 = 5;
-const RECONNECT_DELAY: u64 = 1000;
 const PING_INTERVAL: Duration = Duration::from_secs(10);
+
+/// With the network gone, one connect attempt can hang for as long as the OS
+/// waits on TCP, about 21 s on Windows. Cut it short and count it as a failure.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Retry delays double from one second up to this, so a network that comes
+/// back is picked up within seconds even late in an outage.
+const MAX_BACKOFF: Duration = Duration::from_secs(15);
+
+/// About ten minutes of trying with the delays above: long enough to ride out
+/// Wi-Fi dropping in a lecture hall, short of retrying forever on a laptop
+/// that has left the network for good.
+const MAX_RETRIES: u32 = 40;
+
+/// How far back audio queued during a reconnect is still sent: enough to catch
+/// the start of the sentence being spoken, without subtitling speech from the
+/// middle of the outage.
+const RECONNECT_TAIL: Duration = Duration::from_secs(2);
+const RECONNECT_TAIL_CHUNKS: usize =
+    (RECONNECT_TAIL.as_millis() / CHUNK_PERIOD.as_millis()) as usize;
 
 pub struct GenericSttWorker {
     rx_audio: Receiver<AudioSample>,
@@ -47,18 +66,20 @@ impl GenericSttWorker {
         let mut flag_first_connection = true;
 
         loop {
-            let first_packet = if retry_count == 0 {
+            // Chunks that go out ahead of the live stream: the one that woke
+            // us up, or on a reconnect the newest of what queued meanwhile.
+            let mut backlog = VecDeque::new();
+            if retry_count == 0 {
                 let Some(packet) = self.wait_first_packet().await else {
                     return Ok(());
                 };
-                packet
-            } else {
-                Vec::new()
-            };
+                backlog.push_back(packet);
+            }
 
-            let mut session = match self.backend.connect().await {
+            let mut session = match self.connect().await {
                 Ok(s) => s,
                 Err(e) if e.is_reconnect() => {
+                    tracing::warn!("Connect failed: {e}");
                     self.handle_reconnect(&mut retry_count).await?;
                     continue;
                 }
@@ -69,14 +90,12 @@ impl GenericSttWorker {
                 }
             };
 
-            if !first_packet.is_empty() {
-                let slice = bytemuck::cast_slice(&first_packet);
-                let res = session.send(slice).await;
-                let _ = self.tx_recycle.send(first_packet).await;
-                if res.is_err() {
-                    self.handle_reconnect(&mut retry_count).await?;
-                    continue;
-                }
+            if retry_count > 0 {
+                backlog = self.take_recent_audio().await;
+            }
+            if !self.send_backlog(&mut session, backlog).await {
+                self.handle_reconnect(&mut retry_count).await?;
+                continue;
             }
 
             let _ = self
@@ -189,14 +208,86 @@ impl GenericSttWorker {
         }
     }
 
-    async fn handle_reconnect(&self, retry_count: &mut u32) -> Result<(), PipelineError> {
-        sleep(Duration::from_millis(RECONNECT_DELAY)).await;
-        *retry_count += 1;
+    /// `backend.connect()`, given up on after `CONNECT_TIMEOUT`. A timeout is
+    /// a network failure like any other and gets retried.
+    async fn connect(&self) -> Result<Box<dyn SttSession>, PipelineError> {
+        timeout(CONNECT_TIMEOUT, self.backend.connect())
+            .await
+            .unwrap_or_else(|_| {
+                Err(PipelineError::RecoverableAPIError(format!(
+                    "no answer within {CONNECT_TIMEOUT:?}"
+                )))
+            })
+    }
 
+    async fn handle_reconnect(&mut self, retry_count: &mut u32) -> Result<(), PipelineError> {
+        *retry_count += 1;
         if *retry_count > MAX_RETRIES {
             return Err(PipelineError::ConnectionLost);
         }
+
+        let delay = backoff(*retry_count);
+        tracing::info!("Reconnecting in {delay:?}, attempt {retry_count} of {MAX_RETRIES}");
+        self.discard_audio_for(delay).await;
         Ok(())
+    }
+
+    /// Sleeps for `delay`, throwing away whatever the mixer sends meanwhile.
+    /// It keeps ticking without a session, and left alone its backlog grows to
+    /// minutes of speech, all of it subtitled late once the connection is back.
+    async fn discard_audio_for(&mut self, delay: Duration) {
+        let deadline = tokio::time::Instant::now() + delay;
+        loop {
+            tokio::select! {
+                _ = tokio::time::sleep_until(deadline) => return,
+                audio = self.rx_audio.recv() => match audio {
+                    Some(buffer) => self.recycle(buffer).await,
+                    // The mixer has stopped. Sit out the delay anyway: the
+                    // session loop sees the closed channel next and stops.
+                    None => {
+                        tokio::time::sleep_until(deadline).await;
+                        return;
+                    }
+                },
+            }
+        }
+    }
+
+    /// What queued while connecting, cut down to the newest
+    /// `RECONNECT_TAIL_CHUNKS`. Older chunks go back to the pool unsent.
+    async fn take_recent_audio(&mut self) -> VecDeque<AudioSample> {
+        let mut recent = VecDeque::with_capacity(RECONNECT_TAIL_CHUNKS + 1);
+        while let Ok(buffer) = self.rx_audio.try_recv() {
+            recent.push_back(buffer);
+            if recent.len() > RECONNECT_TAIL_CHUNKS
+                && let Some(oldest) = recent.pop_front()
+            {
+                self.recycle(oldest).await;
+            }
+        }
+        recent
+    }
+
+    /// Sends `backlog` ahead of the live stream, handing every buffer back to
+    /// the pool. False when the session broke on the way.
+    async fn send_backlog(
+        &self,
+        session: &mut Box<dyn SttSession>,
+        backlog: VecDeque<AudioSample>,
+    ) -> bool {
+        let mut sent = true;
+        for buffer in backlog {
+            if sent {
+                sent = session.send(bytemuck::cast_slice(&buffer)).await.is_ok();
+            }
+            self.recycle(buffer).await;
+        }
+        sent
+    }
+
+    async fn recycle(&self, mut buffer: AudioSample) {
+        buffer.clear();
+        let _ = self.tx_recycle.send(buffer).await;
     }
 
     async fn wait_first_packet(&mut self) -> Option<AudioSample> {
@@ -233,4 +324,10 @@ impl GenericSttWorker {
             }
         }
     }
+}
+
+/// 1, 2, 4 and 8 seconds, then `MAX_BACKOFF` for every attempt after that.
+fn backoff(attempt: u32) -> Duration {
+    let doublings = attempt.saturating_sub(1).min(4);
+    Duration::from_secs(1 << doublings).min(MAX_BACKOFF)
 }

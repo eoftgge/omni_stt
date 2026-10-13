@@ -32,6 +32,9 @@ libloading = "0.8.9"
 time = { version = "0.3.55", features = ["local-offset"] }
 display-info = "0.5.9"
 
+[dev-dependencies]
+tokio = { version = "1.53.1", features = ["test-util"] }
+
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
 
