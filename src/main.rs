@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::path::Path;
 use eframe::egui::{IconData, ViewportBuilder};
 use eframe::egui_wgpu::WgpuSetup;
 use eframe::icon_data::from_png_bytes;
@@ -79,6 +80,16 @@ fn select_adapter(
         .ok_or_else(|| "No WGPU adapters found".to_owned())
 }
 
+fn anchor_to_exe_dir() {
+    if std::env::var_os("CARGO_MANIFEST_DIR").is_some() {
+        return;
+    }
+    let exe = std::env::current_exe().ok();
+    if let Some(dir) = exe.as_deref().and_then(Path::parent) {
+        let _ = std::env::set_current_dir(dir);
+    }
+}
+
 fn run() -> Result<(), OmniSttErrors> {
     let general = logging_settings(CONFIG_PATH);
     let tracing_control = setup_tracing(general.level(), general.log_to_file, general);
@@ -150,6 +161,7 @@ fn main() {
     #[cfg(target_os = "macos")]
     embed_plist::embed_info_plist!("../Info.plist");
 
+    anchor_to_exe_dir();
     // Must precede the runtime: reading the local UTC offset only works while
     // the process is still single-threaded. See `transcript::init_local_offset`.
     transcript::init_local_offset();
