@@ -1,4 +1,4 @@
-use super::layout::{Squared, label, row, section, settings_grid};
+use super::layout::{label, row, section, settings_grid};
 use crate::settings::KeyStorage;
 use crate::settings::languages::LanguageHint;
 use crate::settings::provider::{ProviderType, SettingsProvider, SonioxSettings, VoskSettings};
@@ -73,10 +73,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
         ui.end_row();
 
         label(ui, "Translation:");
-        ui.add(Squared(Checkbox::new(
-            &mut soniox.enable_translate,
-            "Enable",
-        )));
+        ui.add(Checkbox::new(&mut soniox.enable_translate, "Enable"));
 
         if soniox.enable_translate {
             ui.end_row();
@@ -93,7 +90,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
         row(
             ui,
             "Options:",
-            Squared(Checkbox::new(&mut soniox.enable_speakers, "Label speakers")),
+            Checkbox::new(&mut soniox.enable_speakers, "Label speakers"),
         );
     });
 }
@@ -195,10 +192,10 @@ fn ui_language_searchable_combo(
 fn ui_key_storage(ui: &mut Ui, store_key_in_file: &mut bool, key_storage: &KeyStorage) {
     match key_storage {
         KeyStorage::Keyring => {
-            ui.add(Squared(Checkbox::new(
+            ui.add(Checkbox::new(
                 store_key_in_file,
                 "Keep in omni.toml (portable)",
-            )))
+            ))
             .on_hover_text(
                 "For a copy of the app carried between computers, e.g. on a USB stick. \
                  The system keychain belongs to one computer, so the key would not \

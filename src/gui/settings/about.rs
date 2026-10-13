@@ -1,12 +1,13 @@
 use super::layout::{row, section, settings_grid};
+use crate::TOOLTIP;
 use eframe::egui::{Hyperlink, RichText, Ui};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
 
 pub(super) fn ui_section_about(ui: &mut Ui) {
-    section(ui, Some("about"), |ui| {
-        ui.label(RichText::new(format!("Omni-STT {VERSION}")).strong());
+    section(ui, Some("About"), |ui| {
+        ui.label(RichText::new(format!("{TOOLTIP} {VERSION}")).strong());
         ui.label("Real-time subtitles over everything, from your speakers or your microphone.");
 
         settings_grid("about_grid").show(ui, |ui| {

@@ -1,4 +1,4 @@
-use super::layout::{Squared, label, row, section, settings_grid};
+use super::layout::{label, row, section, settings_grid};
 use crate::gui::overlay::outline::{TextOutline, add_outlined_text};
 use crate::settings::ui::SettingsUI;
 use eframe::egui;
@@ -22,14 +22,12 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
             row(
                 ui,
                 "Always on top:",
-                Squared(Checkbox::without_text(
-                    &mut settings_ui.enable_high_priority,
-                )),
+                Checkbox::without_text(&mut settings_ui.enable_high_priority),
             );
             row(
                 ui,
                 "Text outline:",
-                Squared(Checkbox::without_text(&mut settings_ui.is_text_outline)),
+                Checkbox::without_text(&mut settings_ui.is_text_outline),
             );
         });
 

@@ -1,34 +1,26 @@
 use crate::gui::theme;
-use eframe::egui::{self, CornerRadius, Grid, Response, RichText, Ui};
+use eframe::egui::{self, Grid, Response, RichText, Ui};
 
-/// egui paints a checkbox with the shared widget corner radius, and at the
-/// 14 px icon size the theme's 6 px is all but a circle. Square it off around
-/// this widget alone, so buttons and fields keep the rounding they were given.
-pub(super) struct Squared<W>(pub W);
-
-impl<W: egui::Widget> egui::Widget for Squared<W> {
-    fn ui(self, ui: &mut Ui) -> Response {
-        ui.scope(|ui| {
-            let radius = CornerRadius::same(2);
-            let w = &mut ui.visuals_mut().widgets;
-            w.noninteractive.corner_radius = radius;
-            w.inactive.corner_radius = radius;
-            w.hovered.corner_radius = radius;
-            w.active.corner_radius = radius;
-
-            ui.add(self.0)
-        })
-        .inner
-    }
-}
+const LABEL_WIDTH: f32 = 110.0;
 
 pub(super) fn section(ui: &mut Ui, title: Option<&str>, add_contents: impl FnOnce(&mut Ui)) {
-    if let Some(title) = title {
-        ui.label(RichText::new(title).size(13.0).strong().color(theme::LABEL));
-        ui.add_space(2.0);
-    }
-    add_contents(ui);
-    ui.add_space(10.0);
+    let Some(title) = title else {
+        add_contents(ui);
+        return;
+    };
+
+    let widgets = &ui.visuals().widgets.noninteractive;
+    let (stroke, radius) = (widgets.bg_stroke, widgets.corner_radius);
+
+    egui::Frame::new()
+        .stroke(stroke)
+        .corner_radius(radius)
+        .inner_margin(12.0)
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(RichText::new(title).size(15.0).strong().color(theme::TEXT));
+            add_contents(ui);
+        });
 }
 
 pub(super) fn row(ui: &mut Ui, text: &str, widget: impl egui::Widget) -> Response {
@@ -39,7 +31,10 @@ pub(super) fn row(ui: &mut Ui, text: &str, widget: impl egui::Widget) -> Respons
 }
 
 pub(super) fn settings_grid(id: &str) -> Grid {
-    Grid::new(id).num_columns(2).spacing([12.0, 10.0])
+    Grid::new(id)
+        .num_columns(2)
+        .spacing([12.0, 10.0])
+        .min_col_width(LABEL_WIDTH)
 }
 
 pub(super) fn label(ui: &mut Ui, text: &str) -> Response {

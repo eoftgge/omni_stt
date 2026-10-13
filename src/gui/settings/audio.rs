@@ -1,4 +1,4 @@
-use super::layout::{Squared, label, row, section, settings_grid};
+use super::layout::{label, row, section, settings_grid};
 use crate::audio::CHUNK_PERIOD;
 use crate::audio::device::{AudioSource, DeviceKind, MappableAvailableDevices};
 use crate::settings::audio::SettingsAudio;
@@ -31,10 +31,7 @@ pub(super) fn ui_section_audio(
                         };
                         let mut checked = settings_audio.sources.contains(&source);
 
-                        if ui
-                            .add(Squared(Checkbox::new(&mut checked, device.name())))
-                            .changed()
-                        {
+                        if ui.add(Checkbox::new(&mut checked, device.name())).changed() {
                             if checked {
                                 settings_audio.sources.push(source);
                             } else {

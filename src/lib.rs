@@ -9,7 +9,7 @@ pub mod stt;
 pub mod subtitles;
 
 pub const SETTINGS_WINDOW_SIZE: eframe::egui::Vec2 = eframe::egui::Vec2::new(400.0, 600.0);
-pub const TOOLTIP: &str = "OmniSTT";
+pub const TOOLTIP: &str = "Omni-STT";
 pub const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 pub const APP_ID: &str = "omni_stt";
 pub const CONFIG_PATH: &str = "omni.toml";
