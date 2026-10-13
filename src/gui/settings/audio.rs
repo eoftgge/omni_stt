@@ -16,10 +16,6 @@ pub(super) fn ui_section_audio(
                 label(ui, "Sources:");
             });
             ui.vertical(|ui| {
-                if ui.button("Rescan devices").clicked() {
-                    devices.refresh();
-                }
-
                 for kind in DeviceKind::ALL {
                     ui.add_space(4.0);
                     ui.label(RichText::new(kind.label()).small().weak());
@@ -48,6 +44,10 @@ pub(super) fn ui_section_audio(
                             .small()
                             .weak(),
                     );
+                }
+
+                if ui.button("Rescan devices").clicked() {
+                    devices.refresh();
                 }
             });
             ui.end_row();
