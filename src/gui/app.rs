@@ -84,6 +84,7 @@ impl App for SubtitlesApp {
             Ok(_) => {}
             Err(e) => self.toasts.error(e.to_string()),
         }
+        state_manager.follow_screens(ui.ctx(), &settings.ui);
 
         match state_manager.app_state_mut() {
             AppState::Settings => show_settings_window(

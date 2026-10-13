@@ -28,6 +28,31 @@ impl Monitor {
     }
 }
 
+/// Which screens are connected and where, compared between checks to notice
+/// a change: a projector plugged in, or PowerPoint switching Windows between
+/// duplicate and extend for its presenter view.
+#[derive(PartialEq)]
+pub struct Screens(Vec<String>);
+
+impl Screens {
+    /// `None` when they cannot be listed, which can happen for a moment in the
+    /// middle of a switch; the next check sees how it ended.
+    pub fn current() -> Option<Self> {
+        let displays = DisplayInfo::all().ok()?;
+        Some(Self(
+            displays
+                .iter()
+                .map(|d| {
+                    format!(
+                        "{} {},{} {}x{} {}",
+                        d.name, d.x, d.y, d.width, d.height, d.is_primary
+                    )
+                })
+                .collect(),
+        ))
+    }
+}
+
 fn label(display: &DisplayInfo) -> String {
     let primary = if display.is_primary { ", primary" } else { "" };
     format!(
@@ -60,6 +85,28 @@ pub fn move_to(ctx: &Context, name: &str) -> Option<Pos2> {
         .input(|i| i.viewport().outer_rect)
         .map_or(Pos2::ZERO, |rect| rect.min * ppp);
 
+    center_on(ctx, &display);
+    Some(origin)
+}
+
+/// The screen a running overlay belongs on after the screens changed: the
+/// chosen one if it is connected now, otherwise the primary, which in
+/// duplicate mode is the only one there is. `None` with no monitor chosen:
+/// the overlay stays on the screen it is on.
+pub fn target(name: Option<&str>) -> Option<DisplayInfo> {
+    let name = name?;
+    DisplayInfo::from_name(name).ok().or_else(|| {
+        DisplayInfo::all()
+            .ok()?
+            .into_iter()
+            .find(|display| display.is_primary)
+    })
+}
+
+/// Centres the window on `display`; [`move_to`] explains why the centre.
+pub fn center_on(ctx: &Context, display: &DisplayInfo) {
+    let ppp = ctx.pixels_per_point();
+
     // `OuterPosition` takes points and egui multiplies them by
     // `pixels_per_point` on the way to winit, which wants physical pixels.
     // display-info reports Windows screens in physical pixels, X11 ones
@@ -79,7 +126,6 @@ pub fn move_to(ctx: &Context, name: &str) -> Option<Pos2> {
         center_x - SETTINGS_WINDOW_SIZE.x / 2.0,
         center_y - SETTINGS_WINDOW_SIZE.y / 2.0,
     )));
-    Some(origin)
 }
 
 /// Puts the window back where [`move_to`] found it. The origin is kept in
