@@ -21,9 +21,10 @@ pub fn apply_theme(ctx: &Context) {
     visuals.selection.bg_fill = ACCENT;
     visuals.selection.stroke = Stroke::new(1.0, TEXT);
 
-    let radius = CornerRadius::same(6);
+    let radius = CornerRadius::same(3);
     let border = Stroke::new(1.0, HOVER);
     visuals.window_stroke = border;
+    visuals.menu_corner_radius = radius;
 
     let w = &mut visuals.widgets;
 

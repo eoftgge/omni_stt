@@ -1,4 +1,5 @@
 use super::layout::{Squared, label, row, section, settings_grid};
+use crate::audio::CHUNK_PERIOD;
 use crate::audio::device::{AudioSource, DeviceKind, MappableAvailableDevices};
 use crate::settings::audio::SettingsAudio;
 use eframe::egui;
@@ -9,24 +10,13 @@ pub(super) fn ui_section_audio(
     settings_audio: &mut SettingsAudio,
     devices: &mut MappableAvailableDevices,
 ) {
-    section(ui, "Audio", false, |ui| {
+    section(ui, None, |ui| {
         settings_grid("audio_grid").show(ui, |ui| {
-            row(
-                ui,
-                "Hangover Chunks:",
-                Slider::new(&mut settings_audio.hangover_chunks, 0..=50),
-            );
-            row(
-                ui,
-                "Threshold:",
-                Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true),
-            );
-
             ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                 label(ui, "Sources:");
             });
             ui.vertical(|ui| {
-                if ui.button("⟳  Rescan devices").clicked() {
+                if ui.button("Rescan devices").clicked() {
                     devices.refresh();
                 }
 
@@ -64,6 +54,29 @@ pub(super) fn ui_section_audio(
                 }
             });
             ui.end_row();
+
+            // Stored as a chunk count; people think in seconds.
+            let chunk = CHUNK_PERIOD.as_secs_f64();
+            row(
+                ui,
+                "Keep listening:",
+                Slider::new(&mut settings_audio.hangover_chunks, 0..=50)
+                    .custom_formatter(move |n, _| format!("{:.1} s", n * chunk)),
+            )
+            .on_hover_text(
+                "How long audio keeps flowing after speech stops, so the end of a \
+                 phrase is not cut off",
+            );
+            row(
+                ui,
+                "Noise gate:",
+                Slider::new(&mut settings_audio.vad_threshold, 0..=2000).logarithmic(true),
+            )
+            .on_hover_text(
+                "Sound quieter than this counts as silence and is not recognised. \
+                 Raise it if background noise turns into stray words, lower it if \
+                 quiet speech is missed.",
+            );
         });
     });
 }

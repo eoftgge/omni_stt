@@ -6,35 +6,29 @@ use eframe::egui::text::LayoutJob;
 use eframe::egui::{Checkbox, FontId, Slider, TextFormat, Ui};
 
 pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
-    section(ui, "Appearance", false, |ui| {
+    section(ui, Some("Appearance"), |ui| {
         settings_grid("appearance_grid").show(ui, |ui| {
             row(
                 ui,
-                "Max Lines:",
+                "Lines on screen:",
                 Slider::new(&mut settings_ui.max_lines, 1..=10),
             )
             .on_hover_text("How many lines of subtitles are shown at once");
             row(
                 ui,
-                "History Blocks:",
-                Slider::new(&mut settings_ui.max_blocks, 1..=10),
-            )
-            .on_hover_text("How much text is kept; raise it if lines vanish too early");
-            row(
-                ui,
-                "Font Size:",
+                "Font size:",
                 Slider::new(&mut settings_ui.font_size, 10..=80),
             );
             row(
                 ui,
-                "Always On Top:",
+                "Always on top:",
                 Squared(Checkbox::without_text(
                     &mut settings_ui.enable_high_priority,
                 )),
             );
             row(
                 ui,
-                "Text Outline:",
+                "Text outline:",
                 Squared(Checkbox::without_text(&mut settings_ui.is_text_outline)),
             );
         });
@@ -42,7 +36,7 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
         ui.separator();
 
         settings_grid("color_grid").show(ui, |ui| {
-            label(ui, "Background Color:");
+            label(ui, "Background color:");
             ui.horizontal(|ui| {
                 let color = &mut settings_ui.background_color;
                 if ui.color_edit_button_srgba_unmultiplied(color).changed() {
@@ -57,7 +51,7 @@ pub(super) fn ui_section_appearance(ui: &mut Ui, settings_ui: &mut SettingsUI) {
             });
             ui.end_row();
 
-            label(ui, "Text Color:");
+            label(ui, "Text color:");
             ui.horizontal(|ui| {
                 let color = &mut settings_ui.text_color;
                 if ui.color_edit_button_srgb(color).changed() {

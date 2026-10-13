@@ -4,10 +4,8 @@ use eframe::egui::{Hyperlink, RichText, Ui};
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
 
-/// Licence and notices link to the release tag, not `main`: they must describe
-/// the build the user is running, and `main` may have moved on since.
 pub(super) fn ui_section_about(ui: &mut Ui) {
-    section(ui, "About", false, |ui| {
+    section(ui, Some("about"), |ui| {
         ui.label(RichText::new(format!("Omni-STT {VERSION}")).strong());
         ui.label("Real-time subtitles over everything, from your speakers or your microphone.");
 

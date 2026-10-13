@@ -138,9 +138,16 @@ fn target_peak_sets_the_output_level() {
     }
 
     // Second half only: the gain needs a few blocks to settle.
-    let peak = output[8_000..].iter().map(|s| s.unsigned_abs()).max().unwrap();
+    let peak = output[8_000..]
+        .iter()
+        .map(|s| s.unsigned_abs())
+        .max()
+        .unwrap();
     let level = peak as f32 / SCALE;
-    assert!((level - 0.45).abs() < 0.05, "peak at {level}, expected 0.45");
+    assert!(
+        (level - 0.45).abs() < 0.05,
+        "peak at {level}, expected 0.45"
+    );
 }
 
 #[test]

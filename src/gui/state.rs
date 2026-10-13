@@ -46,7 +46,6 @@ fn apply_overlay_window(
 }
 
 fn apply_settings_window(ctx: &Context) {
-    ctx.send_viewport_cmd(ViewportCommand::Decorations(true));
     ctx.send_viewport_cmd(ViewportCommand::Transparent(false));
     ctx.send_viewport_cmd(ViewportCommand::MousePassthrough(false));
     ctx.send_viewport_cmd(ViewportCommand::Resizable(false));

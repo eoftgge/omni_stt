@@ -171,6 +171,10 @@ impl App for SubtitlesApp {
 
 impl Drop for SubtitlesApp {
     fn drop(&mut self) {
+        if let Err(e) = self.settings_manager.save() {
+            tracing::error!("Failed to save settings on exit: {e}");
+        }
+
         self.store.finish();
         for block in self.store.take_completed() {
             if let Some(writer) = &mut self.transcript {

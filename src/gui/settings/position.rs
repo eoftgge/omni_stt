@@ -11,7 +11,7 @@ pub(super) fn ui_section_position(
     settings_ui: &mut SettingsUI,
     monitors: &mut Vec<Monitor>,
 ) {
-    section(ui, "Position", false, |ui| {
+    section(ui, Some("Position"), |ui| {
         settings_grid("position_grid").show(ui, |ui| {
             label(ui, "Monitor:");
             let selected = match &settings_ui.monitor {

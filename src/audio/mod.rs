@@ -75,8 +75,7 @@ impl AudioSession {
                     // A dry pool means all POOL_BUFFERS are waiting downstream:
                     // the mixer has not drained for over a second, and its own
                     // MAX_PENDING cap would drop this audio anyway.
-                    let Some(mut next) = spare.take().or_else(|| rx_recycle.try_recv().ok())
-                    else {
+                    let Some(mut next) = spare.take().or_else(|| rx_recycle.try_recv().ok()) else {
                         accumulator.clear();
                         continue;
                     };

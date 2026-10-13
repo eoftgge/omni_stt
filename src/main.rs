@@ -113,10 +113,9 @@ fn run() -> Result<(), OmniSttErrors> {
             .with_icon(icon)
             .with_inner_size(SETTINGS_WINDOW_SIZE)
             .with_resizable(false)
-            .with_decorations(true)
+            .with_decorations(false)
             .with_always_on_top()
-            .with_transparent(true)
-            .with_maximize_button(false),
+            .with_transparent(true),
         ..Default::default()
     };
 

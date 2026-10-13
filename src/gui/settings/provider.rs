@@ -13,17 +13,17 @@ pub(super) fn ui_section_provider(
     key_storage: &KeyStorage,
     vosk_probe: &mut VoskProbe,
 ) {
-    section(ui, "Speech Engine (STT)", true, |ui| {
+    section(ui, None, |ui| {
         ui.horizontal(|ui| {
             ui.selectable_value(
                 &mut settings_provider.active_type,
                 ProviderType::Soniox,
-                "☁ Soniox (Cloud)",
+                "Soniox (Cloud)",
             );
             ui.selectable_value(
                 &mut settings_provider.active_type,
                 ProviderType::Vosk,
-                "💻 Vosk (Offline)",
+                "Vosk (Offline)",
             );
         });
 
@@ -58,7 +58,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
                 ui.horizontal(|ui| {
                     label(ui, &format!("{}.", i + 1));
                     ui_language_searchable_combo(ui, format!("hint_{}", i), hint);
-                    if ui.button("🗑").clicked() {
+                    if ui.button("×").clicked() {
                         to_remove = Some(i);
                     }
                 });
@@ -66,7 +66,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
             if let Some(i) = to_remove {
                 soniox.language_hints.remove(i);
             }
-            if ui.button("➕ Add").clicked() {
+            if ui.button("+ Add").clicked() {
                 soniox.language_hints.push(LanguageHint::English);
             }
         });
@@ -93,10 +93,7 @@ fn ui_soniox_settings(ui: &mut Ui, soniox: &mut SonioxSettings, key_storage: &Ke
         row(
             ui,
             "Options:",
-            Squared(Checkbox::new(
-                &mut soniox.enable_speakers,
-                "Enable Speakers ID",
-            )),
+            Squared(Checkbox::new(&mut soniox.enable_speakers, "Label speakers")),
         );
     });
 }

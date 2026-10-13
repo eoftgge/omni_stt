@@ -1,5 +1,5 @@
 use crate::gui::theme;
-use eframe::egui::{self, CollapsingHeader, CornerRadius, Grid, Response, RichText, Ui};
+use eframe::egui::{self, CornerRadius, Grid, Response, RichText, Ui};
 
 /// egui paints a checkbox with the shared widget corner radius, and at the
 /// 14 px icon size the theme's 6 px is all but a circle. Square it off around
@@ -22,16 +22,13 @@ impl<W: egui::Widget> egui::Widget for Squared<W> {
     }
 }
 
-pub(super) fn section(
-    ui: &mut Ui,
-    title: &str,
-    default_open: bool,
-    add_contents: impl FnOnce(&mut Ui),
-) {
-    CollapsingHeader::new(RichText::new(title).size(15.0).strong().color(theme::TEXT))
-        .default_open(default_open)
-        .show(ui, add_contents);
-    ui.add_space(6.0);
+pub(super) fn section(ui: &mut Ui, title: Option<&str>, add_contents: impl FnOnce(&mut Ui)) {
+    if let Some(title) = title {
+        ui.label(RichText::new(title).size(13.0).strong().color(theme::LABEL));
+        ui.add_space(2.0);
+    }
+    add_contents(ui);
+    ui.add_space(10.0);
 }
 
 pub(super) fn row(ui: &mut Ui, text: &str, widget: impl egui::Widget) -> Response {
