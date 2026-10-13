@@ -123,6 +123,7 @@ impl TracingControl {
         let (new_sink, new_guard, error) = make_sink(enabled);
         *self.sink.write().expect("sink lock poisoned") = new_sink;
         self.guard = new_guard;
+        // Only after the write lock is released: logging takes the read lock.
         if let Some(e) = error {
             tracing::error!("Cannot write logs to a file, using stdout: {e}");
         }

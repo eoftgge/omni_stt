@@ -80,6 +80,10 @@ fn select_adapter(
         .ok_or_else(|| "No WGPU adapters found".to_owned())
 }
 
+/// Config, logs and transcripts are relative paths. Anchor them to the
+/// program's own folder, so a shortcut with another "Start in", a terminal
+/// opened elsewhere or autostart (which starts in System32) all find the same
+/// omni.toml. `cargo run` keeps the project root, where the dev config lives.
 fn anchor_to_exe_dir() {
     if std::env::var_os("CARGO_MANIFEST_DIR").is_some() {
         return;
