@@ -37,7 +37,7 @@ pub(super) fn ui_section_audio(
                     }
                 }
 
-                if settings_audio.sources.is_empty() {
+                if !settings_audio.sources.iter().any(AudioSource::is_native) {
                     ui.add_space(4.0);
                     ui.label(
                         RichText::new("Nothing ticked — system audio will be used")
