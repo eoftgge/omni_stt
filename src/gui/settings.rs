@@ -212,7 +212,13 @@ fn summary(settings: &SettingsApp, devices: &MappableAvailableDevices) -> String
         ProviderType::Soniox => "Soniox",
         ProviderType::Vosk => "Vosk",
     };
-    let audio = match settings.audio.sources.as_slice() {
+    let native: Vec<_> = settings
+        .audio
+        .sources
+        .iter()
+        .filter(|source| source.is_native())
+        .collect();
+    let audio = match native.as_slice() {
         [] => "default speakers".to_owned(),
         [one] => devices.get(one.kind, &one.id).map_or_else(
             || "a disconnected device".to_owned(),

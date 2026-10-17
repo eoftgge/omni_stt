@@ -1,7 +1,9 @@
+#[cfg(test)]
+mod tests;
+
 use crate::errors::OmniSttErrors;
 use cpal::traits::{DeviceTrait, HostTrait};
 use cpal::{Device, DeviceId, StreamConfig};
-use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::str::FromStr;
 
@@ -10,6 +12,13 @@ use std::str::FromStr;
 pub struct AudioSource {
     pub kind: DeviceKind,
     pub id: SettingDeviceId,
+}
+
+impl AudioSource {
+    /// False for a source saved on another system; see [`SettingDeviceId`].
+    pub fn is_native(&self) -> bool {
+        matches!(self.id, SettingDeviceId::Native(_))
+    }
 }
 
 /// Which side of a device the audio is taken from.
@@ -47,8 +56,18 @@ pub struct AvailableDevice {
     kind: DeviceKind,
 }
 
+/// A device id as `omni.toml` stores it.
+///
+/// The text names the audio host (`wasapi:…`, `coreaudio:…`), and cpal only
+/// knows the hosts of the system it was built for. A config carried on a USB
+/// stick between Windows and a Mac holds ids from both. Ids from the other
+/// system are kept as text: they never match a device here, and are written
+/// back untouched, so they work again once the stick is back.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SettingDeviceId(DeviceId);
+pub enum SettingDeviceId {
+    Native(DeviceId),
+    Foreign(String),
+}
 
 impl AvailableDevice {
     pub fn new(device: Device, kind: DeviceKind) -> Option<Self> {
@@ -56,7 +75,7 @@ impl AvailableDevice {
         let desc = device.description().ok()?;
         Some(Self {
             inner: device,
-            id: SettingDeviceId(id),
+            id: SettingDeviceId::Native(id),
             name: desc.name().into(),
             kind,
         })
@@ -131,13 +150,14 @@ impl MappableAvailableDevices {
     ///
     /// An empty selection means the default output device: that keeps the
     /// behaviour of every version before this one, and gives a fresh install
-    /// something to listen to without any setup at all.
+    /// something to listen to without any setup at all. So does a selection
+    /// made entirely on another system.
     ///
     /// An entry whose device has since disappeared is reported and skipped
     /// rather than failing the start — one unplugged microphone must not take
     /// the other sources down with it.
     pub fn resolve(&self, sources: &[AudioSource]) -> Vec<AvailableDevice> {
-        if sources.is_empty() {
+        if !sources.iter().any(AudioSource::is_native) {
             return AvailableDevice::from_host(&self.0, DeviceKind::Output)
                 .into_iter()
                 .collect();
@@ -145,6 +165,7 @@ impl MappableAvailableDevices {
 
         sources
             .iter()
+            .filter(|source| source.is_native())
             .filter_map(|source| {
                 let found = self.get(source.kind, &source.id).cloned();
                 if found.is_none() {
@@ -178,11 +199,15 @@ impl MappableAvailableDevices {
 
 impl SettingDeviceId {
     pub fn new(id: DeviceId) -> Self {
-        Self(id)
+        Self::Native(id)
     }
 
-    pub fn inner(&self) -> &DeviceId {
-        &self.0
+    /// `None` for an id from another system.
+    pub fn inner(&self) -> Option<&DeviceId> {
+        match self {
+            Self::Native(id) => Some(id),
+            Self::Foreign(_) => None,
+        }
     }
 }
 
@@ -191,8 +216,10 @@ impl serde::Serialize for SettingDeviceId {
     where
         S: Serializer,
     {
-        let s = self.0.to_string();
-        s.serialize(serializer)
+        match self {
+            Self::Native(id) => id.to_string().serialize(serializer),
+            Self::Foreign(text) => text.serialize(serializer),
+        }
     }
 }
 
@@ -201,8 +228,15 @@ impl<'de> serde::Deserialize<'de> for SettingDeviceId {
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
-        let id = DeviceId::from_str(&s).map_err(D::Error::custom)?;
-        Ok(Self(id))
+        // Never an error: one id from another system used to reset the whole
+        // config to defaults, API key included.
+        let text = String::deserialize(deserializer)?;
+        Ok(match DeviceId::from_str(&text) {
+            Ok(id) => Self::Native(id),
+            Err(e) => {
+                tracing::debug!("Keeping a device id from another system: {e}");
+                Self::Foreign(text)
+            }
+        })
     }
 }
