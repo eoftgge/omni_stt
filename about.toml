@@ -1,0 +1,33 @@
+# cargo-about: generates THIRD-PARTY-NOTICES.md from about.hbs.
+#   cargo install cargo-about --locked
+#   cargo about generate about.hbs -o THIRD-PARTY-NOTICES.md
+
+# Licenses allowed in what ships. A crate offering a choice ("MIT OR
+# Apache-2.0") is listed under the first one here that it offers.
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "Unlicense",
+    "CC0-1.0",
+    "BSL-1.0",
+    "Unicode-3.0",
+    "MPL-2.0",
+    "NCSA",
+    "OFL-1.1",
+    "Ubuntu-font-1.0",
+]
+
+# Only what ends up in the release builds.
+targets = [
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-apple-darwin",
+]
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
