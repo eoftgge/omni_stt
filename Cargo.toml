@@ -26,9 +26,9 @@ embed_plist = "1.2.2"
 async-trait = "0.1.92"
 tokio-util = "0.7.19"
 rfd = "0.17.2"
-tray-icon = "0.25.0"
+tray-icon = "0.26.1"
 keyring = "4.2.0"
-libloading = "0.8.9"
+libloading = "0.9.0"
 time = { version = "0.3.55", features = ["local-offset"] }
 display-info = "0.5.9"
 
