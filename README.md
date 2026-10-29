@@ -2,7 +2,7 @@
 
 Real-time subtitles over everything, from your speakers or your microphone.
 
-![Omni-STT running over a video](assets/screenshot.jpg)
+![Omni-STT running over a video](.github/screenshot.jpg)
 
 Omni-STT listens to sound - what your speakers are playing, what your
 microphone hears, or several of those at once - recognizes the speech and draws
