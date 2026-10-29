@@ -1,0 +1,12 @@
+#!/bin/sh
+# The fast half of CI, so a push does not go red over formatting or a lint.
+# Enable once per clone:  git config core.hooksPath .githooks
+# Skip when you must:     git commit --no-verify
+set -e
+
+if ! cargo fmt --check; then
+    echo "pre-commit: run 'cargo fmt' and stage the result" >&2
+    exit 1
+fi
+
+cargo clippy --all-targets --quiet -- -D warnings
