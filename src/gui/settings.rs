@@ -165,16 +165,32 @@ fn ui_bottom_panel(
             let summary = summary(&settings_manager.settings, devices);
             ui.add(egui::Label::new(RichText::new(summary).small().color(theme::LABEL)).truncate());
             ui.add_space(6.0);
-
-            ui.vertical_centered_justified(|ui| {
-                let start_button = Button::new(RichText::new("Start").strong())
+            ui.columns(2, |cols| {
+                let save_button = Button::new(RichText::new("Save").strong())
+                    .min_size(vec2(0.0, 40.0))
+                    .fill(theme::HOVER);
+                let start_button = Button::new(RichText::new("Save & Start").strong())
                     .min_size(vec2(0.0, 40.0))
                     .fill(theme::ACCENT);
-                if ui.add(start_button).clicked() {
-                    start(settings_manager, manager, toasts, tray_failed);
-                }
+                cols[0].vertical_centered_justified(|ui| {
+                    if ui.add(save_button).clicked() {
+                        save(settings_manager, toasts);
+                    }
+                });
+                cols[1].vertical_centered_justified(|ui| {
+                    if ui.add(start_button).clicked() {
+                        start(settings_manager, manager, toasts, tray_failed);
+                    }
+                })
             });
         });
+}
+
+fn save(settings_manager: &mut SettingsManager, toasts: &mut Toasts) {
+    match settings_manager.save() {
+        Ok(_) => toasts.success("Settings saved successfully!"),
+        Err(e) => toasts.error(format!("Failed to save: {e}")),
+    }
 }
 
 fn start(
@@ -183,9 +199,7 @@ fn start(
     toasts: &mut Toasts,
     tray_failed: bool,
 ) {
-    if let Err(e) = settings_manager.save() {
-        toasts.error(format!("Failed to save settings: {e}"));
-    }
+    save(settings_manager, toasts);
 
     if tray_failed {
         toasts.warn(
