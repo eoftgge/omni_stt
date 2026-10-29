@@ -2,6 +2,11 @@
 pub mod pump;
 
 use std::sync::mpsc::{Receiver, Sender, channel};
+#[cfg(target_os = "windows")]
+use std::sync::{
+    Arc,
+    atomic::{AtomicU32, Ordering},
+};
 
 use eframe::egui::{Context, IconData};
 use tray_icon::menu::{Menu, MenuEvent, MenuId, MenuItem};
@@ -13,19 +18,33 @@ use crate::errors::OmniSttErrors;
 #[derive(Clone, Copy, Debug)]
 pub enum TrayAction {
     OpenSettings,
-    Restart,
+    /// Starts the overlay from the settings, or restarts a running one. The
+    /// menu item reads "Start" or "Restart" to match.
+    Start,
     Quit,
+}
+
+fn start_label(running: bool) -> &'static str {
+    if running { "Restart" } else { "Start" }
 }
 
 struct Tray {
     icon: TrayIcon,
     ids: [(MenuId, TrayAction); 3],
+    start: MenuItem,
 }
 
 pub struct AppTray {
     events: Receiver<Result<TrayAction, OmniSttErrors>>,
+    /// The tray thread's id once its menu exists, 0 before.
+    #[cfg(target_os = "windows")]
+    tray_thread: Arc<AtomicU32>,
     #[cfg(not(target_os = "windows"))]
     _icon: Option<TrayIcon>,
+    #[cfg(not(target_os = "windows"))]
+    start_item: Option<MenuItem>,
+    /// What the Start item currently says, so it is only changed on a change.
+    running: bool,
     tray_failed: bool,
 }
 
@@ -33,9 +52,13 @@ impl AppTray {
     #[cfg(target_os = "windows")]
     pub fn spawn(icon: IconData, ctx: Context) -> Self {
         let (tx, events) = channel();
-        std::thread::spawn(move || tray_main(icon, ctx, tx));
+        let tray_thread = Arc::new(AtomicU32::new(0));
+        let thread_slot = Arc::clone(&tray_thread);
+        std::thread::spawn(move || tray_main(icon, ctx, tx, thread_slot));
         Self {
             events,
+            tray_thread,
+            running: false,
             tray_failed: false,
         }
     }
@@ -44,26 +67,48 @@ impl AppTray {
     pub fn spawn(icon: IconData, ctx: Context) -> Self {
         let (tx, events) = channel();
 
-        let icon = match build_tray(icon) {
-            Ok(Tray { icon, ids }) => {
+        let (icon, start_item) = match build_tray(icon) {
+            Ok(Tray { icon, ids, start }) => {
                 std::thread::spawn(move || forward_menu_events(ids, ctx, tx));
-                Some(icon)
+                (Some(icon), Some(start))
             }
             Err(e) => {
                 let _ = tx.send(Err(e));
-                None
+                (None, None)
             }
         };
 
         Self {
             events,
             _icon: icon,
+            start_item,
+            running: false,
             tray_failed: false,
         }
     }
 
     pub fn poll(&self) -> Option<Result<TrayAction, OmniSttErrors>> {
         self.events.try_recv().ok()
+    }
+
+    pub fn set_running(&mut self, running: bool) {
+        if self.running == running {
+            return;
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            let thread = self.tray_thread.load(Ordering::Acquire);
+            if thread == 0 || !pump::post_running(thread, running) {
+                return;
+            }
+        }
+        #[cfg(not(target_os = "windows"))]
+        if let Some(item) = &self.start_item {
+            item.set_text(start_label(running));
+        }
+
+        self.running = running;
     }
 
     pub fn set_failed(&mut self) {
@@ -76,8 +121,17 @@ impl AppTray {
 }
 
 #[cfg(target_os = "windows")]
-fn tray_main(icon: IconData, ctx: Context, tx: Sender<Result<TrayAction, OmniSttErrors>>) {
-    let Tray { icon: _icon, ids } = match build_tray(icon) {
+fn tray_main(
+    icon: IconData,
+    ctx: Context,
+    tx: Sender<Result<TrayAction, OmniSttErrors>>,
+    thread_slot: Arc<AtomicU32>,
+) {
+    let Tray {
+        icon: _icon,
+        ids,
+        start,
+    } = match build_tray(icon) {
         Ok(tray) => tray,
         Err(err) => {
             let _ = tx.send(Err(err));
@@ -86,26 +140,27 @@ fn tray_main(icon: IconData, ctx: Context, tx: Sender<Result<TrayAction, OmniStt
         }
     };
 
+    thread_slot.store(pump::current_thread(), Ordering::Release);
     std::thread::spawn(move || forward_menu_events(ids, ctx, tx));
-    pump::run();
+    pump::run(|running| start.set_text(start_label(running)));
 }
 
 fn build_tray(icon: IconData) -> Result<Tray, OmniSttErrors> {
     let image = Icon::from_rgba(icon.rgba, icon.width, icon.height)?;
 
     let open_settings = MenuItem::new("Open Settings", true, None);
-    let restart = MenuItem::new("Restart", true, None);
+    let start = MenuItem::new(start_label(false), true, None);
     let quit = MenuItem::new("Quit", true, None);
 
     let ids = [
         (open_settings.id().clone(), TrayAction::OpenSettings),
-        (restart.id().clone(), TrayAction::Restart),
+        (start.id().clone(), TrayAction::Start),
         (quit.id().clone(), TrayAction::Quit),
     ];
 
     let menu = Menu::new();
     menu.append(&open_settings)?;
-    menu.append(&restart)?;
+    menu.append(&start)?;
     menu.append(&quit)?;
 
     let icon = TrayIconBuilder::new()
@@ -114,7 +169,7 @@ fn build_tray(icon: IconData) -> Result<Tray, OmniSttErrors> {
         .with_icon(image)
         .build()?;
 
-    Ok(Tray { icon, ids })
+    Ok(Tray { icon, ids, start })
 }
 
 fn forward_menu_events(

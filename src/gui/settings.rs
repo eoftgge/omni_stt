@@ -193,7 +193,7 @@ fn save(settings_manager: &mut SettingsManager, toasts: &mut Toasts) {
     }
 }
 
-fn start(
+pub(crate) fn start(
     settings_manager: &mut SettingsManager,
     manager: &mut StateManager,
     toasts: &mut Toasts,

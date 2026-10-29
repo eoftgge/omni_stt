@@ -1,7 +1,7 @@
 use crate::event::PipelineEvent;
 use crate::gui::Notify;
 use crate::gui::overlay::draw_subtitles;
-use crate::gui::settings::{SettingsScreen, show_settings_window};
+use crate::gui::settings::{SettingsScreen, show_settings_window, start};
 use crate::gui::state::{AppState, LoadingOutcome, PendingState, StateManager};
 use crate::gui::tray::{AppTray, TrayAction};
 use crate::logger::TracingControl;
@@ -57,7 +57,17 @@ impl App for SubtitlesApp {
         match self.tray.poll() {
             Some(Ok(action)) => match action {
                 TrayAction::OpenSettings => state_manager.switch(PendingState::Settings),
-                TrayAction::Restart => state_manager.switch(PendingState::Overlay),
+                // From the settings the same checks as their Start button: a
+                // missing API key should say so, not fail to connect.
+                TrayAction::Start if matches!(state_manager.app_state(), AppState::Settings) => {
+                    start(
+                        &mut self.settings_manager,
+                        state_manager,
+                        &mut self.toasts,
+                        false,
+                    )
+                }
+                TrayAction::Start => state_manager.switch(PendingState::Overlay),
                 TrayAction::Quit => ui.ctx().send_viewport_cmd(ViewportCommand::Close),
             },
             Some(Err(e)) => {
@@ -85,6 +95,8 @@ impl App for SubtitlesApp {
             Err(e) => self.toasts.error(e.to_string()),
         }
         state_manager.follow_screens(ui.ctx(), &settings.ui);
+        self.tray
+            .set_running(!matches!(state_manager.app_state(), AppState::Settings));
 
         match state_manager.app_state_mut() {
             AppState::Settings => show_settings_window(
