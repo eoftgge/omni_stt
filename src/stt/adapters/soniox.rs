@@ -20,7 +20,7 @@ use types::{SonioxTranscriptionMessage, SonioxTranscriptionRequest};
 
 const ERROR_CODES_RECONNECT: &[usize] = &[408, 502, 503];
 const URL: &str = "wss://stt-rt.soniox.com/transcribe-websocket";
-const MODEL: &str = "stt-rt-v4";
+const MODEL: &str = "stt-rt-v6";
 const READ_TIMEOUT: std::time::Duration = std::time::Duration::from_mins(1);
 const IDLE_CLOSE: std::time::Duration = std::time::Duration::from_secs(15);
 
